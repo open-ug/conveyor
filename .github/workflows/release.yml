@@ -1,0 +1,22 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2.0.8
+        with:
+          files: |
+            metacontroller/crds/Application.yml
+            metacontroller/controllers/ApplicationController.yaml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
