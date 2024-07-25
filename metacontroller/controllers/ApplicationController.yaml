@@ -1,0 +1,22 @@
+apiVersion: metacontroller.k8s.io/v1alpha1
+kind: CompositeController
+metadata:
+  name: application-controller
+spec:
+  generateSelector: true
+  parentResource:
+    apiVersion: cloud.cranom.tech/vl
+    resource: applications
+  childResources:
+  - apiVersion: v1
+    resource: deployments
+    updateStrategy:
+      method: Recreate
+  - apiVersion: v1
+    resource: services
+    updateStrategy:
+      method: Recreate
+  hooks:
+    sync:
+      webhook:
+        url: http://application-controller.cloud/api/kube/metacontroller/apps/sync
