@@ -19,9 +19,6 @@ FROM alpine:latest as release
 
 WORKDIR /app
 
-# Create the `public` dir and copy all the assets into it
-RUN mkdir ./static
-COPY ./static ./static
 
 # `boilerplate` should be replaced here as well
 COPY --from=build /go/src/boilerplate/app .
@@ -38,4 +35,4 @@ EXPOSE 3000
 
 
 # Start the application
-ENTRYPOINT ["/usr/bin/dumb-init", "./app"]
+CMD ["./app"]
