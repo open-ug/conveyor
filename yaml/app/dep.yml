@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crane-dep
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crane-dep
+  template:
+    metadata:
+      labels:
+        app: crane-dep
+    spec:
+      containers:
+      - name: controller
+        image: jimjuniorb/crane-operator:latest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crane-dep
+spec:
+  selector:
+    app: crane-dep
+  ports:
+  - port: 3000
+    targetPort: 3000

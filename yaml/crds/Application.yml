@@ -1,0 +1,72 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: applications.cloud.cranom.tech
+spec:
+  group: cloud.cranom.tech
+  names:
+    kind: Application
+    plural: applications
+    singular: application
+  scope: Namespaced
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            properties:
+              # Application Name
+              app-name:
+                type: string
+              # image name
+              image:
+                type: string
+              # Volumes
+              volumes:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    volume-name:
+                      type: string
+                    path:
+                      type: string
+              # Port Configuration
+              ports:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    internal:
+                      type: integer
+                      format: int64
+                    external:
+                      type: integer
+                      format: int64
+                    domain:
+                      type: string
+                    SSL:
+                      type: boolean
+              # Environment variables
+              envFrom:
+                type: string
+
+
+
+

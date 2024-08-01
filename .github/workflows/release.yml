@@ -16,7 +16,7 @@ jobs:
         uses: softprops/action-gh-release@v2.0.8
         with:
           files: |
-            metacontroller/crds/Application.yml
-            metacontroller/controllers/ApplicationController.yaml
+            yaml/crds/Application.yml
+            yaml/controllers/ApplicationController.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

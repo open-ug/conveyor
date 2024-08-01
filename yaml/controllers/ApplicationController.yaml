@@ -11,7 +11,7 @@ spec:
   - apiVersion: v1
     resource: deployments
     updateStrategy:
-      method: Recreate
+      method: RollingInPlace
   - apiVersion: v1
     resource: services
     updateStrategy:
@@ -19,4 +19,4 @@ spec:
   hooks:
     sync:
       webhook:
-        url: http://application-controller.cloud/api/kube/metacontroller/apps/sync
+        url: http://crane-dep.crane-op/sync
