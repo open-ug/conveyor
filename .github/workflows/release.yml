@@ -17,6 +17,5 @@ jobs:
         with:
           files: |
             yaml/crds/Application.yml
-            yaml/controllers/ApplicationController.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
