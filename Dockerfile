@@ -30,9 +30,6 @@ RUN apk -U upgrade \
 
 RUN ls
 
-# Exposes port 3000 because our program listens on that port
-EXPOSE 3000
-
 
 # Start the application
 CMD ["./app"]
