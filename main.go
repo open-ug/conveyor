@@ -11,7 +11,6 @@ import (
 	craneKubeUtils "crane.cloud.cranom.tech/kube"
 
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -43,23 +42,20 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	log := log.FromContext(ctx).WithValues("application", req.NamespacedName)
 	log.Info("reconciling application")
 
-	// create deployment if not exists
-	deploymentsClient := r.kubeClient.AppsV1().Deployments(req.Namespace)
-
 	var application cranev1.Application
 	err := r.Client.Get(ctx, req.NamespacedName, &application)
 	if err != nil {
 		if k8serrors.IsNotFound(err) { // application not found, we can delete the resources
-			applicationName := "application-" + req.Name
-			err = deploymentsClient.Delete(ctx, applicationName, metav1.DeleteOptions{})
+			err = craneKubeUtils.DeleteApplication(ctx, req, r.kubeClient)
 			if err != nil {
-				return ctrl.Result{}, fmt.Errorf("couldn't delete deployment: %s", err)
+				return ctrl.Result{}, fmt.Errorf("couldn't delete resources: %s", err)
 			}
+			return ctrl.Result{}, nil
 		}
 	}
 
 	// create or update deployment
-	err = craneKubeUtils.CreateDeploymentFromApp(ctx, req, application, r.kubeClient)
+	err = craneKubeUtils.ApplyApplication(ctx, req, application, r.kubeClient)
 
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("couldn't create or update deployment: %s", err)

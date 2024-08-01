@@ -3,6 +3,7 @@ package kube
 import (
 	"context"
 	"fmt"
+	"log"
 
 	cranev1 "crane.cloud.cranom.tech/api/v1"
 
@@ -10,35 +11,68 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func CreateDeploymentFromApp(
+func ApplyApplication(
 	ctx context.Context,
 	req ctrl.Request,
 	application cranev1.Application,
-	deploymentsClient *kubernetes.Clientset,
+	kubeClient *kubernetes.Clientset,
 ) error {
+	created := false
 	applicationName := "application-" + req.Name
-	deployment, err := deploymentsClient.AppsV1().Deployments(req.Namespace).Get(ctx, applicationName, metav1.GetOptions{})
+	// check if deployment exists
+	deployment, err := kubeClient.AppsV1().Deployments(req.Namespace).Get(ctx, applicationName, metav1.GetOptions{})
 	if err != nil {
 		if k8serrors.IsNotFound(err) {
 			// create deployment
 			deploymentCFG := GetDeploymentCFGFromApp(application)
-			_, err := deploymentsClient.AppsV1().Deployments(req.Namespace).Create(ctx, deploymentCFG, metav1.CreateOptions{})
+			_, err := kubeClient.AppsV1().Deployments(req.Namespace).Create(ctx, deploymentCFG, metav1.CreateOptions{})
 			if err != nil {
 				return fmt.Errorf("couldn't create deployment: %s", err)
 			}
-			return nil
+
+		} else {
+			return err
 		}
-		return err
+
+	}
+
+	// Check if service exists
+	service, err := kubeClient.CoreV1().Services(req.Namespace).Get(ctx, applicationName, metav1.GetOptions{})
+	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			// create service
+			serviceCFG := GetServiceCFGFromApp(application)
+			_, err := kubeClient.CoreV1().Services(req.Namespace).Create(ctx, serviceCFG, metav1.CreateOptions{})
+			if err != nil {
+				return fmt.Errorf("couldn't create service: %s", err)
+			}
+			created = true
+		} else {
+			return err
+		}
+	}
+
+	if created {
+		return nil
+	}
+
+	// update service
+	serviceCFG := GetServiceCFGFromApp(application)
+	service.Spec = serviceCFG.Spec
+	_, err = kubeClient.CoreV1().Services(req.Namespace).Update(ctx, service, metav1.UpdateOptions{})
+	if err != nil {
+		return fmt.Errorf("couldn't update service: %s", err)
 	}
 
 	// update deployment
 	deploymentCFG := GetDeploymentCFGFromApp(application)
 	deployment.Spec = deploymentCFG.Spec
-	_, err = deploymentsClient.AppsV1().Deployments(req.Namespace).Update(ctx, deployment, metav1.UpdateOptions{})
+	_, err = kubeClient.AppsV1().Deployments(req.Namespace).Update(ctx, deployment, metav1.UpdateOptions{})
 	if err != nil {
 		return fmt.Errorf("couldn't update deployment: %s", err)
 	}
@@ -101,8 +135,63 @@ func GetDeploymentCFGFromApp(
 	return deployment
 }
 
-/* func GetServiceCFGFromApp(
+func GetServiceCFGFromApp(
 	app cranev1.Application,
-) *appsv1.Deployment {
+) *corev1.Service {
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "application-" + app.Name,
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: map[string]string{
+				"app": "application-" + app.Name,
+			},
+			Ports: []corev1.ServicePort{},
+			Type:  corev1.ServiceTypeNodePort,
+		},
+	}
 
-} */
+	for _, port := range app.Spec.Ports {
+		service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{
+			Name:     port.Domain,
+			Port:     int32(port.External),
+			Protocol: corev1.ProtocolTCP,
+			TargetPort: intstr.IntOrString{
+				Type:   intstr.Int,
+				IntVal: int32(port.Internal),
+			},
+		})
+	}
+
+	return service
+}
+
+func DeleteApplication(
+	ctx context.Context,
+	req ctrl.Request,
+	kubeClient *kubernetes.Clientset,
+) error {
+	applicationName := "application-" + req.Name
+	// check if deployment exists
+	err := kubeClient.AppsV1().Deployments(req.Namespace).Delete(ctx, applicationName, metav1.DeleteOptions{})
+	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			return nil
+		} else {
+			return err
+		}
+	}
+
+	// Check if service exists
+	err = kubeClient.CoreV1().Services(req.Namespace).Delete(ctx, applicationName, metav1.DeleteOptions{})
+	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			log.Printf("service not found")
+			return nil
+		} else {
+			return err
+		}
+	}
+
+	return nil
+}

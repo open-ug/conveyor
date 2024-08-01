@@ -13,3 +13,4 @@ spec:
   - volume-name: wordpress-persistent-storage
 
   envFrom: wordpress-secrets
+
