@@ -17,11 +17,18 @@ type Application struct {
 }
 
 type ApplicationSpec struct {
-	AppName string               `json:"app-name"`
-	Image   string               `json:"image"`
-	Volumes []ApplicationVolume  `json:"volumes"`
-	Ports   []ApplicationPortMap `json:"ports"`
-	EnvFrom string               `json:"envFrom"`
+	AppName   string               `json:"app-name"`
+	Image     string               `json:"image"`
+	Volumes   []ApplicationVolume  `json:"volumes"`
+	Ports     []ApplicationPortMap `json:"ports"`
+	EnvFrom   string               `json:"envFrom"`
+	Resources ApplicationResource  `json:"resources"`
+}
+
+type ApplicationResource struct {
+	Storage int    `json:"storage"`
+	Memory  string `json:"memory"`
+	CPU     string `json:"cpu"`
 }
 
 type ApplicationVolume struct {

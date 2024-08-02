@@ -10,6 +10,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
@@ -164,6 +165,32 @@ func GetServiceCFGFromApp(
 	}
 
 	return service
+}
+
+func GetPersistentVolumeClaimFromApp(
+	app cranev1.Application,
+) *corev1.PersistentVolumeClaim {
+	pvc := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "application-" + app.Name,
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			AccessModes: []corev1.PersistentVolumeAccessMode{
+				corev1.ReadWriteOnce,
+			},
+			Resources: corev1.VolumeResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceStorage: resourceQuantity(app.Spec.Resources.Storage),
+				},
+			},
+		},
+	}
+
+	return pvc
+}
+
+func resourceQuantity(i int) resource.Quantity {
+	return *resource.NewQuantity(int64(i), resource.BinarySI)
 }
 
 func DeleteApplication(

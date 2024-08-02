@@ -31,5 +31,9 @@ RUN apk -U upgrade \
 RUN ls
 
 
-# Start the application
-CMD ["./app"]
+# Expose the port the app runs on
+EXPOSE 3000
+
+ENTRYPOINT [ "/app/app" ]
+
+CMD ["controller"]

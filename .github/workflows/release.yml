@@ -17,5 +17,6 @@ jobs:
         with:
           files: |
             yaml/crds/Application.yml
+            yaml/app/crane-operator.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
