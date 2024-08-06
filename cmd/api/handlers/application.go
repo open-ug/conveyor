@@ -1,19 +1,23 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 
 	models "crane.cloud.cranom.tech/cmd/api/models"
 	"github.com/gofiber/fiber/v2"
+	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type ApplicationHandler struct {
+	RedisClient      *redis.Client
 	ApplicationModel *models.ApplicationModel
 }
 
-func NewApplicationHandler(db *mongo.Database) *ApplicationHandler {
+func NewApplicationHandler(db *mongo.Database, redisClient *redis.Client) *ApplicationHandler {
 	return &ApplicationHandler{
+		RedisClient: redisClient,
 		ApplicationModel: &models.ApplicationModel{
 			Collection: db.Collection("applications"),
 		},
@@ -33,8 +37,17 @@ func (h *ApplicationHandler) CreateApplication(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+	// Publish to redis channel for driver to work on it
+	errf := h.RedisClient.Publish(context.Background(), "application", app.Name).Err()
+
+	if errf != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": errf.Error(),
+		})
+	}
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"insertedId": insertResult.InsertedID,
+		"id":   insertResult.InsertedID,
+		"name": app.Name,
 	})
 }
 
@@ -79,6 +92,16 @@ func (h *ApplicationHandler) UpdateApplication(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+
+	// Publish to redis channel for driver to work on it
+	errf := h.RedisClient.Publish(context.Background(), "application", c.Params("name")).Err()
+
+	if errf != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": errf.Error(),
+		})
+	}
+
 	return c.Status(fiber.StatusOK).JSON(updateResult)
 }
 
@@ -92,5 +115,15 @@ func (h *ApplicationHandler) DeleteApplication(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+
+	// Publish to redis channel for driver to work on it
+	errf := h.RedisClient.Publish(context.Background(), "application", c.Params("name")).Err()
+
+	if errf != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": errf.Error(),
+		})
+	}
+
 	return c.Status(fiber.StatusOK).JSON(deleteResult)
 }

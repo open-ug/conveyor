@@ -19,10 +19,12 @@ func StartServer(port string) {
 		return c.SendString("pong")
 	})
 
+	redisClient := NewRedisClient()
+
 	mongoClient := ConnectToMongoDB("mongodb+srv://jimjunior854:8bfKnA6cE2kq4kFW@cluster0.akews.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 	db := GetMongoDBDatabase(mongoClient, "crane")
 
-	routes.ApplicationRoutes(app, db)
+	routes.ApplicationRoutes(app, db, redisClient)
 
 	app.Listen(":" + port)
 }
