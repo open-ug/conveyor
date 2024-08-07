@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	models "crane.cloud.cranom.tech/cmd/api/models"
+	craneTypes "crane.cloud.cranom.tech/cmd/api/types"
 	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -27,7 +28,7 @@ func NewApplicationHandler(db *mongo.Database, redisClient *redis.Client) *Appli
 
 func (h *ApplicationHandler) CreateApplication(c *fiber.Ctx) error {
 	fmt.Println("Creating App")
-	var app models.Application
+	var app craneTypes.Application
 	if err := c.BodyParser(&app); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "could not parse request body",

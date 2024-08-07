@@ -43,8 +43,7 @@ func (d *DriverManager) Run() error {
 		ch := pubsub.Channel()
 
 		for msg := range ch {
-			resourceId := msg.Payload
-			err := d.Driver.Reconcile(resourceId)
+			err := d.Driver.Reconcile(msg.Payload)
 			if err != nil {
 				fmt.Println("Error reconciling resource: ", err)
 				return err

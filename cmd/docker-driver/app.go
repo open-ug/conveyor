@@ -6,12 +6,20 @@ import (
 	runtime "crane.cloud.cranom.tech/cmd/driver-runtime"
 )
 
+func Reconcile(payload string) error {
+	dockerClient, err := GetDockerClient()
+	if err != nil {
+		return fmt.Errorf("Error getting docker client: %v", err)
+	}
+	fmt.Println("Reconciling resource: ", payload)
+
+	return nil
+}
+
+// Listen listens for events from the driver runtime
 func Listen() {
 	driver := &runtime.Driver{
-		Reconcile: func(resourceId string) error {
-			fmt.Println("Reconciling resource: ", resourceId)
-			return nil
-		},
+		Reconcile: Reconcile,
 	}
 
 	driverManager := runtime.NewDriverManager(driver)

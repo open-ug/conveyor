@@ -1,7 +1,7 @@
 package cli
 
 import (
-	driver "crane.cloud.cranom.tech/cmd/dockerdriver"
+	driver "crane.cloud.cranom.tech/cmd/docker-driver"
 	"github.com/spf13/cobra"
 )
 

@@ -4,51 +4,22 @@ import (
 	"context"
 	"fmt"
 
+	craneTypes "crane.cloud.cranom.tech/cmd/api/types"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
-
-type ApplicationSpec struct {
-	AppName   string               `json:"app-name" bson:"app-name"`
-	Image     string               `json:"image" bson:"image"`
-	Volumes   []ApplicationVolume  `json:"volumes" bson:"volumes"`
-	Ports     []ApplicationPortMap `json:"ports" bson:"ports"`
-	Resources ApplicationResource  `json:"resources" bson:"resources"`
-	Env       []ApplicationEnvVar  `json:"envFrom" bson:"envFrom"`
-}
-type ApplicationEnvVar struct {
-	Name  string `json:"name" bson:"name"`
-	Value string `json:"value" bson:"value"`
-}
-
-type ApplicationResource struct {
-	Storage int    `json:"storage" bson:"storage"`
-	Memory  string `json:"memory" bson:"memory"`
-	CPU     string `json:"cpu" bson:"cpu"`
-}
-
-type ApplicationVolume struct {
-	VolumeName string `json:"volume-name" bson:"volume-name"`
-	Path       string `json:"path" bson:"path"`
-}
-
-type ApplicationPortMap struct {
-	Internal int    `json:"internal" bson:"internal"`
-	External int    `json:"external" bson:"external"`
-	Domain   string `json:"domain" bson:"domain"`
-	SSL      bool   `json:"SSL" bson:"SSL"`
-}
-
-type Application struct {
-	Name string          `json:"name" bson:"name"`
-	Spec ApplicationSpec `json:"spec" bson:"spec"`
-}
 
 type ApplicationModel struct {
 	Collection *mongo.Collection
 }
 
-func (m *ApplicationModel) Insert(app Application) (*mongo.InsertOneResult, error) {
+func (m *ApplicationModel) Insert(app craneTypes.Application) (*mongo.InsertOneResult, error) {
+	// check if the application already exists
+	_, err := m.FindOne(bson.M{"name": app.Name})
+	if err == nil {
+		return nil, fmt.Errorf("application with name %s already exists", app.Name)
+	}
+
 	insertResult, err := m.Collection.InsertOne(context.Background(), app)
 	if err != nil {
 		return nil, fmt.Errorf("error inserting application: %v", err)
@@ -56,8 +27,8 @@ func (m *ApplicationModel) Insert(app Application) (*mongo.InsertOneResult, erro
 	return insertResult, nil
 }
 
-func (m *ApplicationModel) FindOne(filter bson.M) (*Application, error) {
-	var app Application
+func (m *ApplicationModel) FindOne(filter bson.M) (*craneTypes.Application, error) {
+	var app craneTypes.Application
 	err := m.Collection.FindOne(context.Background(), filter).Decode(&app)
 	if err != nil {
 		return nil, fmt.Errorf("error finding application: %v", err)
@@ -65,8 +36,8 @@ func (m *ApplicationModel) FindOne(filter bson.M) (*Application, error) {
 	return &app, nil
 }
 
-func (m *ApplicationModel) Find(filter bson.M) ([]Application, error) {
-	var apps []Application
+func (m *ApplicationModel) Find(filter bson.M) ([]craneTypes.Application, error) {
+	var apps []craneTypes.Application
 	cursor, err := m.Collection.Find(context.Background(), filter)
 	if err != nil {
 		return nil, fmt.Errorf("error finding applications: %v", err)
