@@ -1,21 +1,24 @@
 package dockerdriver
 
 import (
-	"context"
 	"fmt"
 
-	apiServer "crane.cloud.cranom.tech/cmd/api"
+	runtime "crane.cloud.cranom.tech/cmd/driver-runtime"
 )
 
 func Listen() {
-	rdb := apiServer.NewRedisClient()
+	driver := &runtime.Driver{
+		Reconcile: func(resourceId string) error {
+			fmt.Println("Reconciling resource: ", resourceId)
+			return nil
+		},
+	}
 
-	pubsub := rdb.Subscribe(context.Background(), "application")
+	driverManager := runtime.NewDriverManager(driver)
 
-	ch := pubsub.Channel()
-
-	for msg := range ch {
-		fmt.Println(msg.Channel, msg.Payload)
+	err := driverManager.Run()
+	if err != nil {
+		fmt.Println("Error running driver manager: ", err)
 	}
 
 }
