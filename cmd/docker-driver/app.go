@@ -7,10 +7,10 @@ import (
 )
 
 func Reconcile(payload string) error {
-	dockerClient, err := GetDockerClient()
+	/* dockerClient, err := GetDockerClient()
 	if err != nil {
 		return fmt.Errorf("Error getting docker client: %v", err)
-	}
+	} */
 	fmt.Println("Reconciling resource: ", payload)
 
 	return nil

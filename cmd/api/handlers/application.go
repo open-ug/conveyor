@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	models "crane.cloud.cranom.tech/cmd/api/models"
@@ -41,9 +42,21 @@ func (h *ApplicationHandler) CreateApplication(c *fiber.Ctx) error {
 		})
 	}
 	fmt.Println("Saved to database")
+	appMsg := craneTypes.ApplicationMsg{
+		Action:  "create",
+		ID:      insertResult.InsertedID.(primitive.ObjectID).Hex(),
+		Payload: app,
+	}
+
+	jsonMsg, merr := json.Marshal(appMsg)
+	if merr != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": merr.Error(),
+		})
+	}
 	// Publish to redis channel for driver to work on it
 	errf := h.RedisClient.Publish(context.Background(), "application",
-		insertResult.InsertedID.(primitive.ObjectID).Hex(),
+		jsonMsg,
 	).Err()
 	fmt.Println("Sent Redis Pub")
 

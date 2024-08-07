@@ -35,3 +35,9 @@ type Application struct {
 	Name string          `json:"name" bson:"name"`
 	Spec ApplicationSpec `json:"spec" bson:"spec"`
 }
+
+type ApplicationMsg struct {
+	Action  string      `json:"action" bson:"action"`
+	Payload interface{} `json:"payload" bson:"payload"`
+	ID      string      `json:"id" bson:"id"`
+}
