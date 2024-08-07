@@ -7,6 +7,7 @@ import (
 	models "crane.cloud.cranom.tech/cmd/api/models"
 	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -25,6 +26,7 @@ func NewApplicationHandler(db *mongo.Database, redisClient *redis.Client) *Appli
 }
 
 func (h *ApplicationHandler) CreateApplication(c *fiber.Ctx) error {
+	fmt.Println("Creating App")
 	var app models.Application
 	if err := c.BodyParser(&app); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -37,8 +39,12 @@ func (h *ApplicationHandler) CreateApplication(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+	fmt.Println("Saved to database")
 	// Publish to redis channel for driver to work on it
-	errf := h.RedisClient.Publish(context.Background(), "application", app.Name).Err()
+	errf := h.RedisClient.Publish(context.Background(), "application",
+		insertResult.InsertedID.(primitive.ObjectID).Hex(),
+	).Err()
+	fmt.Println("Sent Redis Pub")
 
 	if errf != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
