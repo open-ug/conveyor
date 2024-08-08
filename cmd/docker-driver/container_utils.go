@@ -2,6 +2,7 @@ package dockerdriver
 
 import (
 	"context"
+	"strconv"
 
 	craneTypes "crane.cloud.cranom.tech/cmd/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -70,16 +71,15 @@ func GenerateContainerConfig(
 			},
 		},
 	}
-
-	containerPort := app.Spec.Ports[0].Internal
-	hostPort := app.Spec.Ports[0].External
+	containerPort := strconv.Itoa(app.Spec.Ports[0].Internal)
+	hostPort := strconv.Itoa(app.Spec.Ports[0].External)
 
 	hostCfg := container.HostConfig{
 		PortBindings: nat.PortMap{
-			nat.Port(string(rune(containerPort)) + "/tcp"): []nat.PortBinding{
+			nat.Port(containerPort + "/tcp"): []nat.PortBinding{
 				{
 					HostIP:   "0.0.0.0",
-					HostPort: string(rune(hostPort)),
+					HostPort: hostPort,
 				},
 			},
 		},

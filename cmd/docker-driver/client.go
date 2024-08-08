@@ -7,7 +7,7 @@ import (
 )
 
 func GetDockerClient() (*client.Client, error) {
-	cli, err := client.NewClientWithOpts(client.FromEnv)
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, fmt.Errorf("error creating docker client: %v", err)
 	}

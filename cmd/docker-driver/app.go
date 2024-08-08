@@ -20,10 +20,7 @@ func Reconcile(payload string) error {
 	}
 
 	if appMsg.Action == "create" {
-		app, ok := appMsg.Payload.(craneTypes.Application)
-		if !ok {
-			return fmt.Errorf("error converting payload to Application type")
-		}
+		app := appMsg.Payload
 		err = CreateContainer(dockerClient, &app)
 		if err != nil {
 			return fmt.Errorf("error creating container: %v", err)
