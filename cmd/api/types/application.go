@@ -7,6 +7,7 @@ type ApplicationSpec struct {
 	Ports     []ApplicationPortMap `json:"ports" bson:"ports"`
 	Resources ApplicationResource  `json:"resources" bson:"resources"`
 	Env       []ApplicationEnvVar  `json:"envFrom" bson:"envFrom"`
+	Network   string               `json:"network" bson:"network"`
 }
 type ApplicationEnvVar struct {
 	Name  string `json:"name" bson:"name"`
