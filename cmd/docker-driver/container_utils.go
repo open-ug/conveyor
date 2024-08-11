@@ -88,3 +88,54 @@ func GenerateContainerConfig(
 	return &containerCfg, &hostCfg, &networkCfg, nil
 
 }
+
+func StartContainer(
+	dockerClient *client.Client,
+	app *craneTypes.Application,
+) error {
+	ctx := context.Background()
+
+	err := dockerClient.ContainerStart(ctx, app.Name, container.StartOptions{})
+	if err != nil {
+		log.Fatalf("Error starting container: %v", err)
+		return err
+	}
+
+	log.Infof("Container %s started", app.Name)
+
+	return nil
+}
+
+func StopContainer(
+	dockerClient *client.Client,
+	app *craneTypes.Application,
+) error {
+	ctx := context.Background()
+
+	err := dockerClient.ContainerStop(ctx, app.Name, container.StopOptions{})
+	if err != nil {
+		log.Fatalf("Error stopping container: %v", err)
+		return err
+	}
+
+	log.Infof("Container %s stopped", app.Name)
+
+	return nil
+}
+
+func DeleteContainer(
+	dockerClient *client.Client,
+	app *craneTypes.Application,
+) error {
+	ctx := context.Background()
+
+	err := dockerClient.ContainerRemove(ctx, app.Name, container.RemoveOptions{})
+	if err != nil {
+		log.Fatalf("Error removing container: %v", err)
+		return err
+	}
+
+	log.Infof("Container %s removed", app.Name)
+
+	return nil
+}

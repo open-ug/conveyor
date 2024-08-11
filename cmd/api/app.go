@@ -8,6 +8,7 @@ import (
 
 func StartServer(port string) {
 	app := fiber.New(fiber.Config{
+		AppName:     "Crane API Server",
 		JSONEncoder: json.Marshal,
 		JSONDecoder: json.Unmarshal,
 	})

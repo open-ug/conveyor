@@ -19,7 +19,7 @@ type DriverManager struct {
 
 type Driver struct {
 	// The driver is responsible for managing the driver
-	Reconcile func(resourceId string) error
+	Reconcile func(message string) error
 }
 
 func NewDriverManager(
@@ -37,7 +37,7 @@ func (d *DriverManager) Run() error {
 	// The driver manager will run the driver's reconcile function
 	// in a loop
 	for {
-		// Get the resource id from the message queue
+		// Get the resource from the message queue
 		pubsub := d.RedisClient.Subscribe(context.Background(), "application")
 
 		ch := pubsub.Channel()
