@@ -13,6 +13,31 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 )
 
+func CreateNetwork(
+	app *craneTypes.Application,
+	dockerClient *client.Client,
+) error {
+	ctx := context.Background()
+
+	// check if network exists
+	_, eerr := dockerClient.NetworkInspect(ctx, app.Spec.Network, network.InspectOptions{})
+	if eerr == nil {
+		log.Infof("Network %s already exists", app.Spec.Network)
+		return nil
+	}
+
+	_, err := dockerClient.NetworkCreate(ctx, app.Spec.Network, network.CreateOptions{})
+
+	if err != nil {
+		log.Fatalf("Error creating network: %v", err)
+		return err
+	}
+
+	log.Infof("Network %s created", app.Spec.Network)
+
+	return nil
+}
+
 func CreateContainer(
 	dockerClient *client.Client,
 	app *craneTypes.Application,
@@ -29,10 +54,17 @@ func CreateContainer(
 	defer reader.Close()
 
 	containerCfg, hostCfg, networkCfg, err := GenerateContainerConfig(app)
-
 	if err != nil {
 		log.Fatalf("Error pulling image: %v", err)
 		return err
+	}
+	// create network
+
+	nerr := CreateNetwork(app, dockerClient)
+
+	if nerr != nil {
+		log.Fatalf("Error creating network: %v", nerr)
+		return nerr
 	}
 
 	// Create the container

@@ -21,9 +21,21 @@ func Reconcile(payload string) error {
 
 	if appMsg.Action == "create" {
 		app := appMsg.Payload
-		err = CreateContainer(dockerClient, &app)
+		err := CreateContainer(dockerClient, &app)
 		if err != nil {
 			return fmt.Errorf("error creating container: %v", err)
+		}
+		// start the container
+		serr := StartContainer(dockerClient, &app)
+		if serr != nil {
+			return fmt.Errorf("error starting container: %v", serr)
+		}
+		return nil
+	} else if appMsg.Action == "delete" {
+		app := appMsg.Payload
+		err = DeleteContainer(dockerClient, &app)
+		if err != nil {
+			return fmt.Errorf("error deleting container: %v", err)
 		}
 		return nil
 	}

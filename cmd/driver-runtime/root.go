@@ -46,7 +46,7 @@ func (d *DriverManager) Run() error {
 			err := d.Driver.Reconcile(msg.Payload)
 			if err != nil {
 				fmt.Println("Error reconciling resource: ", err)
-				return err
+				//return err
 			}
 		}
 	}
