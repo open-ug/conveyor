@@ -8,10 +8,41 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/gofiber/fiber/v2/log"
 )
+
+func CreateAppVolumes(
+	app *craneTypes.Application,
+	dockerClient *client.Client,
+) error {
+	ctx := context.Background()
+
+	for i := 0; i < len(app.Spec.Volumes); i++ {
+		vol := app.Spec.Volumes[i]
+		// check if volume exists
+		_, verr := dockerClient.VolumeInspect(ctx, vol.VolumeName)
+		if verr != nil {
+			log.Infof("Volume %s already exists", vol.VolumeName)
+			continue
+		} else {
+			_, err := dockerClient.VolumeCreate(ctx, volume.CreateOptions{
+				Name: vol.VolumeName,
+			})
+
+			if err != nil {
+				log.Fatalf("Error creating volume: %v", err)
+				return err
+			}
+			log.Infof("Volume %s created", vol.VolumeName)
+		}
+	}
+
+	return nil
+
+}
 
 func CreateNetwork(
 	app *craneTypes.Application,
@@ -62,6 +93,13 @@ func CreateContainer(
 
 	nerr := CreateNetwork(app, dockerClient)
 
+	verr := CreateAppVolumes(app, dockerClient)
+
+	if verr != nil {
+		log.Fatalf("Error creating volumes: %v", verr)
+		return verr
+	}
+
 	if nerr != nil {
 		log.Fatalf("Error creating network: %v", nerr)
 		return nerr
@@ -106,6 +144,14 @@ func GenerateContainerConfig(
 	containerPort := strconv.Itoa(app.Spec.Ports[0].Internal)
 	hostPort := strconv.Itoa(app.Spec.Ports[0].External)
 
+	// Create volume bindings
+	volumeBindings := []string{}
+
+	for i := 0; i < len(app.Spec.Volumes); i++ {
+		vol := app.Spec.Volumes[i]
+		volumeBindings = append(volumeBindings, vol.VolumeName+":"+vol.Path)
+	}
+
 	hostCfg := container.HostConfig{
 		PortBindings: nat.PortMap{
 			nat.Port(containerPort + "/tcp"): []nat.PortBinding{
@@ -115,6 +161,7 @@ func GenerateContainerConfig(
 				},
 			},
 		},
+		Binds: volumeBindings,
 	}
 
 	return &containerCfg, &hostCfg, &networkCfg, nil
