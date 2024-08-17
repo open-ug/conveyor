@@ -218,3 +218,40 @@ func DeleteContainer(
 
 	return nil
 }
+
+func UpdateContainer(
+	dockerClient *client.Client,
+	app *craneTypes.Application,
+) error {
+	ctx := context.Background()
+
+	err := dockerClient.ContainerStop(ctx, app.Name, container.StopOptions{})
+	if err != nil {
+		log.Fatalf("Error stopping container: %v", err)
+		return err
+	}
+
+	log.Infof("Container %s stopped", app.Name)
+
+	err = dockerClient.ContainerRemove(ctx, app.Name, container.RemoveOptions{})
+	if err != nil {
+		log.Fatalf("Error removing container: %v", err)
+		return err
+	}
+
+	log.Infof("Container %s removed", app.Name)
+
+	err = CreateContainer(dockerClient, app)
+	if err != nil {
+		log.Fatalf("Error creating container: %v", err)
+		return err
+	}
+
+	err = StartContainer(dockerClient, app)
+	if err != nil {
+		log.Fatalf("Error starting container: %v", err)
+		return err
+	}
+
+	return nil
+}

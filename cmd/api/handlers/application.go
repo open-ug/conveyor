@@ -114,7 +114,28 @@ func (h *ApplicationHandler) UpdateApplication(c *fiber.Ctx) error {
 	}
 
 	// Publish to redis channel for driver to work on it
-	errf := h.RedisClient.Publish(context.Background(), "application", c.Params("name")).Err()
+	var app craneTypes.Application
+	err = h.ApplicationModel.Collection.FindOne(context.Background(), filter).Decode(&app)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	appMsg := craneTypes.ApplicationMsg{
+		Action:  "update",
+		ID:      updateResult.UpsertedID.(primitive.ObjectID).Hex(),
+		Payload: app,
+	}
+
+	jsonMsg, merr := json.Marshal(appMsg)
+	if merr != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": merr.Error(),
+		})
+	}
+
+	errf := h.RedisClient.Publish(context.Background(), "application", jsonMsg).Err()
 
 	if errf != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

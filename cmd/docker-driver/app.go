@@ -38,6 +38,12 @@ func Reconcile(payload string) error {
 			return fmt.Errorf("error deleting container: %v", err)
 		}
 		return nil
+	} else if appMsg.Action == "update" {
+		app := appMsg.Payload
+		err = UpdateContainer(dockerClient, &app)
+		if err != nil {
+			return fmt.Errorf("error updating container: %v", err)
+		}
 	}
 
 	return nil
