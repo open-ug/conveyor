@@ -100,14 +100,21 @@ func (h *ApplicationHandler) UpdateApplication(c *fiber.Ctx) error {
 	filter := map[string]interface{}{
 		"name": c.Params("name"),
 	}
-	var update map[string]interface{}
-	if err := c.BodyParser(&update); err != nil {
+	var appl craneTypes.Application
+
+	if err := c.BodyParser(&appl); err != nil {
+		fmt.Println(err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "could not parse request body",
 		})
 	}
+
+	update := map[string]interface{}{
+		"$set": appl,
+	}
 	updateResult, err := h.ApplicationModel.UpdateOne(filter, update)
 	if err != nil {
+		fmt.Println(err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -115,29 +122,49 @@ func (h *ApplicationHandler) UpdateApplication(c *fiber.Ctx) error {
 
 	// Publish to redis channel for driver to work on it
 	var app craneTypes.Application
-	err = h.ApplicationModel.Collection.FindOne(context.Background(), filter).Decode(&app)
+	newapp := h.ApplicationModel.Collection.FindOne(context.Background(), filter)
+
+	err = newapp.Decode(&app)
+
 	if err != nil {
+		fmt.Println(err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 
+	fmt.Println("Saved to database")
+
+	rowapp, err := newapp.Raw()
+
+	if err != nil {
+		fmt.Println(err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	appId := rowapp.Lookup("_id").ObjectID().Hex()
+
 	appMsg := craneTypes.ApplicationMsg{
 		Action:  "update",
-		ID:      updateResult.UpsertedID.(primitive.ObjectID).Hex(),
+		ID:      appId,
 		Payload: app,
 	}
 
 	jsonMsg, merr := json.Marshal(appMsg)
 	if merr != nil {
+		fmt.Println(merr)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": merr.Error(),
 		})
 	}
 
+	fmt.Println("Sent Redis Pub")
 	errf := h.RedisClient.Publish(context.Background(), "application", jsonMsg).Err()
 
 	if errf != nil {
+		fmt.Println(errf)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": errf.Error(),
 		})

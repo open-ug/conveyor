@@ -49,6 +49,7 @@ func (m *ApplicationModel) Find(filter bson.M) ([]craneTypes.Application, error)
 }
 
 func (m *ApplicationModel) UpdateOne(filter bson.M, update bson.M) (*mongo.UpdateResult, error) {
+	fmt.Println(update)
 	updateResult, err := m.Collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		return nil, fmt.Errorf("error updating application: %v", err)
