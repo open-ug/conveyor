@@ -162,6 +162,9 @@ func GenerateContainerConfig(
 			},
 		},
 		Binds: volumeBindings,
+		RestartPolicy: container.RestartPolicy{
+			Name: "unless-stopped",
+		},
 	}
 
 	return &containerCfg, &hostCfg, &networkCfg, nil

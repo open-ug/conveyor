@@ -195,3 +195,75 @@ func (h *ApplicationHandler) DeleteApplication(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(deleteResult)
 }
+
+func (h *ApplicationHandler) StartApplication(c *fiber.Ctx) error {
+	filter := map[string]interface{}{
+		"name": c.Params("name"),
+	}
+	app := h.ApplicationModel.Collection.FindOne(context.Background(), filter)
+	var appMsg craneTypes.ApplicationMsg
+	err := app.Decode(&appMsg.Payload)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	appMsg.Action = "start"
+	appMsg.ID = appMsg.Payload.Name
+
+	jsonMsg, merr := json.Marshal(appMsg)
+	if merr != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": merr.Error(),
+		})
+	}
+
+	errf := h.RedisClient.Publish(context.Background(), "application", jsonMsg).Err()
+
+	if errf != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": errf.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Application started",
+	})
+}
+
+func (h *ApplicationHandler) StopApplication(c *fiber.Ctx) error {
+	filter := map[string]interface{}{
+		"name": c.Params("name"),
+	}
+	app := h.ApplicationModel.Collection.FindOne(context.Background(), filter)
+	var appMsg craneTypes.ApplicationMsg
+	err := app.Decode(&appMsg.Payload)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	appMsg.Action = "stop"
+	appMsg.ID = appMsg.Payload.Name
+
+	jsonMsg, merr := json.Marshal(appMsg)
+	if merr != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": merr.Error(),
+		})
+	}
+
+	errf := h.RedisClient.Publish(context.Background(), "application", jsonMsg).Err()
+
+	if errf != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": errf.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Application stopped",
+	})
+}

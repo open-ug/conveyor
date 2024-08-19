@@ -14,7 +14,7 @@ func StartServer(port string) {
 	})
 
 	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, World!")
+		return c.SendString("CRANE API SERVER contact info@cranom.tech for Documentation")
 	})
 	app.Get("/ping", func(c *fiber.Ctx) error {
 		return c.SendString("pong")

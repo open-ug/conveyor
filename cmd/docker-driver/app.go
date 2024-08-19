@@ -44,6 +44,18 @@ func Reconcile(payload string) error {
 		if err != nil {
 			return fmt.Errorf("error updating container: %v", err)
 		}
+	} else if appMsg.Action == "start" {
+		app := appMsg.Payload
+		err = StartContainer(dockerClient, &app)
+		if err != nil {
+			return fmt.Errorf("error starting container: %v", err)
+		}
+	} else if appMsg.Action == "stop" {
+		app := appMsg.Payload
+		err = StopContainer(dockerClient, &app)
+		if err != nil {
+			return fmt.Errorf("error stopping container: %v", err)
+		}
 	}
 
 	return nil

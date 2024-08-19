@@ -15,4 +15,7 @@ func ApplicationRoutes(app *fiber.App, db *mongo.Database, redisClient *redis.Cl
 	applicationPrefix.Get("/:name", applicationHandler.GetApplication)
 	applicationPrefix.Get("/", applicationHandler.GetApplications)
 	applicationPrefix.Put("/:name", applicationHandler.UpdateApplication)
+	applicationPrefix.Delete("/:name", applicationHandler.DeleteApplication)
+	applicationPrefix.Post("/:name/start", applicationHandler.StartApplication)
+	applicationPrefix.Post("/:name/stop", applicationHandler.StopApplication)
 }
