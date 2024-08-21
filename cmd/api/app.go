@@ -1,6 +1,8 @@
 package api
 
 import (
+	"os"
+
 	routes "crane.cloud.cranom.tech/cmd/api/routes"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
@@ -22,7 +24,9 @@ func StartServer(port string) {
 
 	redisClient := NewRedisClient()
 
-	mongoClient := ConnectToMongoDB("mongodb+srv://jimjunior854:8bfKnA6cE2kq4kFW@cluster0.akews.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+	uri := os.Getenv("CRANE_MONGO_URI")
+
+	mongoClient := ConnectToMongoDB(uri)
 	db := GetMongoDBDatabase(mongoClient, "crane")
 
 	routes.ApplicationRoutes(app, db, redisClient)
