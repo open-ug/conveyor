@@ -1,3 +1,6 @@
+/*
+Copyright © 2024 Cranom Technologies Limited info@cranom.tech
+*/
 package handlers
 
 import (

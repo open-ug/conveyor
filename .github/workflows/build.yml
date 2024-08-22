@@ -1,0 +1,41 @@
+name: Build Crane Engine
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go-version: [1.21.6]
+        include:
+          - os: ubuntu-latest
+            ext: ""
+          - os: macos-latest
+            ext: ""
+          - os: windows-latest
+            ext: ".exe"
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Build binary
+        run: |
+          mkdir -p output
+          go build -o output/crane-${{ github.event.release.tag_name }}-${{ matrix.os }}-${{ runner.arch }}${{ matrix.ext }}
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2.0.8
+        with:
+          files: output/crane-${{ github.event.release.tag_name }}-${{ matrix.os }}-${{ runner.arch }}${{ matrix.ext }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
