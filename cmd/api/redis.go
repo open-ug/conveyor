@@ -5,7 +5,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/redis/go-redis/v9"
@@ -24,6 +23,5 @@ func NewRedisClient() *redis.Client {
 		log.Fatalf("Error connecting to Redis: %v", err)
 	}
 
-	fmt.Println("Connected to Redis")
 	return client
 }

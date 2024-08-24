@@ -4,6 +4,8 @@ Copyright © 2024 Cranom Technologies Limited info@cranom.tech
 package api
 
 import (
+	"fmt"
+
 	helpers "crane.cloud.cranom.tech/cmd/api/helpers"
 	routes "crane.cloud.cranom.tech/cmd/api/routes"
 	"github.com/goccy/go-json"
@@ -32,13 +34,15 @@ func StartServer(port string) {
 		panic(err)
 	}
 
-	encryptedDbPass := viper.GetString("mongo.pass")
-	decryptedDbPass, err := helpers.DecryptData([]byte(encryptedDbPass), privateKey)
+	encryptedDbPass := viper.GetString("db.pass")
+	//fmt.Println("Encrypted DB Pass: ", encryptedDbPass)
+	decryptedDbPass, err := helpers.DecryptData(encryptedDbPass, privateKey)
 	if err != nil {
+		fmt.Println("Error decrypting DB Pass: ", err)
 		panic(err)
 	}
 
-	uri := "mongodb://" + viper.GetString("mongo.user") + ":" + string(decryptedDbPass) + "@" + viper.GetString("mongo.host") + ":" + viper.GetString("mongo.port")
+	uri := "mongodb://" + viper.GetString("db.user") + ":" + string(string(decryptedDbPass)) + "@" + viper.GetString("db.host") + ":" + viper.GetString("db.port")
 
 	mongoClient := ConnectToMongoDB(uri)
 	db := GetMongoDBDatabase(mongoClient, "crane")

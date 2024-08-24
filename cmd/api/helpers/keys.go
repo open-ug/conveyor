@@ -5,6 +5,8 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/pem"
 	"os"
 )
@@ -40,11 +42,19 @@ func loadPrivateKeyFromFile(filename string) (*rsa.PrivateKey, error) {
 	return privateKey, nil
 }
 
-func DecryptData(ciphertext []byte, privateKey *rsa.PrivateKey) ([]byte, error) {
-	hash := sha256.New()
-	plaintext, err := rsa.DecryptOAEP(hash, rand.Reader, privateKey, ciphertext, nil)
+func DecryptData(ciphertext string, privateKey *rsa.PrivateKey) (string, error) {
+	// Decode the base64 encoded ciphertext
+	cipherBytes, err := base64.StdEncoding.DecodeString(ciphertext)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return plaintext, nil
+
+	// Decrypt the ciphertext
+	hash := sha256.New()
+	plaintext, err := rsa.DecryptOAEP(hash, rand.Reader, privateKey, cipherBytes, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(plaintext), nil
 }
