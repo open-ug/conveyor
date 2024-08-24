@@ -7,16 +7,16 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/spf13/viper"
 )
 
 func NewRedisClient() *redis.Client {
 	client := redis.NewClient(&redis.Options{
-		Addr:     "localhost" + ":" + os.Getenv("CRANE_REDIS_PORT"),
-		Password: os.Getenv("CRANE_REDIS_PASSWORD"),
-		DB:       0, // use default DB
+		Addr:     viper.GetString("redis.host") + ":" + viper.GetString("redis.port"),
+		Password: "", // no password set
+		DB:       0,  // use default DB
 	})
 
 	_, err := client.Ping(context.Background()).Result()
