@@ -1,23 +1,26 @@
 package nginxdriver
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
+	"strconv"
 
 	craneTypes "crane.cloud.cranom.tech/cmd/api/types"
 )
 
 func CreateNginxConfig(app craneTypes.Application) error {
+	fmt.Println("NGINX_D: Creating App")
 	ports := app.Spec.Ports
 
 	for i := 0; i < len(ports); i++ {
 		port := ports[i]
+		fmt.Println("NGINX_D: Generating App")
 		configContent := generateNginxConfigFromPort(port)
 		filename := app.Name + "-" + string(rune(port.External)) + ".conf"
+		fmt.Println("NGINX_D: Writing")
 		err := writeNginxConfig(filename, configContent)
+		fmt.Println("NGINX_D: Wrote file")
 		if err != nil {
 			return fmt.Errorf("failed to write nginx config: %w", err)
 		}
@@ -31,7 +34,7 @@ func DeleteNginxConfig(app craneTypes.Application) error {
 
 	for i := 0; i < len(ports); i++ {
 		port := ports[i]
-		filename := app.Name + "-" + string(rune(port.External)) + ".conf"
+		filename := app.Name + "-" + strconv.Itoa(port.External) + ".conf"
 		err := removeNginxConfig(filename)
 		if err != nil {
 			return fmt.Errorf("failed to remove nginx config: %w", err)
@@ -58,6 +61,7 @@ func UpdateNginxConfig(app craneTypes.Application) error {
 }
 
 func generateNginxConfigFromPort(port craneTypes.ApplicationPortMap) string {
+	fmt.Println("NGINX_D: Generating Port Spec")
 	// Create the server block
 	serverBlock := "server {\n"
 	serverBlock += "    listen " + port.Domain + ";\n"
@@ -65,7 +69,7 @@ func generateNginxConfigFromPort(port craneTypes.ApplicationPortMap) string {
 
 	// Create the location block
 	locationBlock := "    location / {\n"
-	locationBlock += "        proxy_pass http://localhost:" + string(rune(port.Internal)) + ";\n"
+	locationBlock += "        proxy_pass http://localhost:" + strconv.Itoa(port.External) + ";\n"
 	locationBlock += "        proxy_set_header Upgrade $http_upgrade;\n"
 	locationBlock += "        proxy_set_header Connection 'upgrade';\n"
 	locationBlock += "        proxy_set_header Host $host;\n"
@@ -80,68 +84,6 @@ func generateNginxConfigFromPort(port craneTypes.ApplicationPortMap) string {
 
 	return serverBlock
 
-}
-
-// A function that opens the nginx config file in /etc/nginx/nginx.conf and checks under the http block if there is an include directive for /etc/crane/conf/nginx/sites-enabled. If not, it adds it under the http block.
-func AddIncludeToNginxConfig() error {
-	// Open the nginx config file
-	configPath := "/etc/nginx/nginx.conf"
-	directive := "    include /etc/crane/conf/nginx/sites-enabled/*;"
-	err := ensureIncludeDirective(configPath, directive)
-	if err != nil {
-		return fmt.Errorf("failed to ensure include directive in nginx config: %w", err)
-	}
-
-	return nil
-}
-
-func ensureIncludeDirective(configPath, directive string) error {
-	// Read the config file
-	file, err := os.Open(configPath)
-	if err != nil {
-		return fmt.Errorf("failed to open nginx config file: %w", err)
-	}
-	defer file.Close()
-
-	var lines []string
-	scanner := bufio.NewScanner(file)
-	inHttpBlock := false
-	directiveFound := false
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		trimmedLine := strings.TrimSpace(line)
-
-		if trimmedLine == "http {" {
-			inHttpBlock = true
-		} else if inHttpBlock && trimmedLine == "}" {
-			inHttpBlock = false
-			if !directiveFound {
-				// Add the directive before closing the http block
-				lines = append(lines, "    "+directive)
-				directiveFound = true
-			}
-		} else if inHttpBlock && strings.Contains(trimmedLine, directive) {
-			directiveFound = true
-		}
-
-		lines = append(lines, line)
-	}
-
-	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("error reading nginx config file: %w", err)
-	}
-
-	// If the directive was not found, write the modified config back to the file
-	if !directiveFound {
-		output := strings.Join(lines, "\n")
-		err = os.WriteFile(configPath, []byte(output), 0644)
-		if err != nil {
-			return fmt.Errorf("failed to write to nginx config file: %w", err)
-		}
-	}
-
-	return nil
 }
 
 // A function that writes the nginx config to /etc/crane/conf/nginx/sites-available/<app-name> and creates a symlink to /etc/crane/conf/nginx/sites-enabled/<app-name>

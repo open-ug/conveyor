@@ -10,6 +10,7 @@ import (
 
 // Listen for messages from the runtime
 func Reconcile(payload string) error {
+	fmt.Println("NGINX_D: Reconcyling payload: " + payload)
 
 	// Unmarshal the payload
 	var appMsg craneTypes.ApplicationMsg

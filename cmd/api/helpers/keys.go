@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/pem"
 	"os"
 )
@@ -56,5 +55,5 @@ func DecryptData(ciphertext string, privateKey *rsa.PrivateKey) (string, error) 
 		return "", err
 	}
 
-	return hex.EncodeToString(plaintext), nil
+	return string(plaintext), nil
 }
