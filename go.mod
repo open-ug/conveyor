@@ -7,6 +7,7 @@ toolchain go1.22.5
 require (
 	github.com/docker/docker v27.1.1+incompatible
 	github.com/docker/go-connections v0.5.0
+	github.com/fatih/color v1.14.1
 	github.com/goccy/go-json v0.10.3
 	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/redis/go-redis/v9 v9.6.1

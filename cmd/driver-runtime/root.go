@@ -6,8 +6,11 @@ package driverruntime
 import (
 	"context"
 	"fmt"
+	"time"
 
 	apiServer "crane.cloud.cranom.tech/cmd/api"
+	"github.com/docker/docker/client"
+	"github.com/fatih/color"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -37,6 +40,10 @@ func NewDriverManager(
 }
 
 func (d *DriverManager) Run() error {
+	err := isDockerContainerRunning("crane-redis")
+	if err != nil {
+		return err
+	}
 	// The driver manager will run the driver's reconcile function
 	// in a loop
 	for {
@@ -53,4 +60,40 @@ func (d *DriverManager) Run() error {
 			}
 		}
 	}
+}
+
+func GetDockerClient() (*client.Client, error) {
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return nil, fmt.Errorf("error creating docker client: %v", err)
+	}
+	return cli, nil
+}
+
+func isDockerContainerRunning(containerName string) error {
+	ctx := context.Background()
+	dockerClient, err := GetDockerClient()
+	if err != nil {
+		return err
+	}
+
+	cont, inspectErr := dockerClient.ContainerInspect(ctx, containerName)
+
+	if inspectErr != nil {
+		color.Red("Failed to validate Sytem Componet. Please run: cranom crane setup")
+		return err
+	}
+
+	if cont.State.Status != "running" {
+		time.Sleep(1 * time.Second)
+		cont, _ = dockerClient.ContainerInspect(ctx, containerName)
+		if cont.State.Status != "running" {
+			color.Red("Failed to validate Sytem Componet. Please run: cranom crane setup")
+			return err
+		}
+
+	}
+
+	return nil
+
 }
