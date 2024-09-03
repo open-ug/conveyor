@@ -43,6 +43,7 @@ func init() {
 	rootCmd.AddCommand(KubeContollerCmd)
 	rootCmd.AddCommand(APIServerCmd)
 	rootCmd.AddCommand(DockerDriverCmd)
+	rootCmd.AddCommand(NginxDriverCMD)
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,

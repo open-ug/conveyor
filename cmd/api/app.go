@@ -44,6 +44,8 @@ func StartServer(port string) {
 
 	uri := "mongodb://" + viper.GetString("db.user") + ":" + string(string(decryptedDbPass)) + "@" + viper.GetString("db.host") + ":" + viper.GetString("db.port")
 
+	fmt.Println("Connecting to MongoDB: ", uri)
+
 	mongoClient := ConnectToMongoDB(uri)
 	db := GetMongoDBDatabase(mongoClient, "crane")
 
