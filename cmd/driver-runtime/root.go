@@ -40,7 +40,7 @@ func NewDriverManager(
 }
 
 func (d *DriverManager) Run() error {
-	err := isDockerContainerRunning("crane-redis")
+	err := WatchContainerStart("cranom-redis")
 	if err != nil {
 		return err
 	}
@@ -70,30 +70,28 @@ func GetDockerClient() (*client.Client, error) {
 	return cli, nil
 }
 
-func isDockerContainerRunning(containerName string) error {
-	ctx := context.Background()
-	dockerClient, err := GetDockerClient()
+// a function that watches for docker container to start. it keeps checking the container status until it is running
+func WatchContainerStart(containerID string) error {
+	cli, err := GetDockerClient()
 	if err != nil {
 		return err
 	}
 
-	cont, inspectErr := dockerClient.ContainerInspect(ctx, containerName)
-
-	if inspectErr != nil {
-		color.Red("Failed to validate Sytem Componet. Please run: cranom crane setup")
-		return err
-	}
-
-	if cont.State.Status != "running" {
-		time.Sleep(1 * time.Second)
-		cont, _ = dockerClient.ContainerInspect(ctx, containerName)
-		if cont.State.Status != "running" {
-			color.Red("Failed to validate Sytem Componet. Please run: cranom crane setup")
-			return err
+	for {
+		fmt.Println("Waiting for System Component to start")
+		inspect, err := cli.ContainerInspect(context.Background(), containerID)
+		if err != nil {
+			color.Red("System Component failed to start")
+			return fmt.Errorf("error inspecting container: %v", err)
 		}
 
+		if inspect.State.Status == "running" {
+			//color.Green("System Component is running")
+			break
+		}
+
+		time.Sleep(1 * time.Second)
 	}
 
 	return nil
-
 }
