@@ -13,6 +13,8 @@ import (
 
 var cfgFile string
 
+var Version string
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "crane",
@@ -21,7 +23,7 @@ var rootCmd = &cobra.Command{
 	
 	Learn More at: https://www.cranom.tech/plaform-tools/crane-engine
 	`,
-	Version: "0.0.1",
+	Version: Version,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Welcome to Crane Orchastrator Engine")
 		fmt.Println("Use cranom --help to see available commands")
