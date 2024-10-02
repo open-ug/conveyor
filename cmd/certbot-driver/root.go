@@ -9,27 +9,29 @@ import (
 )
 
 // Listen for messages from the runtime
-func Reconcile(payload string) error {
+func Reconcile(payload string, event string) error {
 	fmt.Println("CERTBOT_D: Reconcyling payload: " + payload)
 
-	// Unmarshal the payload
-	var appMsg craneTypes.ApplicationMsg
-	err := json.Unmarshal([]byte(payload), &appMsg)
-	if err != nil {
-		return fmt.Errorf("error unmarshalling application message: %v", err)
-	}
+	if event != "application" {
+		// Unmarshal the payload
+		var appMsg craneTypes.ApplicationMsg
+		err := json.Unmarshal([]byte(payload), &appMsg)
+		if err != nil {
+			return fmt.Errorf("error unmarshalling application message: %v", err)
+		}
 
-	// Handle the action
-	if appMsg.Action == "create" {
-		CreateCertBotConfig(appMsg.Payload)
-	} else if appMsg.Action == "delete" {
-		DeleteCertBotConfig(appMsg.Payload)
-	} else if appMsg.Action == "update" {
-		//
-	} else if appMsg.Action == "start" {
-		//
-	} else if appMsg.Action == "stop" {
-		//
+		// Handle the action
+		if appMsg.Action == "create" {
+			CreateCertBotConfig(appMsg.Payload)
+		} else if appMsg.Action == "delete" {
+			DeleteCertBotConfig(appMsg.Payload)
+		} else if appMsg.Action == "update" {
+			//
+		} else if appMsg.Action == "start" {
+			//
+		} else if appMsg.Action == "stop" {
+			//
+		}
 	}
 
 	return nil
@@ -40,7 +42,7 @@ func Listen() {
 		Reconcile: Reconcile,
 	}
 
-	driverManager := runtime.NewDriverManager(driver)
+	driverManager := runtime.NewDriverManager(driver, []string{"application"})
 
 	err := driverManager.Run()
 	if err != nil {

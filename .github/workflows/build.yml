@@ -14,10 +14,6 @@ jobs:
         include:
           - os: ubuntu-latest
             ext: ""
-          - os: macos-latest
-            ext: ""
-          - os: windows-latest
-            ext: ".exe"
 
     steps:
       - name: Check out code

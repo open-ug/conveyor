@@ -57,6 +57,20 @@ func (h *ApplicationHandler) CreateApplication(c *fiber.Ctx) error {
 			"error": merr.Error(),
 		})
 	}
+
+	driverMsg := craneTypes.DriverMessage{
+		ID:      primitive.NewObjectID().Hex(),
+		Payload: string(jsonMsg),
+		Event:   "application",
+	}
+
+	jsonMsg, merr = json.Marshal(driverMsg)
+	if merr != nil {
+		fmt.Println(merr)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": merr.Error(),
+		})
+	}
 	// Publish to redis channel for driver to work on it
 	errf := h.RedisClient.Publish(context.Background(), "application",
 		jsonMsg,
@@ -163,6 +177,20 @@ func (h *ApplicationHandler) UpdateApplication(c *fiber.Ctx) error {
 		})
 	}
 
+	driverMsg := craneTypes.DriverMessage{
+		ID:      primitive.NewObjectID().Hex(),
+		Payload: string(jsonMsg),
+		Event:   "application",
+	}
+
+	jsonMsg, merr = json.Marshal(driverMsg)
+	if merr != nil {
+		fmt.Println(merr)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": merr.Error(),
+		})
+	}
+
 	fmt.Println("Sent Redis Pub")
 	errf := h.RedisClient.Publish(context.Background(), "application", jsonMsg).Err()
 
@@ -222,6 +250,20 @@ func (h *ApplicationHandler) StartApplication(c *fiber.Ctx) error {
 		})
 	}
 
+	driverMsg := craneTypes.DriverMessage{
+		ID:      primitive.NewObjectID().Hex(),
+		Payload: string(jsonMsg),
+		Event:   "application",
+	}
+
+	jsonMsg, merr = json.Marshal(driverMsg)
+	if merr != nil {
+		fmt.Println(merr)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": merr.Error(),
+		})
+	}
+
 	errf := h.RedisClient.Publish(context.Background(), "application", jsonMsg).Err()
 
 	if errf != nil {
@@ -253,6 +295,20 @@ func (h *ApplicationHandler) StopApplication(c *fiber.Ctx) error {
 
 	jsonMsg, merr := json.Marshal(appMsg)
 	if merr != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": merr.Error(),
+		})
+	}
+
+	driverMsg := craneTypes.DriverMessage{
+		ID:      primitive.NewObjectID().Hex(),
+		Payload: string(jsonMsg),
+		Event:   "application",
+	}
+
+	jsonMsg, merr = json.Marshal(driverMsg)
+	if merr != nil {
+		fmt.Println(merr)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": merr.Error(),
 		})
