@@ -80,7 +80,7 @@ func CreateContainer(
 	ctx := context.Background()
 
 	// Pull the image (if not already pulled)
-	reader, err := dockerClient.ImagePull(ctx, app.Spec.Image, image.PullOptions{})
+	reader, err := dockerClient.ImagePull(ctx, app.Spec.Source.Image.ImageURI, image.PullOptions{})
 	if err != nil {
 		log.Fatalf("Error pulling image: %v", err)
 		return err
@@ -131,7 +131,7 @@ func GenerateContainerConfig(
 		envVars = append(envVars, env.Name+"="+env.Value)
 	}
 	containerCfg := container.Config{
-		Image: app.Spec.Image,
+		Image: app.Spec.Source.Image.ImageURI,
 		Env:   envVars,
 	}
 

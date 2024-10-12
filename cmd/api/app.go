@@ -62,6 +62,7 @@ func StartServer(port string) {
 	db := GetMongoDBDatabase(mongoClient, "crane")
 
 	routes.ApplicationRoutes(app, db, redisClient)
+	routes.DriverRoutes(app, db, redisClient)
 
 	app.Listen(":" + port)
 }
