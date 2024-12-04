@@ -65,6 +65,7 @@ func StartServer(port string) {
 	routes.DriverRoutes(app, db, redisClient)
 
 	app.Listen(":" + port)
+
 }
 
 func GetDockerClient() (*client.Client, error) {
