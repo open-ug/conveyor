@@ -6,12 +6,17 @@ package dockerdriver
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	craneTypes "crane.cloud.cranom.tech/cmd/api/types"
 	runtime "crane.cloud.cranom.tech/cmd/driver-runtime"
 )
 
 func Reconcile(payload string, event string) error {
+
+	log.SetFlags(log.Ldate | log.Ltime)
+	log.Printf("Docker Driver Reconciling: %v", payload)
+
 	dockerClient, err := GetDockerClient()
 	if err != nil {
 		return fmt.Errorf("error getting docker client: %v", err)
@@ -24,6 +29,8 @@ func Reconcile(payload string, event string) error {
 		}
 
 		if appMsg.Action == "create" {
+			// Create Action
+			// Creating a new Container and Run It
 			app := appMsg.Payload
 			err := CreateContainer(dockerClient, &app)
 			if err != nil {
@@ -34,6 +41,14 @@ func Reconcile(payload string, event string) error {
 			if serr != nil {
 				return fmt.Errorf("error starting container: %v", serr)
 			}
+
+			// Broadcast Complete Message
+			runtime.BroadCastMessage(
+				craneTypes.DriverMessage{
+					Event:   "docker-build-complete",
+					Payload: payload,
+				},
+			)
 			return nil
 		} else if appMsg.Action == "delete" {
 			app := appMsg.Payload

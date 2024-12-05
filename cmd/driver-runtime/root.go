@@ -43,6 +43,7 @@ func NewDriverManager(
 	return &DriverManager{
 		RedisClient: rdb,
 		Driver:      driver,
+		Events:      events,
 	}
 }
 
@@ -61,6 +62,7 @@ func (d *DriverManager) Run() error {
 		ch := pubsub.Channel()
 
 		for msg := range ch {
+
 			var message craneTypes.DriverMessage
 			err := json.Unmarshal([]byte(msg.Payload), &message)
 			if err != nil {
@@ -70,7 +72,7 @@ func (d *DriverManager) Run() error {
 
 			// check if the event is in the list of events
 			// that the driver manager is listening to
-			var eventFound bool
+			var eventFound bool = false
 			for _, event := range d.Events {
 				if event == message.Event {
 					eventFound = true

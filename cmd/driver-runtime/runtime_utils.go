@@ -9,9 +9,13 @@ import (
 	"github.com/spf13/viper"
 )
 
+/*
+* Broad Cast An event message over Crane Redis Network.
+ */
 func BroadCastMessage(
 	message craneTypes.DriverMessage,
 ) error {
+	fmt.Println("BroadCasting Message")
 	client := resty.New()
 	client.SetHeader("Content-Type", "application/json")
 	baseURL := viper.GetString("api.host") + ":" + viper.GetString("api.port")

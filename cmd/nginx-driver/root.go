@@ -3,6 +3,7 @@ package nginxdriver
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	craneTypes "crane.cloud.cranom.tech/cmd/api/types"
 	runtime "crane.cloud.cranom.tech/cmd/driver-runtime"
@@ -10,9 +11,11 @@ import (
 
 // Listen for messages from the runtime
 func Reconcile(payload string, event string) error {
-	fmt.Println("NGINX_D: Reconcyling payload: " + payload)
 
-	if event != "application" {
+	log.SetFlags(log.Ldate | log.Ltime)
+	log.Printf("Nginx Driver Reconciling: %v", payload)
+
+	if event == "docker-build-complete" {
 		// Unmarshal the payload
 		var appMsg craneTypes.ApplicationMsg
 		err := json.Unmarshal([]byte(payload), &appMsg)
@@ -42,7 +45,7 @@ func Listen() {
 		Reconcile: Reconcile,
 	}
 
-	driverManager := runtime.NewDriverManager(driver, []string{"application"})
+	driverManager := runtime.NewDriverManager(driver, []string{"docker-build-complete"})
 
 	err := driverManager.Run()
 	if err != nil {
