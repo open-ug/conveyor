@@ -6,6 +6,7 @@ package cli
 import (
 	apiServer "crane.cloud.cranom.tech/cmd/api"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var APIServerCmd = &cobra.Command{
@@ -18,7 +19,7 @@ Learn More at: https://www.cranom.tech/plaform-tools/crane
 	Run: func(cmd *cobra.Command, args []string) {
 		port := cmd.Flag("port").Value.String()
 		if port == "" {
-			port = "3000"
+			port = viper.GetString("api.port")
 		}
 		apiServer.StartServer(port)
 	},

@@ -52,7 +52,7 @@ func (h *MessageHandler) PublishMessage(c *fiber.Ctx) error {
 		})
 	}
 	// Publish to redis channel for driver to work on it
-	errf := h.RedisClient.Publish(context.Background(), "message",
+	errf := h.RedisClient.Publish(context.Background(), "application",
 		jsonMsg,
 	)
 	if errf.Err() != nil {
