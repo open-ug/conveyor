@@ -77,6 +77,9 @@ func (d *DriverManager) Run() error {
 				if event == message.Event {
 					eventFound = true
 					break
+				} else if event == "*" {
+					eventFound = true
+					break
 				}
 			}
 

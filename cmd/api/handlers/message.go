@@ -13,7 +13,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// MessageHandler is a struct that holds the models for the message handler
+/*
+`MessageHandler` is a struct that holds the models for the message handler
+*/
 type MessageHandler struct {
 	MessageModel models.DriverMessageModel
 	RedisClient  *redis.Client
