@@ -67,3 +67,7 @@ Learn More at: https://www.cranom.tech/plaform-tools/crane
 		webhookDriver.Listen()
 	},
 }
+
+func init() {
+	WebhookDriverCmd.Flags().StringP("endpoint", "e", "", "Webhook endpoint where events will be published")
+}

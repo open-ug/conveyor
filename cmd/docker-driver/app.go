@@ -36,11 +36,25 @@ func Reconcile(payload string, event string) error {
 			if err != nil {
 				return fmt.Errorf("error creating container: %v", err)
 			}
+			// Broadcast Complete Message
+			runtime.BroadCastMessage(
+				craneTypes.DriverMessage{
+					Event:   "docker-create-complete",
+					Payload: payload,
+				},
+			)
 			// start the container
 			serr := StartContainer(dockerClient, &app)
 			if serr != nil {
 				return fmt.Errorf("error starting container: %v", serr)
 			}
+			// Broadcast Complete Message
+			runtime.BroadCastMessage(
+				craneTypes.DriverMessage{
+					Event:   "docker-start-complete",
+					Payload: payload,
+				},
+			)
 
 			// Broadcast Complete Message
 			runtime.BroadCastMessage(
@@ -75,6 +89,14 @@ func Reconcile(payload string, event string) error {
 			if err != nil {
 				return fmt.Errorf("error stopping container: %v", err)
 			}
+
+			// Broadcast Stop Message
+			runtime.BroadCastMessage(
+				craneTypes.DriverMessage{
+					Event:   "docker-stop-complete",
+					Payload: payload,
+				},
+			)
 		}
 	}
 

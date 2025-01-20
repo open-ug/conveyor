@@ -13,7 +13,7 @@ import (
 func Reconcile(payload string, event string) error {
 
 	log.SetFlags(log.Ldate | log.Ltime)
-	log.Printf("Webhook Driver Reconciling: %v", payload)
+	log.Printf("Webhook Driver Reconciling::: EVENT: %v PAYLOAD: %v", event, payload)
 
 	dm := craneTypes.DriverMessage{
 		Payload: payload,
