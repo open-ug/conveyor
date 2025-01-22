@@ -5,7 +5,9 @@ package routes
 
 import (
 	"crane.cloud.cranom.tech/cmd/api/handlers"
+	streams "crane.cloud.cranom.tech/cmd/api/streaming"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/websocket/v2"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -13,6 +15,7 @@ import (
 func ApplicationRoutes(app *fiber.App, db *mongo.Database, redisClient *redis.Client) {
 	applicationPrefix := app.Group("/applications")
 	applicationHandler := handlers.NewApplicationHandler(db, redisClient)
+	streamHandler := streams.NewApplicationStreamer(redisClient, applicationHandler.ApplicationModel)
 
 	applicationPrefix.Post("/", applicationHandler.CreateApplication)
 	applicationPrefix.Get("/:name", applicationHandler.GetApplication)
@@ -21,4 +24,7 @@ func ApplicationRoutes(app *fiber.App, db *mongo.Database, redisClient *redis.Cl
 	applicationPrefix.Delete("/:name", applicationHandler.DeleteApplication)
 	applicationPrefix.Post("/:name/start", applicationHandler.StartApplication)
 	applicationPrefix.Post("/:name/stop", applicationHandler.StopApplication)
+
+	// Streams
+	applicationPrefix.Get("/streams/logs/:name", websocket.New(streamHandler.StreamLogs))
 }
