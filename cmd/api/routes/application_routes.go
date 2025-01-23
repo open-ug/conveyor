@@ -4,6 +4,8 @@ Copyright © 2024 Cranom Technologies Limited info@cranom.tech
 package routes
 
 import (
+	"fmt"
+
 	"crane.cloud.cranom.tech/cmd/api/handlers"
 	streams "crane.cloud.cranom.tech/cmd/api/streaming"
 	"github.com/gofiber/fiber/v2"
@@ -16,6 +18,11 @@ func ApplicationRoutes(app *fiber.App, db *mongo.Database, redisClient *redis.Cl
 	applicationPrefix := app.Group("/applications")
 	applicationHandler := handlers.NewApplicationHandler(db, redisClient)
 	streamHandler := streams.NewApplicationStreamer(redisClient, applicationHandler.ApplicationModel)
+	execHandler, err := streams.NewContainerShellHandler()
+
+	if err != nil {
+		fmt.Println("Error occ")
+	}
 
 	applicationPrefix.Post("/", applicationHandler.CreateApplication)
 	applicationPrefix.Get("/:name", applicationHandler.GetApplication)
@@ -27,4 +34,5 @@ func ApplicationRoutes(app *fiber.App, db *mongo.Database, redisClient *redis.Cl
 
 	// Streams
 	applicationPrefix.Get("/streams/logs/:name", websocket.New(streamHandler.StreamLogs))
+	applicationPrefix.Get("/streams/exec/:name", websocket.New(execHandler.HandleWebSocket))
 }

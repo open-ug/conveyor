@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 5s  # How often to scrape targets by default.
+  evaluation_interval: 5s  # How often to evaluate rules.
+
+scrape_configs:
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['172.17.0.3:8080']  # Replace <cAdvisor_IP> with the cAdvisor host or container IP.
