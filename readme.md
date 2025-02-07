@@ -8,4 +8,15 @@ Learn more about the Crane Engine at [https://cranom.tech/platform-tools/crane-e
 
 ## Steps
 
-- Make it Work
+
+```bash
+docker volume create prometheus-data
+# Start Prometheus container
+docker run \
+    -p 9090:9090 \
+    -v /home/junior/dev/cranom/crane/yaml/prometheus.yml:/etc/prometheus/prometheus.yml \
+    -v prometheus-data:/prometheus \
+    --detach=true   --name=promserver \
+    prom/prometheus
+
+```

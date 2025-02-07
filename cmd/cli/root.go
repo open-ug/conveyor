@@ -42,7 +42,6 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.AddCommand(KubeContollerCmd)
 	rootCmd.AddCommand(APIServerCmd)
 	rootCmd.AddCommand(DockerDriverCmd)
 	rootCmd.AddCommand(NginxDriverCMD)
