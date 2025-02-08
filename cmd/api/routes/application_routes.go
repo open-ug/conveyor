@@ -16,6 +16,7 @@ import (
 
 func ApplicationRoutes(app *fiber.App, db *mongo.Database, redisClient *redis.Client) {
 	applicationPrefix := app.Group("/applications")
+	// Create Application Handler
 	applicationHandler := handlers.NewApplicationHandler(db, redisClient)
 	streamHandler := streams.NewApplicationStreamer(redisClient, applicationHandler.ApplicationModel)
 	execHandler, err := streams.NewContainerShellHandler()
@@ -35,4 +36,9 @@ func ApplicationRoutes(app *fiber.App, db *mongo.Database, redisClient *redis.Cl
 	// Streams
 	applicationPrefix.Get("/streams/logs/:name", websocket.New(streamHandler.StreamLogs))
 	applicationPrefix.Get("/streams/exec/:name", websocket.New(execHandler.HandleWebSocket))
+
+	//Metrics
+
+	applicationPrefix.Post("/metrics/cpu/:name", applicationHandler.GetApplicationCPUUsage)
+	applicationPrefix.Post("/metrics/memory/:name", applicationHandler.GetApplicationMemoryUsage)
 }

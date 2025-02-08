@@ -15,6 +15,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/spf13/viper"
 )
 
@@ -33,6 +34,8 @@ func StartServer(port string) {
 		JSONEncoder: json.Marshal,
 		JSONDecoder: json.Unmarshal,
 	})
+
+	app.Use(cors.New())
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("CRANE API SERVER contact info@cranom.tech for Documentation")
