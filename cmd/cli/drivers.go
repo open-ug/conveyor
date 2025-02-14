@@ -6,6 +6,7 @@ package cli
 import (
 	"fmt"
 
+	buildpacksDriver "crane.cloud.cranom.tech/cmd/buildpacks-driver"
 	certbotDriver "crane.cloud.cranom.tech/cmd/certbot-driver"
 	dockerDriver "crane.cloud.cranom.tech/cmd/docker-driver"
 	nginxDriver "crane.cloud.cranom.tech/cmd/nginx-driver"
@@ -47,6 +48,18 @@ Learn More at: https://www.cranom.tech/plaform-tools/crane
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		certbotDriver.Listen()
+	},
+}
+
+var BuildPacksDriverCmd = &cobra.Command{
+	Use:   "bp-driver",
+	Short: "Start the Crane Buildpacks Driver",
+	Long: `Start the Cranom API Server to interact with the Cranom Platform.
+
+Learn More at: https://www.cranom.tech/plaform-tools/crane
+`,
+	Run: func(cmd *cobra.Command, args []string) {
+		buildpacksDriver.Listen()
 	},
 }
 

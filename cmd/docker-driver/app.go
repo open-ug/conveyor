@@ -21,11 +21,15 @@ func Reconcile(payload string, event string) error {
 	if err != nil {
 		return fmt.Errorf("error getting docker client: %v", err)
 	}
-	if event == "application" {
+	if event == "application" || event == "buildpack-create-complete" {
 		var appMsg craneTypes.ApplicationMsg
 		err = json.Unmarshal([]byte(payload), &appMsg)
 		if err != nil {
 			return fmt.Errorf("error unmarshalling application message: %v", err)
+		}
+
+		if event == "application" && appMsg.Payload.Spec.Source.Type == "git" {
+			return nil
 		}
 
 		if appMsg.Action == "create" {
@@ -109,7 +113,7 @@ func Listen() {
 		Reconcile: Reconcile,
 	}
 
-	driverManager := runtime.NewDriverManager(driver, []string{"application"})
+	driverManager := runtime.NewDriverManager(driver, []string{"application", "buildpack-create-complete"})
 
 	err := driverManager.Run()
 	if err != nil {

@@ -79,13 +79,15 @@ func CreateContainer(
 
 	ctx := context.Background()
 
-	// Pull the image (if not already pulled)
-	reader, err := dockerClient.ImagePull(ctx, app.Spec.Source.Image.ImageURI, image.PullOptions{})
-	if err != nil {
-		log.Fatalf("Error pulling image: %v", err)
-		return err
+	if app.Spec.Source.Type == "docker" {
+		// Pull the image (if not already pulled)
+		reader, err := dockerClient.ImagePull(ctx, app.Spec.Source.Image.ImageURI, image.PullOptions{})
+		if err != nil {
+			log.Fatalf("Error pulling image: %v", err)
+			return err
+		}
+		defer reader.Close()
 	}
-	defer reader.Close()
 
 	containerCfg, hostCfg, networkCfg, err := GenerateContainerConfig(app)
 	if err != nil {
@@ -94,18 +96,20 @@ func CreateContainer(
 	}
 	// create network
 
-	nerr := CreateNetwork(app, dockerClient)
+	if app.Spec.Network != "" {
+
+		nerr := CreateNetwork(app, dockerClient)
+		if nerr != nil {
+			log.Fatalf("Error creating network: %v", nerr)
+			return nerr
+		}
+	}
 
 	verr := CreateAppVolumes(app, dockerClient)
 
 	if verr != nil {
 		log.Fatalf("Error creating volumes: %v", verr)
 		return verr
-	}
-
-	if nerr != nil {
-		log.Fatalf("Error creating network: %v", nerr)
-		return nerr
 	}
 
 	// Create the container
@@ -130,22 +134,33 @@ func GenerateContainerConfig(
 		env := app.Spec.Env[i]
 		envVars = append(envVars, env.Name+"="+env.Value)
 	}
+	var imageURI string
+	if app.Spec.Source.Type == "git" {
+		// if the source is git, the imageURI is the buildpacks image
+		imageURI = app.Name + "-bpimage"
+	} else {
+		imageURI = app.Spec.Source.Image.ImageURI
+	}
+
 	containerCfg := container.Config{
-		Image: app.Spec.Source.Image.ImageURI,
+		Image: imageURI,
 		Env:   envVars,
 	}
 
-	networkName := app.Spec.Network
+	var networkCfg network.NetworkingConfig
 
-	networkCfg := network.NetworkingConfig{
-		EndpointsConfig: map[string]*network.EndpointSettings{
-			networkName: {
-				NetworkID: networkName,
+	if app.Spec.Network != "" {
+		networkName := app.Spec.Network
+
+		networkCfg = network.NetworkingConfig{
+			EndpointsConfig: map[string]*network.EndpointSettings{
+				networkName: {
+					NetworkID: networkName,
+				},
 			},
-		},
+		}
+
 	}
-	containerPort := strconv.Itoa(app.Spec.Ports[0].Internal)
-	hostPort := strconv.Itoa(app.Spec.Ports[0].External)
 
 	// Create volume bindings
 	volumeBindings := []string{}
@@ -156,18 +171,30 @@ func GenerateContainerConfig(
 	}
 
 	hostCfg := container.HostConfig{
-		PortBindings: nat.PortMap{
+		Binds: volumeBindings,
+		RestartPolicy: container.RestartPolicy{
+			Name: "unless-stopped",
+		},
+	}
+
+	var containerPort string
+	var hostPort string
+
+	// If there are ports specified then create port bindings
+	if len(app.Spec.Ports) != 0 {
+
+		containerPort = strconv.Itoa(app.Spec.Ports[0].Internal)
+		hostPort = strconv.Itoa(app.Spec.Ports[0].External)
+
+		hostCfg.PortBindings = nat.PortMap{
 			nat.Port(containerPort + "/tcp"): []nat.PortBinding{
 				{
 					HostIP:   "0.0.0.0",
 					HostPort: hostPort,
 				},
 			},
-		},
-		Binds: volumeBindings,
-		RestartPolicy: container.RestartPolicy{
-			Name: "unless-stopped",
-		},
+		}
+
 	}
 
 	return &containerCfg, &hostCfg, &networkCfg, nil

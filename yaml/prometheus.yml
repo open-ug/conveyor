@@ -5,4 +5,4 @@ global:
 scrape_configs:
   - job_name: 'cadvisor'
     static_configs:
-      - targets: ['172.17.0.5:8080']  # Replace <cAdvisor_IP> with the cAdvisor host or container IP.
+      - targets: ['172.17.0.6:8080']  # Replace <cAdvisor_IP> with the cAdvisor host or container IP.

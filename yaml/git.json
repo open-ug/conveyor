@@ -1,0 +1,11 @@
+{
+  "name": "test-bp-git",
+  "spec": {
+    "source": {
+      "type": "git",
+      "gitRepo": {
+        "url": "https://github.com/jim-junior/group-project"
+      }
+    }
+  }
+}
