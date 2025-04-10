@@ -1,16 +1,16 @@
 /*
-Copyright © 2024 Cranom Technologies Limited info@cranom.tech
+Copyright © 2024 Beingana Jim Junior and Contributors
 */
 package cli
 
 import (
 	"fmt"
 
-	buildpacksDriver "conveyor.cloud.cranom.tech/cmd/buildpacks-driver"
-	certbotDriver "conveyor.cloud.cranom.tech/cmd/certbot-driver"
-	dockerDriver "conveyor.cloud.cranom.tech/cmd/docker-driver"
-	nginxDriver "conveyor.cloud.cranom.tech/cmd/nginx-driver"
-	webhookDriver "conveyor.cloud.cranom.tech/cmd/webhook-driver"
+	buildpacksDriver "github.com/open-ug/conveyor/cmd/buildpacks-driver"
+	certbotDriver "github.com/open-ug/conveyor/cmd/certbot-driver"
+	dockerDriver "github.com/open-ug/conveyor/cmd/docker-driver"
+	nginxDriver "github.com/open-ug/conveyor/cmd/nginx-driver"
+	webhookDriver "github.com/open-ug/conveyor/cmd/webhook-driver"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

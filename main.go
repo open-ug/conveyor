@@ -1,10 +1,10 @@
 /*
-Copyright © 2024 Cranom Technologies Limited info@cranom.tech
+Copyright © 2024 Beingana Jim Junior and Contributors
 */
 package main
 
 import (
-	"conveyor.cloud.cranom.tech/cmd/cli"
+	"github.com/open-ug/conveyor/cmd/cli"
 )
 
 func main() {

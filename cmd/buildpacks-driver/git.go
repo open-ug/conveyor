@@ -3,7 +3,7 @@ package buildpacksdriver
 import (
 	"fmt"
 
-	craneTypes "conveyor.cloud.cranom.tech/pkg/types"
+	craneTypes "github.com/open-ug/conveyor/pkg/types"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 )

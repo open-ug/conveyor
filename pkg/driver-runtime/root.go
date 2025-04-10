@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 Cranom Technologies Limited info@cranom.tech
+Copyright © 2024 Beingana Jim Junior and Contributors
 */
 package driverruntime
 
@@ -9,11 +9,11 @@ import (
 	"fmt"
 	"time"
 
-	config "conveyor.cloud.cranom.tech/internal/config"
-	internals "conveyor.cloud.cranom.tech/internal/shared"
-	craneTypes "conveyor.cloud.cranom.tech/pkg/types"
 	"github.com/docker/docker/client"
 	"github.com/fatih/color"
+	config "github.com/open-ug/conveyor/internal/config"
+	internals "github.com/open-ug/conveyor/internal/shared"
+	craneTypes "github.com/open-ug/conveyor/pkg/types"
 	"github.com/redis/go-redis/v9"
 )
 

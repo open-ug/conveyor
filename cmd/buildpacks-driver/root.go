@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 Cranom Technologies Limited info@cranom.tech
+Copyright © 2024 Beingana Jim Junior and Contributors
 */
 package buildpacksdriver
 
@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"log"
 
-	runtime "conveyor.cloud.cranom.tech/pkg/driver-runtime"
-	craneTypes "conveyor.cloud.cranom.tech/pkg/types"
+	runtime "github.com/open-ug/conveyor/pkg/driver-runtime"
+	craneTypes "github.com/open-ug/conveyor/pkg/types"
 )
 
 func Reconcile(payload string, event string) error {

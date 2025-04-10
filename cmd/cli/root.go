@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 Cranom Technologies Limited info@cranom.tech
+Copyright © 2024 Beingana Jim Junior and Contributors
 */
 package cli
 
@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	config "conveyor.cloud.cranom.tech/internal/config"
+	config "github.com/open-ug/conveyor/internal/config"
 	"github.com/spf13/cobra"
 )
 

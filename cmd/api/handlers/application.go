@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 Cranom Technologies Limited info@cranom.tech
+Copyright © 2024 Beingana Jim Junior and Contributors
 */
 package handlers
 
@@ -8,9 +8,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	models "conveyor.cloud.cranom.tech/cmd/api/models"
-	craneTypes "conveyor.cloud.cranom.tech/pkg/types"
 	"github.com/gofiber/fiber/v2"
+	models "github.com/open-ug/conveyor/cmd/api/models"
+	craneTypes "github.com/open-ug/conveyor/pkg/types"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

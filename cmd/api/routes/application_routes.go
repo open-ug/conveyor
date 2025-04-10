@@ -1,15 +1,15 @@
 /*
-Copyright © 2024 Cranom Technologies Limited info@cranom.tech
+Copyright © 2024 Beingana Jim Junior and Contributors
 */
 package routes
 
 import (
 	"fmt"
 
-	"conveyor.cloud.cranom.tech/cmd/api/handlers"
-	streams "conveyor.cloud.cranom.tech/cmd/api/streaming"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
+	"github.com/open-ug/conveyor/cmd/api/handlers"
+	streams "github.com/open-ug/conveyor/cmd/api/streaming"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 )

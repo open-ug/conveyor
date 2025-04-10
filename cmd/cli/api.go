@@ -1,10 +1,10 @@
 /*
-Copyright © 2024 Cranom Technologies Limited info@cranom.tech
+Copyright © 2024 Beingana Jim Junior and Contributors
 */
 package cli
 
 import (
-	apiServer "conveyor.cloud.cranom.tech/cmd/api"
+	apiServer "github.com/open-ug/conveyor/cmd/api"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

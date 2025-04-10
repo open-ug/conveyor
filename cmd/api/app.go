@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 Cranom Technologies Limited info@cranom.tech
+Copyright © 2024 Beingana Jim Junior and Contributors
 */
 package api
 
@@ -9,14 +9,14 @@ import (
 	"context"
 	"time"
 
-	helpers "conveyor.cloud.cranom.tech/cmd/api/helpers"
-	routes "conveyor.cloud.cranom.tech/cmd/api/routes"
-	internals "conveyor.cloud.cranom.tech/internal/shared"
 	"github.com/docker/docker/client"
 	"github.com/fatih/color"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	helpers "github.com/open-ug/conveyor/cmd/api/helpers"
+	routes "github.com/open-ug/conveyor/cmd/api/routes"
+	internals "github.com/open-ug/conveyor/internal/shared"
 	"github.com/spf13/viper"
 )
 

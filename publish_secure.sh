@@ -6,7 +6,7 @@ set -e  # Exit immediately if a command fails
 
 
 # Set variables
-MODULE_NAME="conveyor.cloud.cranom.tech"
+MODULE_NAME="github.com/open-ug/conveyor"
 VERSION="v0.0.1"
 OUTPUT_DIR="./build"
 ARCHIVE_NAME="driver-runtime.a"

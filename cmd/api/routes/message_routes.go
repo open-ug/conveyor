@@ -1,11 +1,11 @@
 /*
-Copyright © 2024 Cranom Technologies Limited info@cranom.tech
+Copyright © 2024 Beingana Jim Junior and Contributors
 */
 package routes
 
 import (
-	"conveyor.cloud.cranom.tech/cmd/api/handlers"
 	"github.com/gofiber/fiber/v2"
+	"github.com/open-ug/conveyor/cmd/api/handlers"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 )

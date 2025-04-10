@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	craneTypes "conveyor.cloud.cranom.tech/pkg/types"
+	craneTypes "github.com/open-ug/conveyor/pkg/types"
 	"github.com/go-resty/resty/v2"
 )
 

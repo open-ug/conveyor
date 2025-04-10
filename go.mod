@@ -1,4 +1,4 @@
-module conveyor.cloud.cranom.tech
+module github.com/open-ug/conveyor
 
 go 1.23
 

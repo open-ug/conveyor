@@ -7,7 +7,7 @@ import (
 	"io"
 	"log"
 
-	models "conveyor.cloud.cranom.tech/cmd/api/models"
+	models "github.com/open-ug/conveyor/cmd/api/models"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/gofiber/websocket/v2"

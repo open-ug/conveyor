@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 Cranom Technologies Limited info@cranom.tech
+Copyright © 2024 Beingana Jim Junior and Contributors
 */
 package dockerdriver
 
@@ -7,7 +7,6 @@ import (
 	"context"
 	"strconv"
 
-	craneTypes "conveyor.cloud.cranom.tech/pkg/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
@@ -15,6 +14,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/gofiber/fiber/v2/log"
+	craneTypes "github.com/open-ug/conveyor/pkg/types"
 )
 
 func CreateAppVolumes(

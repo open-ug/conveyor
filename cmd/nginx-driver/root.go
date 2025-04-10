@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	runtime "conveyor.cloud.cranom.tech/pkg/driver-runtime"
-	craneTypes "conveyor.cloud.cranom.tech/pkg/types"
+	runtime "github.com/open-ug/conveyor/pkg/driver-runtime"
+	craneTypes "github.com/open-ug/conveyor/pkg/types"
 )
 
 // Listen for messages from the runtime

@@ -27,7 +27,7 @@ jobs:
       - name: Build binary
         run: |
           mkdir -p output
-          go build -ldflags "-X 'conveyor.cloud.cranom.tech/cmd/cli.Version=${{ github.event.release.tag_name }}'" -o output/crane-${{ github.event.release.tag_name }}-${{ matrix.os }}-${{ runner.arch }}${{ matrix.ext }}
+          go build -ldflags "-X 'github.com/open-ug/conveyor/cmd/cli.Version=${{ github.event.release.tag_name }}'" -o output/crane-${{ github.event.release.tag_name }}-${{ matrix.os }}-${{ runner.arch }}${{ matrix.ext }}
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2.0.8

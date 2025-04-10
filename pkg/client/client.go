@@ -1,7 +1,7 @@
 package client
 
 import (
-	config "conveyor.cloud.cranom.tech/internal/config"
+	config "github.com/open-ug/conveyor/internal/config"
 	"github.com/spf13/viper"
 )
 
