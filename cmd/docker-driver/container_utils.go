@@ -7,7 +7,7 @@ import (
 	"context"
 	"strconv"
 
-	craneTypes "crane.cloud.cranom.tech/cmd/api/types"
+	craneTypes "conveyor.cloud.cranom.tech/pkg/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"

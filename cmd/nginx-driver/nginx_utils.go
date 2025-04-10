@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	craneTypes "crane.cloud.cranom.tech/cmd/api/types"
+	craneTypes "conveyor.cloud.cranom.tech/pkg/types"
 )
 
 func CreateNginxConfig(app craneTypes.Application) error {

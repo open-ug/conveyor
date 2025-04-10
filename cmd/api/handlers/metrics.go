@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"crane.cloud.cranom.tech/cmd/api/utils"
+	"conveyor.cloud.cranom.tech/cmd/api/utils"
 	"github.com/gofiber/fiber/v2"
 )
 

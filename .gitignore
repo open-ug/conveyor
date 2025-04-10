@@ -1,2 +1,4 @@
 .env
 output
+build/
+athens-data

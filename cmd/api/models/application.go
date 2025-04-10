@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	craneTypes "crane.cloud.cranom.tech/cmd/api/types"
+	craneTypes "conveyor.cloud.cranom.tech/pkg/types"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )

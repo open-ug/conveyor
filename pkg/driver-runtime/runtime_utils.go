@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	craneTypes "crane.cloud.cranom.tech/cmd/api/types"
+	craneTypes "conveyor.cloud.cranom.tech/pkg/types"
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/viper"
 )

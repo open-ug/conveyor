@@ -9,8 +9,9 @@ import (
 	"context"
 	"time"
 
-	helpers "crane.cloud.cranom.tech/cmd/api/helpers"
-	routes "crane.cloud.cranom.tech/cmd/api/routes"
+	helpers "conveyor.cloud.cranom.tech/cmd/api/helpers"
+	routes "conveyor.cloud.cranom.tech/cmd/api/routes"
+	internals "conveyor.cloud.cranom.tech/internal/shared"
 	"github.com/docker/docker/client"
 	"github.com/fatih/color"
 	"github.com/goccy/go-json"
@@ -30,7 +31,7 @@ func StartServer(port string) {
 		panic(err)
 	}
 	app := fiber.New(fiber.Config{
-		AppName:     "Crane API Server",
+		AppName:     "Conveyor API Server",
 		JSONEncoder: json.Marshal,
 		JSONDecoder: json.Unmarshal,
 	})
@@ -44,7 +45,7 @@ func StartServer(port string) {
 		return c.SendString("pong")
 	})
 
-	redisClient := NewRedisClient()
+	redisClient := internals.NewRedisClient()
 
 	privateKey, err := helpers.LoadPrivateKey()
 	if err != nil {

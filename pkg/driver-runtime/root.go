@@ -9,8 +9,9 @@ import (
 	"fmt"
 	"time"
 
-	apiServer "crane.cloud.cranom.tech/cmd/api"
-	craneTypes "crane.cloud.cranom.tech/cmd/api/types"
+	config "conveyor.cloud.cranom.tech/internal/config"
+	internals "conveyor.cloud.cranom.tech/internal/shared"
+	craneTypes "conveyor.cloud.cranom.tech/pkg/types"
 	"github.com/docker/docker/client"
 	"github.com/fatih/color"
 	"github.com/redis/go-redis/v9"
@@ -38,7 +39,10 @@ func NewDriverManager(
 	driver *Driver,
 	events []string,
 ) *DriverManager {
-	rdb := apiServer.NewRedisClient()
+	// Load the configuration
+	config.InitConfig()
+
+	rdb := internals.NewRedisClient()
 
 	return &DriverManager{
 		RedisClient: rdb,

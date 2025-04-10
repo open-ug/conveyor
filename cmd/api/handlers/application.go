@@ -8,8 +8,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	models "crane.cloud.cranom.tech/cmd/api/models"
-	craneTypes "crane.cloud.cranom.tech/cmd/api/types"
+	models "conveyor.cloud.cranom.tech/cmd/api/models"
+	craneTypes "conveyor.cloud.cranom.tech/pkg/types"
 	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/bson/primitive"

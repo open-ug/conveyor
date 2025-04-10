@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	craneTypes "crane.cloud.cranom.tech/cmd/api/types"
+	craneTypes "conveyor.cloud.cranom.tech/pkg/types"
 	"github.com/buildpacks/pack/pkg/client"
 )
 

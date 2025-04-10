@@ -1,7 +1,7 @@
 /*
 Copyright © 2024 Cranom Technologies Limited info@cranom.tech
 */
-package api
+package shared
 
 import (
 	"context"

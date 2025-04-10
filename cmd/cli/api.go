@@ -4,7 +4,7 @@ Copyright © 2024 Cranom Technologies Limited info@cranom.tech
 package cli
 
 import (
-	apiServer "crane.cloud.cranom.tech/cmd/api"
+	apiServer "conveyor.cloud.cranom.tech/cmd/api"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

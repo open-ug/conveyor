@@ -4,7 +4,7 @@ Copyright © 2024 Cranom Technologies Limited info@cranom.tech
 package routes
 
 import (
-	"crane.cloud.cranom.tech/cmd/api/handlers"
+	"conveyor.cloud.cranom.tech/cmd/api/handlers"
 	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"

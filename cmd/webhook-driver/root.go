@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	craneTypes "crane.cloud.cranom.tech/cmd/api/types"
-	runtime "crane.cloud.cranom.tech/cmd/driver-runtime"
+	runtime "conveyor.cloud.cranom.tech/pkg/driver-runtime"
+	craneTypes "conveyor.cloud.cranom.tech/pkg/types"
 )
 
 // Listen for messages from the runtime

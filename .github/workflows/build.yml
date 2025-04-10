@@ -9,7 +9,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest]
         go-version: [1.21.6]
         include:
           - os: ubuntu-latest
@@ -27,7 +27,7 @@ jobs:
       - name: Build binary
         run: |
           mkdir -p output
-          go build -ldflags "-X 'crane.cloud.cranom.tech/cmd/cli.Version=${{ github.event.release.tag_name }}'" -o output/crane-${{ github.event.release.tag_name }}-${{ matrix.os }}-${{ runner.arch }}${{ matrix.ext }}
+          go build -ldflags "-X 'conveyor.cloud.cranom.tech/cmd/cli.Version=${{ github.event.release.tag_name }}'" -o output/crane-${{ github.event.release.tag_name }}-${{ matrix.os }}-${{ runner.arch }}${{ matrix.ext }}
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2.0.8

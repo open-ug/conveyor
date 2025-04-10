@@ -7,11 +7,9 @@ import (
 	"fmt"
 	"os"
 
+	config "conveyor.cloud.cranom.tech/internal/config"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
-
-var cfgFile string
 
 var Version string
 
@@ -40,7 +38,7 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
+	cobra.OnInitialize(config.InitConfig)
 
 	rootCmd.AddCommand(APIServerCmd)
 	rootCmd.AddCommand(DockerDriverCmd)
@@ -53,30 +51,9 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is /etc/crane/config.yaml)")
+	rootCmd.PersistentFlags().StringVar(&config.CfgFile, "config", "", "config file (default is /etc/crane/config.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-
-		// /etc/crane/config.yaml
-		viper.AddConfigPath("/etc/crane")
-		viper.SetConfigName("config")
-		viper.SetConfigType("yaml")
-
-	}
-
-	err := viper.ReadInConfig()
-	if err != nil {
-		fmt.Println("Error reading config file: ", err)
-	}
-
 }

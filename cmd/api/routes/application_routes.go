@@ -6,8 +6,8 @@ package routes
 import (
 	"fmt"
 
-	"crane.cloud.cranom.tech/cmd/api/handlers"
-	streams "crane.cloud.cranom.tech/cmd/api/streaming"
+	"conveyor.cloud.cranom.tech/cmd/api/handlers"
+	streams "conveyor.cloud.cranom.tech/cmd/api/streaming"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
 	"github.com/redis/go-redis/v9"

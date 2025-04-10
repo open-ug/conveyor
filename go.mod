@@ -1,4 +1,4 @@
-module crane.cloud.cranom.tech
+module conveyor.cloud.cranom.tech
 
 go 1.23
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 
-	craneTypes "crane.cloud.cranom.tech/cmd/api/types"
+	craneTypes "conveyor.cloud.cranom.tech/pkg/types"
 )
 
 func CreateCertBotConfig(app craneTypes.Application) {
