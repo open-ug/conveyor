@@ -5,7 +5,7 @@ package routes
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/open-ug/conveyor/cmd/api/handlers"
+	"github.com/open-ug/conveyor/internal/handlers"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 )

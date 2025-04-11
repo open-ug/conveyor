@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/open-ug/conveyor/cmd/api/utils"
 	"github.com/gofiber/fiber/v2"
+	"github.com/open-ug/conveyor/internal/utils"
 )
 
 type MetricsFilters struct {

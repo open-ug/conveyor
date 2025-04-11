@@ -14,9 +14,10 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	helpers "github.com/open-ug/conveyor/cmd/api/helpers"
-	routes "github.com/open-ug/conveyor/cmd/api/routes"
+	helpers "github.com/open-ug/conveyor/internal/helpers"
+	routes "github.com/open-ug/conveyor/internal/routes"
 	internals "github.com/open-ug/conveyor/internal/shared"
+	utils "github.com/open-ug/conveyor/internal/utils"
 	"github.com/spf13/viper"
 )
 
@@ -62,8 +63,8 @@ func StartServer(port string) {
 
 	uri := "mongodb://" + viper.GetString("db.user") + ":" + string(string(decryptedDbPass)) + "@" + viper.GetString("db.host") + ":" + viper.GetString("db.port")
 
-	mongoClient := ConnectToMongoDB(uri)
-	db := GetMongoDBDatabase(mongoClient, "crane")
+	mongoClient := utils.ConnectToMongoDB(uri)
+	db := utils.GetMongoDBDatabase(mongoClient, "crane")
 
 	routes.ApplicationRoutes(app, db, redisClient)
 	routes.DriverRoutes(app, db, redisClient)

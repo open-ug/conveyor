@@ -1,7 +1,7 @@
 /*
 Copyright © 2024 Cranom Technologies Limited, Beingana Jim Junior and Contributors
 */
-package api
+package utils
 
 import (
 	"context"

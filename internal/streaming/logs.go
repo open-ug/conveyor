@@ -7,10 +7,10 @@ import (
 	"io"
 	"log"
 
-	models "github.com/open-ug/conveyor/cmd/api/models"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/gofiber/websocket/v2"
+	models "github.com/open-ug/conveyor/internal/models"
 	"github.com/redis/go-redis/v9"
 )
 

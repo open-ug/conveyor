@@ -8,8 +8,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
-	"github.com/open-ug/conveyor/cmd/api/handlers"
-	streams "github.com/open-ug/conveyor/cmd/api/streaming"
+	"github.com/open-ug/conveyor/internal/handlers"
+	streams "github.com/open-ug/conveyor/internal/streaming"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 )
