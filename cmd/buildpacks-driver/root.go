@@ -54,9 +54,14 @@ func Listen() {
 		Reconcile: Reconcile,
 	}
 
-	driverManager := runtime.NewDriverManager(driver, []string{"application"})
+	driverManager, err := runtime.NewDriverManager(driver, []string{"application"})
 
-	err := driverManager.Run()
+	if err != nil {
+		fmt.Println("Error creating driver manager: ", err)
+		return
+	}
+
+	err = driverManager.Run()
 	if err != nil {
 		fmt.Println("Error running driver manager: ", err)
 	}

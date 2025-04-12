@@ -116,9 +116,14 @@ func Listen() {
 		Reconcile: Reconcile,
 	}
 
-	driverManager := runtime.NewDriverManager(driver, []string{"application", "buildpack-create-complete"})
+	driverManager, err := runtime.NewDriverManager(driver, []string{"application", "buildpack-create-complete"})
 
-	err := driverManager.Run()
+	if err != nil {
+		fmt.Println("Error creating driver manager: ", err)
+		return
+	}
+
+	err = driverManager.Run()
 	if err != nil {
 		fmt.Println("Error running driver manager: ", err)
 	}

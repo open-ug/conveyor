@@ -38,12 +38,30 @@ type Driver struct {
 	Name string
 }
 
+// validate the driver
+func (d *Driver) Validate() error {
+	if d.Reconcile == nil {
+		return fmt.Errorf("driver reconcile function is not set")
+	}
+	if d.Name == "" {
+		return fmt.Errorf("driver name is not set")
+	}
+	return nil
+}
+
 func NewDriverManager(
 	driver *Driver,
 	events []string,
-) *DriverManager {
+) (*DriverManager, error) {
 	// Load the configuration
 	config.InitConfig()
+
+	// Validate the driver
+	err := driver.Validate()
+	if err != nil {
+		color.Red("Error Occured while validating driver: %v", err)
+		return nil, err
+	}
 
 	rdb := internals.NewRedisClient()
 
@@ -51,7 +69,7 @@ func NewDriverManager(
 		RedisClient: rdb,
 		Driver:      driver,
 		Events:      events,
-	}
+	}, nil
 }
 
 func (d *DriverManager) Run() error {
