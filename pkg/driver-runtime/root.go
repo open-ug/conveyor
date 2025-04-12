@@ -13,6 +13,7 @@ import (
 	"github.com/fatih/color"
 	config "github.com/open-ug/conveyor/internal/config"
 	internals "github.com/open-ug/conveyor/internal/shared"
+	"github.com/open-ug/conveyor/pkg/driver-runtime/log"
 	craneTypes "github.com/open-ug/conveyor/pkg/types"
 	"github.com/redis/go-redis/v9"
 )
@@ -32,7 +33,9 @@ type DriverManager struct {
 
 type Driver struct {
 	// The driver is responsible for managing the driver
-	Reconcile func(message string, event string) error
+	Reconcile func(message string, event string, runID string, logger *log.DriverLogger) error
+
+	Name string
 }
 
 func NewDriverManager(
@@ -91,7 +94,14 @@ func (d *DriverManager) Run() error {
 				continue
 			}
 
-			err = d.Driver.Reconcile(message.Payload, message.Event)
+			logger := log.NewDriverLogger(d.Driver.Name, map[string]string{
+				"event":  message.Event,
+				"id":     message.ID,
+				"run_id": message.RunID,
+			},
+			)
+
+			err = d.Driver.Reconcile(message.Payload, message.Event, message.RunID, logger)
 			if err != nil {
 				fmt.Println("Error reconciling resource: ", err)
 				//return err

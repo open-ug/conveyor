@@ -9,10 +9,11 @@ import (
 	"log"
 
 	runtime "github.com/open-ug/conveyor/pkg/driver-runtime"
+	logger "github.com/open-ug/conveyor/pkg/driver-runtime/log"
 	craneTypes "github.com/open-ug/conveyor/pkg/types"
 )
 
-func Reconcile(payload string, event string) error {
+func Reconcile(payload string, event string, runID string, logger *logger.DriverLogger) error {
 	log.SetFlags(log.Ldate | log.Ltime)
 	log.Printf("Buiild Pcks Reconciling: %v", payload)
 
@@ -36,6 +37,7 @@ func Reconcile(payload string, event string) error {
 					craneTypes.DriverMessage{
 						Event:   "buildpack-create-complete",
 						Payload: payload,
+						RunID:   runID,
 					},
 				)
 			}

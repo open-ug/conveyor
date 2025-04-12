@@ -6,11 +6,12 @@ import (
 	"log"
 
 	runtime "github.com/open-ug/conveyor/pkg/driver-runtime"
+	logger "github.com/open-ug/conveyor/pkg/driver-runtime/log"
 	craneTypes "github.com/open-ug/conveyor/pkg/types"
 )
 
 // Listen for messages from the runtime
-func Reconcile(payload string, event string) error {
+func Reconcile(payload string, event string, runID string, logger *logger.DriverLogger) error {
 
 	log.SetFlags(log.Ldate | log.Ltime)
 	log.Printf("Nginx Driver Reconciling: %v", payload)
