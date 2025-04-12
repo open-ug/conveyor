@@ -6,4 +6,5 @@ type DriverMessage struct {
 	// JSON Payload
 	Payload string `json:"payload" bson:"payload"`
 	ID      string `json:"id" bson:"id"`
+	RunID   string `json:"run_id" bson:"run_id"`
 }

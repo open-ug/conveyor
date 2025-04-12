@@ -7,10 +7,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/open-ug/conveyor/internal/handlers"
 	"github.com/redis/go-redis/v9"
-	"go.mongodb.org/mongo-driver/mongo"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-func DriverRoutes(app *fiber.App, db *mongo.Database, redisClient *redis.Client) {
+func DriverRoutes(app *fiber.App, db *clientv3.Client, redisClient *redis.Client) {
 	applicationPrefix := app.Group("/drivers")
 	applicationHandler := handlers.NewMessageHandler(db, redisClient)
 

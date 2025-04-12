@@ -11,10 +11,10 @@ import (
 	"github.com/open-ug/conveyor/internal/handlers"
 	streams "github.com/open-ug/conveyor/internal/streaming"
 	"github.com/redis/go-redis/v9"
-	"go.mongodb.org/mongo-driver/mongo"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-func ApplicationRoutes(app *fiber.App, db *mongo.Database, redisClient *redis.Client) {
+func ApplicationRoutes(app *fiber.App, db *clientv3.Client, redisClient *redis.Client) {
 	applicationPrefix := app.Group("/applications")
 	// Create Application Handler
 	applicationHandler := handlers.NewApplicationHandler(db, redisClient)
