@@ -53,7 +53,7 @@ func (s *DriverLogsStreamer) StreamLogs(ws *websocket.Conn) {
 	}
 
 	// Subscribe to the Redis channel for driver logs
-	pubsub := s.RedisClient.Subscribe(context.Background(), fmt.Sprintf("driver:%s:logs", driverName))
+	pubsub := s.RedisClient.Subscribe(context.Background(), fmt.Sprintf("driver:%s:logs:%s", driverName, runID))
 	defer pubsub.Close()
 
 	// Wait for the subscription to be ready

@@ -51,6 +51,7 @@ func (d *DriverLogger) Log(labels map[string]string, message string) error {
 	for k, v := range labels {
 		initialLabels[k] = v
 	}
+	runId := d.Labels["run_id"]
 	// Send the log to Loki
 	err := d.Logger.PushLog(initialLabels, message)
 	if err != nil {
@@ -66,7 +67,7 @@ func (d *DriverLogger) Log(labels map[string]string, message string) error {
 	// Convert the message to a string
 	msg := string(messageBytes)
 	// Send the log to Redis
-	err = d.RedisClient.Publish(context.Background(), "driver:"+d.DriverName+":logs", msg).Err()
+	err = d.RedisClient.Publish(context.Background(), "driver:"+d.DriverName+":logs:"+runId, msg).Err()
 
 	return nil
 }
