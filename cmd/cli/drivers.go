@@ -7,8 +7,8 @@ import (
 	"fmt"
 
 	buildpacksDriver "github.com/open-ug/conveyor/cmd/buildpacks-driver"
-	certbotDriver "github.com/open-ug/conveyor/cmd/certbot-driver"
 	dockerDriver "github.com/open-ug/conveyor/cmd/docker-driver"
+	"github.com/open-ug/conveyor/cmd/logger"
 	nginxDriver "github.com/open-ug/conveyor/cmd/nginx-driver"
 	webhookDriver "github.com/open-ug/conveyor/cmd/webhook-driver"
 	"github.com/spf13/cobra"
@@ -47,7 +47,7 @@ var CertBotDriverCmd = &cobra.Command{
 Learn More at: https://www.cranom.tech/plaform-tools/crane
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		certbotDriver.Listen()
+		logger.Listen()
 	},
 }
 

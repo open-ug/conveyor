@@ -5,11 +5,12 @@ import (
 	"fmt"
 
 	runtime "github.com/open-ug/conveyor/pkg/driver-runtime"
+	logger "github.com/open-ug/conveyor/pkg/driver-runtime/log"
 	craneTypes "github.com/open-ug/conveyor/pkg/types"
 )
 
 // Listen for messages from the runtime
-func Reconcile(payload string, event string) error {
+func Reconcile(payload string, event string, runID string, logger *logger.DriverLogger) error {
 	fmt.Println("CERTBOT_D: Reconcyling payload: " + payload)
 
 	if event != "application" {
@@ -42,9 +43,14 @@ func Listen() {
 		Reconcile: Reconcile,
 	}
 
-	driverManager := runtime.NewDriverManager(driver, []string{"application"})
+	driverManager, err := runtime.NewDriverManager(driver, []string{"application"})
 
-	err := driverManager.Run()
+	if err != nil {
+		fmt.Println("Error creating driver manager: ", err)
+		return
+	}
+
+	err = driverManager.Run()
 	if err != nil {
 		fmt.Println("Error running driver manager: ", err)
 	}

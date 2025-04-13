@@ -11,10 +11,8 @@ type MetricsFilters struct {
 }
 
 func (h *ApplicationHandler) GetApplicationCPUUsage(c *fiber.Ctx) error {
-	filter := map[string]interface{}{
-		"name": c.Params("name"),
-	}
-	app, err := h.ApplicationModel.FindOne(filter)
+
+	app, err := h.ApplicationModel.FindOne(c.Params("name"))
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": err.Error(),
@@ -38,10 +36,8 @@ func (h *ApplicationHandler) GetApplicationCPUUsage(c *fiber.Ctx) error {
 }
 
 func (h *ApplicationHandler) GetApplicationMemoryUsage(c *fiber.Ctx) error {
-	filter := map[string]interface{}{
-		"name": c.Params("name"),
-	}
-	app, err := h.ApplicationModel.FindOne(filter)
+
+	app, err := h.ApplicationModel.FindOne(c.Params("name"))
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": err.Error(),

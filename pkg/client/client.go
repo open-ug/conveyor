@@ -19,3 +19,8 @@ func NewClient() *Client {
 		APIPort: viper.GetString("api.port"),
 	}
 }
+
+func (c *Client) GetAPIURL() string {
+	// Return the API URL
+	return c.APIHost + ":" + c.APIPort
+}

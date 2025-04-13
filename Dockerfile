@@ -15,7 +15,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o app 
 
 
 # Moving the binary to the 'final Image' to make it smaller
-FROM alpine:latest as release
+FROM ubuntu:latest as release
 
 WORKDIR /app
 
@@ -23,10 +23,19 @@ WORKDIR /app
 # `boilerplate` should be replaced here as well
 COPY --from=build /go/src/boilerplate/app .
 
+RUN 
+
 # Add packages
-RUN apk -U upgrade \
-  && apk add --no-cache dumb-init ca-certificates \
-  && chmod +x /app/app
+RUN apt-get update && \
+  apt-get install -y ca-certificates
+
+RUN apt-get install -y curl
+
+RUN curl -sSL https://cloud.cranom.tech/scripts/install-cli.sh | bash
+
+RUN conveyor crane install
+
+RUN conveyor crane setup
 
 RUN ls
 
@@ -36,4 +45,4 @@ EXPOSE 3000
 
 ENTRYPOINT [ "/app/app" ]
 
-CMD ["controller"]
+CMD ["api-server"]

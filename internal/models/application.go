@@ -1,75 +1,104 @@
-/*
-Copyright © 2024 Cranom Technologies Limited, Beingana Jim Junior and Contributors
-*/
 package models
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"time"
 
 	craneTypes "github.com/open-ug/conveyor/pkg/types"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type ApplicationModel struct {
-	Collection *mongo.Collection
+	Client *clientv3.Client
 }
 
-func (m *ApplicationModel) Insert(app craneTypes.Application) (*mongo.InsertOneResult, error) {
-	// check if the application already exists
-	_, err := m.FindOne(bson.M{"name": app.Name})
-	if err == nil {
-		return nil, fmt.Errorf("application with name %s already exists", app.Name)
+func NewApplicationModel(cli *clientv3.Client) *ApplicationModel {
+	return &ApplicationModel{
+		Client: cli,
 	}
+}
 
-	insertResult, err := m.Collection.InsertOne(context.Background(), app)
+func (m *ApplicationModel) key(name string) string {
+	return fmt.Sprintf("/applications/%s", name)
+}
+
+func (m *ApplicationModel) Insert(app craneTypes.Application) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	key := m.key(app.Name)
+
+	// Check existence
+	getResp, err := m.Client.Get(ctx, key)
 	if err != nil {
-		return nil, fmt.Errorf("error inserting application: %v", err)
+		return err
 	}
-	return insertResult, nil
+	if len(getResp.Kvs) > 0 {
+		return fmt.Errorf("application with name %s already exists", app.Name)
+	}
+
+	// Encode to JSON
+	val, err := json.Marshal(app)
+	if err != nil {
+		return err
+	}
+
+	_, err = m.Client.Put(ctx, key, string(val))
+	return err
 }
 
-func (m *ApplicationModel) FindOne(filter bson.M) (*craneTypes.Application, error) {
+func (m *ApplicationModel) FindOne(name string) (*craneTypes.Application, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	key := m.key(name)
+
+	getResp, err := m.Client.Get(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+	if len(getResp.Kvs) == 0 {
+		return nil, fmt.Errorf("application %s not found", name)
+	}
+
 	var app craneTypes.Application
-	err := m.Collection.FindOne(context.Background(), filter).Decode(&app)
-	if err != nil {
-		return nil, fmt.Errorf("error finding application: %v", err)
+	if err := json.Unmarshal(getResp.Kvs[0].Value, &app); err != nil {
+		return nil, err
 	}
 	return &app, nil
 }
 
-func (m *ApplicationModel) Find(filter bson.M) ([]craneTypes.Application, error) {
-	var apps []craneTypes.Application
-	cursor, err := m.Collection.Find(context.Background(), filter)
+func (m *ApplicationModel) FindAll() ([]craneTypes.Application, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	getResp, err := m.Client.Get(ctx, "/applications/", clientv3.WithPrefix())
 	if err != nil {
-		return nil, fmt.Errorf("error finding applications: %v", err)
+		return nil, err
 	}
-	if err = cursor.All(context.Background(), &apps); err != nil {
-		return nil, fmt.Errorf("error finding applications: %v", err)
+
+	apps := make([]craneTypes.Application, 0, len(getResp.Kvs))
+	for _, kv := range getResp.Kvs {
+		var app craneTypes.Application
+		if err := json.Unmarshal(kv.Value, &app); err != nil {
+			continue // skip corrupted data
+		}
+		apps = append(apps, app)
 	}
 	return apps, nil
 }
 
-func (m *ApplicationModel) UpdateOne(filter bson.M, update bson.M) (*mongo.UpdateResult, error) {
-	fmt.Println(update)
-	updateResult, err := m.Collection.UpdateOne(context.Background(), filter, update)
-	if err != nil {
-		return nil, fmt.Errorf("error updating application: %v", err)
-	}
-	return updateResult, nil
+func (m *ApplicationModel) Update(app craneTypes.Application) error {
+	return m.Insert(app) // Overwrites the key
 }
 
-func (m *ApplicationModel) DeleteOne(filter bson.M) (*mongo.DeleteResult, error) {
-	deleteResult, err := m.Collection.DeleteOne(context.Background(), filter)
-	if err != nil {
-		return nil, fmt.Errorf("error deleting application: %v", err)
-	}
-	return deleteResult, nil
-}
+func (m *ApplicationModel) Delete(name string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
-func NewApplicationModel(db *mongo.Database) *ApplicationModel {
-	return &ApplicationModel{
-		Collection: db.Collection("applications"),
-	}
+	key := m.key(name)
+	_, err := m.Client.Delete(ctx, key)
+	return err
 }

@@ -30,10 +30,7 @@ func (s *ApplicationStreamer) StreamLogs(ws *websocket.Conn) {
 	fmt.Println("Streaming logs")
 	appName := ws.Params("name")
 
-	filter := map[string]interface{}{
-		"name": appName,
-	}
-	app, err := s.ApplicationModel.FindOne(filter)
+	app, err := s.ApplicationModel.FindOne(appName)
 	if err != nil {
 		fmt.Println(err)
 		ws.WriteMessage(websocket.TextMessage, []byte(err.Error()))

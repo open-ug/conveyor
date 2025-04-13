@@ -2,62 +2,78 @@ package models
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	craneTypes "github.com/open-ug/conveyor/pkg/types"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type DriverMessageModel struct {
-	Collection *mongo.Collection
+	Client *clientv3.Client
+	Prefix string // e.g., "driver-messages/"
 }
 
-func (m *DriverMessageModel) Insert(
-	message craneTypes.DriverMessage) (*mongo.InsertOneResult, error) {
-	// check if the message already exists
-
-	insertResult, err := m.Collection.InsertOne(context.Background(), message)
-	if err != nil {
-		return nil, fmt.Errorf("error inserting message: %v", err)
+func NewDriverMessageModel(cli *clientv3.Client) *DriverMessageModel {
+	return &DriverMessageModel{
+		Client: cli,
+		Prefix: "driver-messages/",
 	}
-	return insertResult, nil
 }
 
-func (m *DriverMessageModel) FindOne(filter bson.M) (*craneTypes.DriverMessage, error) {
-	var message craneTypes.DriverMessage
-	err := m.Collection.FindOne(context.Background(), filter).Decode(&message)
+func (m *DriverMessageModel) Insert(message craneTypes.DriverMessage) error {
+	key := m.Prefix + message.ID // assuming ID is a unique string field
+	value, err := json.Marshal(message)
 	if err != nil {
-		return nil, fmt.Errorf("error finding message: %v", err)
+		return fmt.Errorf("failed to serialize message: %v", err)
 	}
-	return &message, nil
+
+	_, err = m.Client.Put(context.Background(), key, string(value))
+	if err != nil {
+		return fmt.Errorf("failed to insert message: %v", err)
+	}
+	return nil
 }
 
-func (m *DriverMessageModel) Find(filter bson.M) ([]craneTypes.DriverMessage, error) {
+func (m *DriverMessageModel) FindOne(id string) (*craneTypes.DriverMessage, error) {
+	key := m.Prefix + id
+	resp, err := m.Client.Get(context.Background(), key)
+	if err != nil || len(resp.Kvs) == 0 {
+		return nil, fmt.Errorf("message not found: %v", err)
+	}
+
+	var msg craneTypes.DriverMessage
+	if err := json.Unmarshal(resp.Kvs[0].Value, &msg); err != nil {
+		return nil, fmt.Errorf("failed to decode message: %v", err)
+	}
+	return &msg, nil
+}
+
+func (m *DriverMessageModel) FindAll() ([]craneTypes.DriverMessage, error) {
+	resp, err := m.Client.Get(context.Background(), m.Prefix, clientv3.WithPrefix())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get messages: %v", err)
+	}
+
 	var messages []craneTypes.DriverMessage
-	cursor, err := m.Collection.Find(context.Background(), filter)
-	if err != nil {
-		return nil, fmt.Errorf("error finding messages: %v", err)
-	}
-	if err = cursor.All(context.Background(), &messages); err != nil {
-		return nil, fmt.Errorf("error finding messages: %v", err)
+	for _, kv := range resp.Kvs {
+		var msg craneTypes.DriverMessage
+		if err := json.Unmarshal(kv.Value, &msg); err == nil {
+			messages = append(messages, msg)
+		}
 	}
 	return messages, nil
 }
 
-func (m *DriverMessageModel) UpdateOne(filter bson.M, update bson.M) (*mongo.UpdateResult, error) {
-	fmt.Println(update)
-	updateResult, err := m.Collection.UpdateOne(context.Background(), filter, update)
-	if err != nil {
-		return nil, fmt.Errorf("error updating message: %v", err)
-	}
-	return updateResult, nil
+func (m *DriverMessageModel) UpdateOne(id string, updated craneTypes.DriverMessage) error {
+	return m.Insert(updated) // etcd has no partial update; replace the value
 }
 
-func (m *DriverMessageModel) DeleteOne(filter bson.M) (*mongo.DeleteResult, error) {
-	deleteResult, err := m.Collection.DeleteOne(context.Background(), filter)
+func (m *DriverMessageModel) DeleteOne(id string) error {
+	key := m.Prefix + id
+	_, err := m.Client.Delete(context.Background(), key)
 	if err != nil {
-		return nil, fmt.Errorf("error deleting message: %v", err)
+		return fmt.Errorf("failed to delete message: %v", err)
 	}
-	return deleteResult, nil
+	return nil
 }
