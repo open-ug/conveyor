@@ -6,22 +6,33 @@ package utils
 import (
 	"context"
 
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-func ConnectToMongoDB(uri string) *mongo.Client {
-	// Use the SetServerAPIOptions() method to set the Stable API version to 1
-	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
-	// Create a new client and connect to the server
-	client, err := mongo.Connect(context.TODO(), opts)
-	if err != nil {
-		panic(err)
-	}
-	return client
+// EtcdClient is a struct that holds the etcd client and the context
+type EtcdClient struct {
+	Client   *clientv3.Client
+	Ctx      context.Context
+	Cancel   context.CancelFunc
+	Endpoint string
 }
 
-func GetMongoDBDatabase(client *mongo.Client, dbName string) *mongo.Database {
-	return client.Database(dbName)
+// NewEtcdClient creates a new etcd client
+func NewEtcdClient(endpoint string) (*EtcdClient, error) {
+	client, err := clientv3.New(clientv3.Config{
+		Endpoints:   []string{endpoint},
+		DialTimeout: 5 * 1000,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	return &EtcdClient{
+		Client:   client,
+		Ctx:      ctx,
+		Cancel:   cancel,
+		Endpoint: endpoint,
+	}, nil
 }

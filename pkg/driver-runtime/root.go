@@ -13,6 +13,7 @@ import (
 	"github.com/fatih/color"
 	config "github.com/open-ug/conveyor/internal/config"
 	internals "github.com/open-ug/conveyor/internal/shared"
+	"github.com/open-ug/conveyor/pkg/driver-runtime/log"
 	craneTypes "github.com/open-ug/conveyor/pkg/types"
 	"github.com/redis/go-redis/v9"
 )
@@ -32,15 +33,35 @@ type DriverManager struct {
 
 type Driver struct {
 	// The driver is responsible for managing the driver
-	Reconcile func(message string, event string) error
+	Reconcile func(message string, event string, runID string, logger *log.DriverLogger) error
+
+	Name string
+}
+
+// validate the driver
+func (d *Driver) Validate() error {
+	if d.Reconcile == nil {
+		return fmt.Errorf("driver reconcile function is not set")
+	}
+	if d.Name == "" {
+		return fmt.Errorf("driver name is not set")
+	}
+	return nil
 }
 
 func NewDriverManager(
 	driver *Driver,
 	events []string,
-) *DriverManager {
+) (*DriverManager, error) {
 	// Load the configuration
 	config.InitConfig()
+
+	// Validate the driver
+	err := driver.Validate()
+	if err != nil {
+		color.Red("Error Occured while validating driver: %v", err)
+		return nil, err
+	}
 
 	rdb := internals.NewRedisClient()
 
@@ -48,7 +69,7 @@ func NewDriverManager(
 		RedisClient: rdb,
 		Driver:      driver,
 		Events:      events,
-	}
+	}, nil
 }
 
 func (d *DriverManager) Run() error {
@@ -91,7 +112,13 @@ func (d *DriverManager) Run() error {
 				continue
 			}
 
-			err = d.Driver.Reconcile(message.Payload, message.Event)
+			logger := log.NewDriverLogger(d.Driver.Name, map[string]string{
+				"event":  message.Event,
+				"id":     message.ID,
+				"run_id": message.RunID,
+			}, d.RedisClient)
+
+			err = d.Driver.Reconcile(message.Payload, message.Event, message.RunID, logger)
 			if err != nil {
 				fmt.Println("Error reconciling resource: ", err)
 				//return err

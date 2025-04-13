@@ -7,10 +7,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	models "github.com/open-ug/conveyor/internal/models"
+	"github.com/open-ug/conveyor/internal/utils"
 	craneTypes "github.com/open-ug/conveyor/pkg/types"
 	"github.com/redis/go-redis/v9"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 /*
@@ -22,10 +22,11 @@ type MessageHandler struct {
 }
 
 // NewMessageHandler creates a new message handler
-func NewMessageHandler(db *mongo.Database, redisClient *redis.Client) *MessageHandler {
+func NewMessageHandler(db *clientv3.Client, redisClient *redis.Client) *MessageHandler {
 	return &MessageHandler{
 		MessageModel: models.DriverMessageModel{
-			Collection: db.Collection("messages"),
+			Client: db,
+			Prefix: "driver-messages/",
 		},
 		RedisClient: redisClient,
 	}
@@ -39,14 +40,20 @@ func (h *MessageHandler) PublishMessage(c *fiber.Ctx) error {
 			"error": "could not parse request body",
 		})
 	}
-	insertResult, err := h.MessageModel.Insert(message)
+	mid, err := utils.GenerateRandomID()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	message.ID = mid
+	err = h.MessageModel.Insert(message)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 	fmt.Println("Saved to database")
-	message.ID = insertResult.InsertedID.(primitive.ObjectID).Hex()
 	jsonMsg, merr := json.Marshal(message)
 	if merr != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

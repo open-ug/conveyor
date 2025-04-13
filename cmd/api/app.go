@@ -14,11 +14,9 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	helpers "github.com/open-ug/conveyor/internal/helpers"
 	routes "github.com/open-ug/conveyor/internal/routes"
 	internals "github.com/open-ug/conveyor/internal/shared"
 	utils "github.com/open-ug/conveyor/internal/utils"
-	"github.com/spf13/viper"
 )
 
 func StartServer(port string) {
@@ -40,7 +38,7 @@ func StartServer(port string) {
 	app.Use(cors.New())
 
 	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("CRANE API SERVER contact info@cranom.tech for Documentation")
+		return c.SendString("CONVEYOR API SERVER contact info@cranom.tech for Documentation")
 	})
 	app.Get("/ping", func(c *fiber.Ctx) error {
 		return c.SendString("pong")
@@ -48,26 +46,15 @@ func StartServer(port string) {
 
 	redisClient := internals.NewRedisClient()
 
-	privateKey, err := helpers.LoadPrivateKey()
+	etcd, err := utils.NewEtcdClient("http://localhost:2379")
+
 	if err != nil {
-		panic(err)
+		color.Red("Error Occured while creating etcd client: %v", err)
+		return
 	}
 
-	encryptedDbPass := viper.GetString("db.pass")
-	//fmt.Println("Encrypted DB Pass: ", encryptedDbPass)
-	decryptedDbPass, err := helpers.DecryptData(encryptedDbPass, privateKey)
-	if err != nil {
-		fmt.Println("Error decrypting DB Pass: ", err)
-		panic(err)
-	}
-
-	uri := "mongodb://" + viper.GetString("db.user") + ":" + string(string(decryptedDbPass)) + "@" + viper.GetString("db.host") + ":" + viper.GetString("db.port")
-
-	mongoClient := utils.ConnectToMongoDB(uri)
-	db := utils.GetMongoDBDatabase(mongoClient, "crane")
-
-	routes.ApplicationRoutes(app, db, redisClient)
-	routes.DriverRoutes(app, db, redisClient)
+	routes.ApplicationRoutes(app, etcd.Client, redisClient)
+	routes.DriverRoutes(app, etcd.Client, redisClient)
 
 	app.Listen(":" + port)
 

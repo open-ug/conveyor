@@ -9,11 +9,12 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	models "github.com/open-ug/conveyor/internal/models"
 	craneTypes "github.com/open-ug/conveyor/pkg/types"
 	"github.com/redis/go-redis/v9"
+	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type ApplicationHandler struct {
@@ -21,11 +22,11 @@ type ApplicationHandler struct {
 	ApplicationModel *models.ApplicationModel
 }
 
-func NewApplicationHandler(db *mongo.Database, redisClient *redis.Client) *ApplicationHandler {
+func NewApplicationHandler(db *clientv3.Client, redisClient *redis.Client) *ApplicationHandler {
 	return &ApplicationHandler{
 		RedisClient: redisClient,
 		ApplicationModel: &models.ApplicationModel{
-			Collection: db.Collection("applications"),
+			Client: db,
 		},
 	}
 }
@@ -38,7 +39,7 @@ func (h *ApplicationHandler) CreateApplication(c *fiber.Ctx) error {
 			"error": "could not parse request body",
 		})
 	}
-	insertResult, err := h.ApplicationModel.Insert(app)
+	err := h.ApplicationModel.Insert(app)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
@@ -47,7 +48,6 @@ func (h *ApplicationHandler) CreateApplication(c *fiber.Ctx) error {
 	fmt.Println("Saved to database")
 	appMsg := craneTypes.ApplicationMsg{
 		Action:  "create",
-		ID:      insertResult.InsertedID.(primitive.ObjectID).Hex(),
 		Payload: app,
 	}
 
@@ -62,6 +62,7 @@ func (h *ApplicationHandler) CreateApplication(c *fiber.Ctx) error {
 		ID:      primitive.NewObjectID().Hex(),
 		Payload: string(jsonMsg),
 		Event:   "application",
+		RunID:   uuid.New().String(),
 	}
 
 	jsonMsg, merr = json.Marshal(driverMsg)
@@ -83,16 +84,13 @@ func (h *ApplicationHandler) CreateApplication(c *fiber.Ctx) error {
 		})
 	}
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"id":   insertResult.InsertedID,
-		"name": app.Name,
+		"name":  app.Name,
+		"runid": driverMsg.RunID,
 	})
 }
 
 func (h *ApplicationHandler) GetApplication(c *fiber.Ctx) error {
-	filter := map[string]interface{}{
-		"name": c.Params("name"),
-	}
-	app, err := h.ApplicationModel.FindOne(filter)
+	app, err := h.ApplicationModel.FindOne(c.Params("name"))
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": err.Error(),
@@ -104,7 +102,7 @@ func (h *ApplicationHandler) GetApplication(c *fiber.Ctx) error {
 }
 
 func (h *ApplicationHandler) GetApplications(c *fiber.Ctx) error {
-	apps, err := h.ApplicationModel.Find(nil)
+	apps, err := h.ApplicationModel.FindAll()
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
@@ -114,9 +112,6 @@ func (h *ApplicationHandler) GetApplications(c *fiber.Ctx) error {
 }
 
 func (h *ApplicationHandler) UpdateApplication(c *fiber.Ctx) error {
-	filter := map[string]interface{}{
-		"name": c.Params("name"),
-	}
 	var appl craneTypes.Application
 
 	if err := c.BodyParser(&appl); err != nil {
@@ -126,10 +121,7 @@ func (h *ApplicationHandler) UpdateApplication(c *fiber.Ctx) error {
 		})
 	}
 
-	update := map[string]interface{}{
-		"$set": appl,
-	}
-	updateResult, err := h.ApplicationModel.UpdateOne(filter, update)
+	err := h.ApplicationModel.Update(appl)
 	if err != nil {
 		fmt.Println(err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -137,11 +129,7 @@ func (h *ApplicationHandler) UpdateApplication(c *fiber.Ctx) error {
 		})
 	}
 
-	// Publish to redis channel for driver to work on it
-	var app craneTypes.Application
-	newapp := h.ApplicationModel.Collection.FindOne(context.Background(), filter)
-
-	err = newapp.Decode(&app)
+	newapp, err := h.ApplicationModel.FindOne(c.Params("name"))
 
 	if err != nil {
 		fmt.Println(err)
@@ -149,24 +137,10 @@ func (h *ApplicationHandler) UpdateApplication(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-
-	fmt.Println("Saved to database")
-
-	rowapp, err := newapp.Raw()
-
-	if err != nil {
-		fmt.Println(err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
-	}
-
-	appId := rowapp.Lookup("_id").ObjectID().Hex()
 
 	appMsg := craneTypes.ApplicationMsg{
 		Action:  "update",
-		ID:      appId,
-		Payload: app,
+		Payload: *newapp,
 	}
 
 	jsonMsg, merr := json.Marshal(appMsg)
@@ -181,6 +155,7 @@ func (h *ApplicationHandler) UpdateApplication(c *fiber.Ctx) error {
 		ID:      primitive.NewObjectID().Hex(),
 		Payload: string(jsonMsg),
 		Event:   "application",
+		RunID:   uuid.New().String(),
 	}
 
 	jsonMsg, merr = json.Marshal(driverMsg)
@@ -201,14 +176,16 @@ func (h *ApplicationHandler) UpdateApplication(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(updateResult)
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "update successful",
+		"runid":   driverMsg.RunID,
+		"name":    newapp.Name,
+	})
 }
 
 func (h *ApplicationHandler) DeleteApplication(c *fiber.Ctx) error {
-	filter := map[string]interface{}{
-		"name": c.Params("name"),
-	}
-	deleteResult, err := h.ApplicationModel.DeleteOne(filter)
+
+	err := h.ApplicationModel.Delete(c.Params("name"))
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
@@ -224,21 +201,22 @@ func (h *ApplicationHandler) DeleteApplication(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(deleteResult)
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "delete successful",
+	})
 }
 
 func (h *ApplicationHandler) StartApplication(c *fiber.Ctx) error {
-	filter := map[string]interface{}{
-		"name": c.Params("name"),
-	}
-	app := h.ApplicationModel.Collection.FindOne(context.Background(), filter)
-	var appMsg craneTypes.ApplicationMsg
-	err := app.Decode(&appMsg.Payload)
+
+	app, err := h.ApplicationModel.FindOne(c.Params("name"))
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
+
+	var appMsg craneTypes.ApplicationMsg
+	appMsg.Payload = *app
 
 	appMsg.Action = "start"
 	appMsg.ID = appMsg.Payload.Name
@@ -254,6 +232,7 @@ func (h *ApplicationHandler) StartApplication(c *fiber.Ctx) error {
 		ID:      primitive.NewObjectID().Hex(),
 		Payload: string(jsonMsg),
 		Event:   "application",
+		RunID:   uuid.New().String(),
 	}
 
 	jsonMsg, merr = json.Marshal(driverMsg)
@@ -274,21 +253,21 @@ func (h *ApplicationHandler) StartApplication(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Application started",
+		"runid":   driverMsg.RunID,
+		"name":    app.Name,
 	})
 }
 
 func (h *ApplicationHandler) StopApplication(c *fiber.Ctx) error {
-	filter := map[string]interface{}{
-		"name": c.Params("name"),
-	}
-	app := h.ApplicationModel.Collection.FindOne(context.Background(), filter)
-	var appMsg craneTypes.ApplicationMsg
-	err := app.Decode(&appMsg.Payload)
+
+	app, err := h.ApplicationModel.FindOne(c.Params("name"))
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
+	var appMsg craneTypes.ApplicationMsg
+	appMsg.Payload = *app
 
 	appMsg.Action = "stop"
 	appMsg.ID = appMsg.Payload.Name
@@ -304,6 +283,7 @@ func (h *ApplicationHandler) StopApplication(c *fiber.Ctx) error {
 		ID:      primitive.NewObjectID().Hex(),
 		Payload: string(jsonMsg),
 		Event:   "application",
+		RunID:   uuid.New().String(),
 	}
 
 	jsonMsg, merr = json.Marshal(driverMsg)
@@ -324,5 +304,7 @@ func (h *ApplicationHandler) StopApplication(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Application stopped",
+		"runid":   driverMsg.RunID,
+		"name":    app.Name,
 	})
 }
