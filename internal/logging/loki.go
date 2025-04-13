@@ -64,3 +64,43 @@ func (lc *LokiClient) PushLog(labels map[string]string, message string) error {
 func formatNano(t time.Time) string {
 	return fmt.Sprintf("%d", t.UnixNano())
 }
+
+func formatLabels(labels map[string]string) string {
+	var formattedLabels string
+	for k, v := range labels {
+		formattedLabels = fmt.Sprintf("%s%s=\"%s\",", formattedLabels, k, v)
+	}
+	return formattedLabels[:len(formattedLabels)-1] // Remove the trailing comma
+}
+
+// QueryLoki queries Loki for logs based on the provided labels and time range. The time range is optional.
+func (lc *LokiClient) QueryLoki(labels map[string]string, start, end time.Time) ([]LokiStream, error) {
+	query := fmt.Sprintf("{%s}", formatLabels(labels))
+	if !start.IsZero() && !end.IsZero() {
+		query += fmt.Sprintf(" @timestamp >= %d and @timestamp <= %d", start.UnixNano(), end.UnixNano())
+	}
+
+	fmt.Println("Querying Loki with query:", query)
+
+	resp, err := lc.Client.Get(fmt.Sprintf("%s/loki/api/v1/query_range?query=%s", lc.URL, query))
+	if err != nil {
+		return nil, fmt.Errorf("failed to query loki: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("loki responded with status %s", resp.Status)
+	}
+
+	var result struct {
+		Data struct {
+			Result []LokiStream `json:"result"`
+		} `json:"data"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode loki response: %w", err)
+	}
+
+	return result.Data.Result, nil
+}

@@ -116,8 +116,7 @@ func (d *DriverManager) Run() error {
 				"event":  message.Event,
 				"id":     message.ID,
 				"run_id": message.RunID,
-			},
-			)
+			}, d.RedisClient)
 
 			err = d.Driver.Reconcile(message.Payload, message.Event, message.RunID, logger)
 			if err != nil {

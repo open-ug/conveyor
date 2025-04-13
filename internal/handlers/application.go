@@ -84,7 +84,8 @@ func (h *ApplicationHandler) CreateApplication(c *fiber.Ctx) error {
 		})
 	}
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"name": app.Name,
+		"name":  app.Name,
+		"runid": driverMsg.RunID,
 	})
 }
 
@@ -177,6 +178,8 @@ func (h *ApplicationHandler) UpdateApplication(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "update successful",
+		"runid":   driverMsg.RunID,
+		"name":    newapp.Name,
 	})
 }
 
@@ -250,6 +253,8 @@ func (h *ApplicationHandler) StartApplication(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Application started",
+		"runid":   driverMsg.RunID,
+		"name":    app.Name,
 	})
 }
 
@@ -299,5 +304,7 @@ func (h *ApplicationHandler) StopApplication(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Application stopped",
+		"runid":   driverMsg.RunID,
+		"name":    app.Name,
 	})
 }
