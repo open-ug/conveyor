@@ -7,7 +7,6 @@ import (
 )
 
 // GenerateRandomID generates a 24-character hex string (12 random bytes)
-// similar to MongoDB's primitive.ObjectID.
 func GenerateRandomID() (string, error) {
 	bytes := make([]byte, 12) // 12 bytes = 24 hex characters
 	if _, err := rand.Read(bytes); err != nil {

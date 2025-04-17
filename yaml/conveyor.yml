@@ -1,11 +1,10 @@
 api:
     host: localhost
     port: "6286"
-db:
-    host: localhost
-    port: "27017"
-    user: root
-    pass: QlXnmE3XM0MYa72b3OjoQ0gZ0z2MEzsrr1v4dNfgvOsT3KEeqWPIZm2SV3J+pY/8/oK3m>
 redis:
     host: localhost
     port: "6379"
+etcd:
+    host: http://etcd:2379
+loki:
+    host: http://loki:3100

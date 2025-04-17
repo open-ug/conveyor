@@ -73,11 +73,6 @@ func NewDriverManager(
 }
 
 func (d *DriverManager) Run() error {
-	err := WatchContainerStart("crane-redis")
-	if err != nil {
-		color.Red("Error Occured while waiting for Redis to start: %v", err)
-		return err
-	}
 	// The driver manager will run the driver's reconcile function
 	// in a loop
 	for {
