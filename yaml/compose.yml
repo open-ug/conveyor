@@ -4,9 +4,8 @@ services:
     image: bitnami/etcd:latest
     container_name: etcd
     volumes:
-      - etcd-data:/etcd-data
+      - etcd-data:/bitnami/etcd
     environment:
-      - ETCD_DATA_DIR=/etcd-data
       - ALLOW_NONE_AUTHENTICATION=yes
       - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
     ports:
@@ -18,7 +17,8 @@ services:
     container_name: loki
     volumes:
       - loki-data:/loki
-    command: -config.file=/etc/loki/local-config.yaml # Edit this line to point to your config file
+      - /path/to/config:/mnt/config/loki.yml # Edit this line to point to your config file
+    command: -config.file=/mnt/config/loki.yml
     ports:
       - "3100:3100"
 
