@@ -17,18 +17,11 @@ import (
 	routes "github.com/open-ug/conveyor/internal/routes"
 	internals "github.com/open-ug/conveyor/internal/shared"
 	utils "github.com/open-ug/conveyor/internal/utils"
+	"github.com/spf13/viper"
 )
 
 func StartServer(port string) {
-	err := WatchContainerStart("crane-redis")
-	if err != nil {
-		panic(err)
-	}
 
-	err = WatchContainerStart("crane-mongo-db")
-	if err != nil {
-		panic(err)
-	}
 	app := fiber.New(fiber.Config{
 		AppName:     "Conveyor API Server",
 		JSONEncoder: json.Marshal,
@@ -46,7 +39,9 @@ func StartServer(port string) {
 
 	redisClient := internals.NewRedisClient()
 
-	etcd, err := utils.NewEtcdClient("http://localhost:2379")
+	etcd, err := utils.NewEtcdClient(
+		viper.GetString("etcd.host"),
+	)
 
 	if err != nil {
 		color.Red("Error Occured while creating etcd client: %v", err)

@@ -8,6 +8,7 @@ import (
 
 	lokiLog "github.com/open-ug/conveyor/internal/logging"
 	"github.com/redis/go-redis/v9"
+	"github.com/spf13/viper"
 )
 
 type DriverLogger struct {
@@ -28,7 +29,9 @@ type DriverLogger struct {
 
 func NewDriverLogger(driverName string, labels map[string]string, redisClient *redis.Client) *DriverLogger {
 	// Load the configuration
-	lokiClient := lokiLog.New("http://localhost:3100")
+	lokiClient := lokiLog.New(
+		viper.GetString("loki.host"),
+	)
 
 	return &DriverLogger{
 		DriverName:  driverName,
@@ -68,6 +71,10 @@ func (d *DriverLogger) Log(labels map[string]string, message string) error {
 	msg := string(messageBytes)
 	// Send the log to Redis
 	err = d.RedisClient.Publish(context.Background(), "driver:"+d.DriverName+":logs:"+runId, msg).Err()
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
