@@ -29,13 +29,6 @@ RUN
 RUN apt-get update && \
   apt-get install -y ca-certificates
 
-RUN apt-get install -y curl
-
-RUN curl -sSL https://cloud.cranom.tech/scripts/install-cli.sh | bash
-
-RUN conveyor crane install
-
-RUN conveyor crane setup
 
 RUN ls
 

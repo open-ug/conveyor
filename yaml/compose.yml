@@ -1,0 +1,51 @@
+# Edit this file to configure your Docker Compose setup
+services:
+  etcd:
+    image: bitnami/etcd:latest
+    container_name: etcd
+    volumes:
+      - etcd-data:/etcd-data
+    environment:
+      - ETCD_DATA_DIR=/etcd-data
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+    ports:
+      - "2379:2379"
+      - "2380:2380"
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    volumes:
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml # Edit this line to point to your config file
+    ports:
+      - "3100:3100"
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+
+  app:
+    image: openug/conveyor:latest
+    container_name: app
+    depends_on:
+      - etcd
+      - loki
+      - redis
+    ports:
+      - "8080:8080"
+    environment:
+      - ETCD_ENDPOINT=http://etcd:2379
+      - LOKI_ENDPOINT=http://loki:3100
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
+volumes:
+  etcd-data:
+  loki-data:
+  redis-data:

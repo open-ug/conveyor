@@ -16,7 +16,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            yaml/crds/Application.yml
-            yaml/app/crane-operator.yml
+            yaml/loki.yml
+            yaml/compose.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
