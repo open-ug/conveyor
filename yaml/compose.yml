@@ -17,7 +17,7 @@ services:
     container_name: loki
     volumes:
       - loki-data:/loki
-      - /home/junior/dev/cranom/crane/yaml/loki.yml:/mnt/config/loki.yml # Edit this line to point to your config file
+      - ./loki.yml:/mnt/config/loki.yml # Edit this line to point to your config file
     command: -config.file=/mnt/config/loki.yml
     ports:
       - "3100:3100"
