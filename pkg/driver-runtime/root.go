@@ -11,18 +11,18 @@ import (
 
 	"github.com/docker/docker/client"
 	"github.com/fatih/color"
+	"github.com/nats-io/nats.go"
 	config "github.com/open-ug/conveyor/internal/config"
 	internals "github.com/open-ug/conveyor/internal/shared"
 	"github.com/open-ug/conveyor/pkg/driver-runtime/log"
 	craneTypes "github.com/open-ug/conveyor/pkg/types"
-	"github.com/redis/go-redis/v9"
 )
 
 type DriverManager struct {
 	// The driver manager is responsible for managing the drivers
 	// and the driver lifecycle.
 
-	RedisClient *redis.Client
+	NatsCon *nats.Conn
 
 	Driver *Driver
 
@@ -63,55 +63,48 @@ func NewDriverManager(
 		return nil, err
 	}
 
-	rdb := internals.NewRedisClient()
+	natsCon := internals.NewNatsConn()
 
 	return &DriverManager{
-		RedisClient: rdb,
-		Driver:      driver,
-		Events:      events,
+		NatsCon: natsCon,
+		Driver:  driver,
+		Events:  events,
 	}, nil
 }
 
 func (d *DriverManager) Run() error {
 	// The driver manager will run the driver's reconcile function
 	// in a loop
-	for {
-		// Get the resource from the message queue
-		pubsub := d.RedisClient.Subscribe(context.Background(), "application")
 
-		ch := pubsub.Channel()
+	// Get the resource from the message queue
+	_, err := d.NatsCon.Subscribe("application", func(msg *nats.Msg) {
 
-		for msg := range ch {
+		var message craneTypes.DriverMessage
+		err := json.Unmarshal([]byte(msg.Data), &message)
+		if err != nil {
+			fmt.Println("Error unmarshalling message: ", err)
+			//return err
+		}
 
-			var message craneTypes.DriverMessage
-			err := json.Unmarshal([]byte(msg.Payload), &message)
-			if err != nil {
-				fmt.Println("Error unmarshalling message: ", err)
-				//return err
+		// check if the event is in the list of events
+		// that the driver manager is listening to
+		var eventFound bool = false
+		for _, event := range d.Events {
+			if event == message.Event {
+				eventFound = true
+				break
+			} else if event == "*" {
+				eventFound = true
+				break
 			}
+		}
 
-			// check if the event is in the list of events
-			// that the driver manager is listening to
-			var eventFound bool = false
-			for _, event := range d.Events {
-				if event == message.Event {
-					eventFound = true
-					break
-				} else if event == "*" {
-					eventFound = true
-					break
-				}
-			}
-
-			if !eventFound {
-				continue
-			}
-
+		if eventFound {
 			logger := log.NewDriverLogger(d.Driver.Name, map[string]string{
 				"event":  message.Event,
 				"id":     message.ID,
 				"run_id": message.RunID,
-			}, d.RedisClient)
+			}, d.NatsCon)
 
 			err = d.Driver.Reconcile(message.Payload, message.Event, message.RunID, logger)
 			if err != nil {
@@ -119,7 +112,14 @@ func (d *DriverManager) Run() error {
 				//return err
 			}
 		}
+
+	})
+	if err != nil {
+		color.Red("Error Occured while subscribing to NATS channel: %v", err)
 	}
+	fmt.Println("Subscribed to NATS channel")
+
+	select {}
 }
 
 func GetDockerClient() (*client.Client, error) {

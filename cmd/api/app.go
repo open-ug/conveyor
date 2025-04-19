@@ -37,7 +37,7 @@ func StartServer(port string) {
 		return c.SendString("pong")
 	})
 
-	redisClient := internals.NewRedisClient()
+	natsCon := internals.NewNatsConn()
 
 	etcd, err := utils.NewEtcdClient(
 		viper.GetString("etcd.host"),
@@ -48,8 +48,8 @@ func StartServer(port string) {
 		return
 	}
 
-	routes.ApplicationRoutes(app, etcd.Client, redisClient)
-	routes.DriverRoutes(app, etcd.Client, redisClient)
+	routes.ApplicationRoutes(app, etcd.Client, natsCon)
+	routes.DriverRoutes(app, etcd.Client, natsCon)
 
 	app.Listen(":" + port)
 

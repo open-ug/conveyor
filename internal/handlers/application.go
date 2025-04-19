@@ -4,27 +4,26 @@ Copyright © 2024 Cranom Technologies Limited, Beingana Jim Junior and Contribut
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/nats-io/nats.go"
 	models "github.com/open-ug/conveyor/internal/models"
 	craneTypes "github.com/open-ug/conveyor/pkg/types"
-	"github.com/redis/go-redis/v9"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type ApplicationHandler struct {
-	RedisClient      *redis.Client
+	NatsCon          *nats.Conn
 	ApplicationModel *models.ApplicationModel
 }
 
-func NewApplicationHandler(db *clientv3.Client, redisClient *redis.Client) *ApplicationHandler {
+func NewApplicationHandler(db *clientv3.Client, natsCon *nats.Conn) *ApplicationHandler {
 	return &ApplicationHandler{
-		RedisClient: redisClient,
+		NatsCon: natsCon,
 		ApplicationModel: &models.ApplicationModel{
 			Client: db,
 		},
@@ -72,11 +71,10 @@ func (h *ApplicationHandler) CreateApplication(c *fiber.Ctx) error {
 			"error": merr.Error(),
 		})
 	}
-	// Publish to redis channel for driver to work on it
-	errf := h.RedisClient.Publish(context.Background(), "application",
+	// Publish to nats channel for driver to work on it
+	errf := h.NatsCon.Publish("application",
 		jsonMsg,
-	).Err()
-	fmt.Println("Sent Redis Pub")
+	)
 
 	if errf != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -165,9 +163,7 @@ func (h *ApplicationHandler) UpdateApplication(c *fiber.Ctx) error {
 			"error": merr.Error(),
 		})
 	}
-
-	fmt.Println("Sent Redis Pub")
-	errf := h.RedisClient.Publish(context.Background(), "application", jsonMsg).Err()
+	errf := h.NatsCon.Publish("application", jsonMsg)
 
 	if errf != nil {
 		fmt.Println(errf)
@@ -192,8 +188,8 @@ func (h *ApplicationHandler) DeleteApplication(c *fiber.Ctx) error {
 		})
 	}
 
-	// Publish to redis channel for driver to work on it
-	errf := h.RedisClient.Publish(context.Background(), "application", c.Params("name")).Err()
+	// Publish to nats channel for driver to work on it
+	errf := h.NatsCon.Publish("application", []byte(c.Params("name")))
 
 	if errf != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -243,7 +239,7 @@ func (h *ApplicationHandler) StartApplication(c *fiber.Ctx) error {
 		})
 	}
 
-	errf := h.RedisClient.Publish(context.Background(), "application", jsonMsg).Err()
+	errf := h.NatsCon.Publish("application", jsonMsg)
 
 	if errf != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -294,7 +290,7 @@ func (h *ApplicationHandler) StopApplication(c *fiber.Ctx) error {
 		})
 	}
 
-	errf := h.RedisClient.Publish(context.Background(), "application", jsonMsg).Err()
+	errf := h.NatsCon.Publish("application", jsonMsg)
 
 	if errf != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

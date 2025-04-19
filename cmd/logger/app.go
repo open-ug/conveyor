@@ -52,7 +52,7 @@ func Listen() {
 func PrintLog() {
 	for i := 0; i < 10; i++ {
 		fmt.Println("This is line", i+1)
-		time.Sleep(1 * time.Second)
+		time.Sleep(3 * time.Second)
 	}
 }
 

@@ -22,14 +22,12 @@ func InitConfig() {
 	viper.BindEnv("api.port", "CONVEYOR_SERVER_PORT")
 	viper.BindEnv("etcd.host", "ETCD_ENDPOINT")
 	viper.BindEnv("loki.host", "LOKI_ENDPOINT")
-	viper.BindEnv("redis.host", "REDIS_HOST")
-	viper.BindEnv("redis.port", "REDIS_PORT")
+	viper.BindEnv("nats.url", "NATS_URL")
 
 	viper.SetDefault("api.host", "localhost")
 	viper.SetDefault("api.port", "8080")
 	viper.SetDefault("etcd.host", "localhost:2379")
-	viper.SetDefault("loki.host", "localhost:3100")
-	viper.SetDefault("redis.host", "localhost")
-	viper.SetDefault("redis.port", "6379")
+	viper.SetDefault("loki.host", "http://localhost:3100")
+	viper.SetDefault("nats.url", "nats://localhost:4222")
 
 }

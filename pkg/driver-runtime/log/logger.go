@@ -1,13 +1,12 @@
 package log
 
 import (
-	"context"
 	"encoding/json"
 	"strconv"
 	"time"
 
+	"github.com/nats-io/nats.go"
 	lokiLog "github.com/open-ug/conveyor/internal/logging"
-	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 )
 
@@ -23,21 +22,21 @@ type DriverLogger struct {
 	// Labels are the labels that will be used to identify the logs
 	Labels map[string]string
 
-	// RedisClient is the redis client for the driver logger
-	RedisClient *redis.Client
+	// NatsCon is the nats client for the driver logger
+	NatsCon *nats.Conn
 }
 
-func NewDriverLogger(driverName string, labels map[string]string, redisClient *redis.Client) *DriverLogger {
+func NewDriverLogger(driverName string, labels map[string]string, natsCon *nats.Conn) *DriverLogger {
 	// Load the configuration
 	lokiClient := lokiLog.New(
 		viper.GetString("loki.host"),
 	)
 
 	return &DriverLogger{
-		DriverName:  driverName,
-		Logger:      lokiClient,
-		Labels:      labels,
-		RedisClient: redisClient,
+		DriverName: driverName,
+		Logger:     lokiClient,
+		Labels:     labels,
+		NatsCon:    natsCon,
 	}
 }
 
@@ -67,10 +66,9 @@ func (d *DriverLogger) Log(labels map[string]string, message string) error {
 	if err != nil {
 		return err
 	}
-	// Convert the message to a string
-	msg := string(messageBytes)
-	// Send the log to Redis
-	err = d.RedisClient.Publish(context.Background(), "driver:"+d.DriverName+":logs:"+runId, msg).Err()
+
+	// Send the log to Nats
+	err = d.NatsCon.Publish("driver:"+d.DriverName+":logs:"+runId, messageBytes)
 
 	if err != nil {
 		return err
