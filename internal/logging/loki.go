@@ -82,7 +82,8 @@ func (lc *LokiClient) QueryLoki(labels map[string]string, start, end time.Time) 
 
 	fmt.Println("Querying Loki with query:", query)
 
-	resp, err := lc.Client.Get(fmt.Sprintf("%s/loki/api/v1/query_range?query=%s", lc.URL, query))
+	// direction Forwards
+	resp, err := lc.Client.Get(fmt.Sprintf("%s/loki/api/v1/query_range?query=%s&direction=FORWARD", lc.URL, query))
 	if err != nil {
 		return nil, fmt.Errorf("failed to query loki: %w", err)
 	}

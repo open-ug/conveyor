@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 
-	craneTypes "github.com/open-ug/conveyor/pkg/types"
 	"github.com/go-resty/resty/v2"
+	craneTypes "github.com/open-ug/conveyor/pkg/types"
 	"github.com/spf13/viper"
 )
 
 /*
-* Broad Cast An event message over Crane Redis Network.
+* Broad Cast An event message over nats Network.
  */
 func BroadCastMessage(
 	message craneTypes.DriverMessage,

@@ -8,17 +8,17 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
+	"github.com/nats-io/nats.go"
 	"github.com/open-ug/conveyor/internal/handlers"
 	streams "github.com/open-ug/conveyor/internal/streaming"
-	"github.com/redis/go-redis/v9"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-func ApplicationRoutes(app *fiber.App, db *clientv3.Client, redisClient *redis.Client) {
+func ApplicationRoutes(app *fiber.App, db *clientv3.Client, natsCon *nats.Conn) {
 	applicationPrefix := app.Group("/applications")
 	// Create Application Handler
-	applicationHandler := handlers.NewApplicationHandler(db, redisClient)
-	streamHandler := streams.NewApplicationStreamer(redisClient, applicationHandler.ApplicationModel)
+	applicationHandler := handlers.NewApplicationHandler(db, natsCon)
+	streamHandler := streams.NewApplicationStreamer(natsCon, applicationHandler.ApplicationModel)
 	execHandler, err := streams.NewContainerShellHandler()
 
 	if err != nil {

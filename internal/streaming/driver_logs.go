@@ -1,26 +1,25 @@
 package streaming
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/gofiber/websocket/v2"
+	"github.com/nats-io/nats.go"
 	logging "github.com/open-ug/conveyor/internal/logging"
-	"github.com/redis/go-redis/v9"
 )
 
 type DriverLogsStreamer struct {
-	RedisClient *redis.Client
-	Logger      *logging.LokiClient
+	NatsCon *nats.Conn
+	Logger  *logging.LokiClient
 }
 
-func NewDriverLogsStreamer(redisClient *redis.Client) *DriverLogsStreamer {
+func NewDriverLogsStreamer(NatsCon *nats.Conn) *DriverLogsStreamer {
 	lokiClient := logging.New("http://localhost:3100")
 	return &DriverLogsStreamer{
-		RedisClient: redisClient,
-		Logger:      lokiClient,
+		NatsCon: NatsCon,
+		Logger:  lokiClient,
 	}
 }
 
@@ -52,26 +51,16 @@ func (s *DriverLogsStreamer) StreamLogs(ws *websocket.Conn) {
 		}
 	}
 
-	// Subscribe to the Redis channel for driver logs
-	pubsub := s.RedisClient.Subscribe(context.Background(), fmt.Sprintf("driver:%s:logs:%s", driverName, runID))
-	defer pubsub.Close()
+	// Subscribe to the NATS channel for driver logs
+	sub, errf := s.NatsCon.Subscribe(fmt.Sprintf("driver:%s:logs:%s", driverName, runID), func(msg *nats.Msg) {
 
-	// Wait for the subscription to be ready
-	_, err = pubsub.Receive(context.Background())
-	if err != nil {
-		ws.Close()
-		return
-	}
-
-	// Listen for messages on the Redis channel
-	ch := pubsub.Channel()
-	for msg := range ch {
 		// Unmarshal the message
 		var logMessage []string
-		err := json.Unmarshal([]byte(msg.Payload), &logMessage)
+		err := json.Unmarshal([]byte(msg.Data), &logMessage)
 		if err != nil {
 			fmt.Println("Error unmarshalling message:", err)
-			continue
+			ws.Close()
+			return
 		}
 
 		err = ws.WriteJSON(logMessage)
@@ -79,8 +68,23 @@ func (s *DriverLogsStreamer) StreamLogs(ws *websocket.Conn) {
 			ws.Close()
 			return
 		}
+	})
+	if errf != nil {
+		fmt.Println("Error subscribing to NATS channel:", err)
+		ws.Close()
+		return
 	}
-	// Close the WebSocket connection when done
-	ws.Close()
 
+	defer sub.Unsubscribe()
+
+	// 👇 Keep the connection open until the client closes it
+	for {
+		_, _, err := ws.ReadMessage()
+		if err != nil {
+			// Client disconnected
+			break
+		}
+	}
+
+	ws.Close()
 }

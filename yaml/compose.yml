@@ -17,18 +17,16 @@ services:
     container_name: loki
     volumes:
       - loki-data:/loki
-      - /path/to/config:/mnt/config/loki.yml # Edit this line to point to your config file
+      - /home/junior/dev/cranom/crane/yaml/loki.yml:/mnt/config/loki.yml # Edit this line to point to your config file
     command: -config.file=/mnt/config/loki.yml
     ports:
       - "3100:3100"
 
-  redis:
-    image: redis:latest
-    container_name: redis
-    volumes:
-      - redis-data:/data
+  nats:
+    image: nats:latest
+    container_name: nats
     ports:
-      - "6379:6379"
+      - "4222:4222" # Client connections
 
   app:
     image: openug/conveyor:latest
@@ -36,16 +34,14 @@ services:
     depends_on:
       - etcd
       - loki
-      - redis
+      - nats
     ports:
       - "8080:8080"
     environment:
       - ETCD_ENDPOINT=http://etcd:2379
       - LOKI_ENDPOINT=http://loki:3100
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - NATS_URL=nats://nats:4222
 
 volumes:
   etcd-data:
   loki-data:
-  redis-data:

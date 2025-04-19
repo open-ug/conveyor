@@ -1,15 +1,14 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/nats-io/nats.go"
 	models "github.com/open-ug/conveyor/internal/models"
 	"github.com/open-ug/conveyor/internal/utils"
 	craneTypes "github.com/open-ug/conveyor/pkg/types"
-	"github.com/redis/go-redis/v9"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
@@ -18,17 +17,17 @@ import (
 */
 type MessageHandler struct {
 	MessageModel models.DriverMessageModel
-	RedisClient  *redis.Client
+	NatsCon      *nats.Conn
 }
 
 // NewMessageHandler creates a new message handler
-func NewMessageHandler(db *clientv3.Client, redisClient *redis.Client) *MessageHandler {
+func NewMessageHandler(db *clientv3.Client, natsCon *nats.Conn) *MessageHandler {
 	return &MessageHandler{
 		MessageModel: models.DriverMessageModel{
 			Client: db,
 			Prefix: "driver-messages/",
 		},
-		RedisClient: redisClient,
+		NatsCon: natsCon,
 	}
 }
 
@@ -60,13 +59,13 @@ func (h *MessageHandler) PublishMessage(c *fiber.Ctx) error {
 			"error": merr.Error(),
 		})
 	}
-	// Publish to redis channel for driver to work on it
-	errf := h.RedisClient.Publish(context.Background(), "application",
+	// Publish to nats channel for driver to work on it
+	errf := h.NatsCon.Publish("application",
 		jsonMsg,
 	)
-	if errf.Err() != nil {
+	if errf != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": errf.Err().Error(),
+			"error": errf.Error(),
 		})
 	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{

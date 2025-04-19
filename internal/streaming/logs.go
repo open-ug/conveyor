@@ -10,18 +10,18 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/gofiber/websocket/v2"
+	"github.com/nats-io/nats.go"
 	models "github.com/open-ug/conveyor/internal/models"
-	"github.com/redis/go-redis/v9"
 )
 
 type ApplicationStreamer struct {
-	RedisClient      *redis.Client
+	NatsCon          *nats.Conn
 	ApplicationModel *models.ApplicationModel
 }
 
-func NewApplicationStreamer(redisClient *redis.Client, appModel *models.ApplicationModel) *ApplicationStreamer {
+func NewApplicationStreamer(natsCon *nats.Conn, appModel *models.ApplicationModel) *ApplicationStreamer {
 	return &ApplicationStreamer{
-		RedisClient:      redisClient,
+		NatsCon:          natsCon,
 		ApplicationModel: appModel,
 	}
 }
