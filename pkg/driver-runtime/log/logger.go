@@ -76,3 +76,12 @@ func (d *DriverLogger) Log(labels map[string]string, message string) error {
 
 	return nil
 }
+
+func (d *DriverLogger) Write(p []byte) (n int, err error) {
+	// Send the log to Loki
+	err = d.Log(nil, string(p))
+	if err != nil {
+		return 0, err
+	}
+	return len(p), nil
+}
