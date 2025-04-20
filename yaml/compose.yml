@@ -11,6 +11,8 @@ services:
     ports:
       - "2379:2379"
       - "2380:2380"
+    networks:
+      - conveyor-network
 
   loki:
     image: grafana/loki:latest
@@ -21,12 +23,16 @@ services:
     command: -config.file=/mnt/config/loki.yml
     ports:
       - "3100:3100"
+    networks:
+      - conveyor-network
 
   nats:
     image: nats:latest
     container_name: nats
     ports:
       - "4222:4222" # Client connections
+    networks:
+      - conveyor-network
 
   app:
     image: openug/conveyor:latest
@@ -41,7 +47,13 @@ services:
       - ETCD_ENDPOINT=http://etcd:2379
       - LOKI_ENDPOINT=http://loki:3100
       - NATS_URL=nats://nats:4222
+    networks:
+      - conveyor-network
 
 volumes:
   etcd-data:
   loki-data:
+
+networks:
+  conveyor-network:
+    driver: bridge

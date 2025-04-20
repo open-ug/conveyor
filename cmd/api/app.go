@@ -28,6 +28,10 @@ func StartServer(port string) {
 		JSONDecoder: json.Unmarshal,
 	})
 
+	fmt.Printf("LOKI API SERVER: %s\n", viper.GetString("loki.host"))
+	fmt.Printf("ETCD API SERVER: %s\n", viper.GetString("etcd.host"))
+	fmt.Printf("NATS API SERVER: %s\n", viper.GetString("nats.url"))
+
 	app.Use(cors.New())
 
 	app.Get("/", func(c *fiber.Ctx) error {
