@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/websocket/v2"
 	"github.com/nats-io/nats.go"
 	logging "github.com/open-ug/conveyor/internal/logging"
+	"github.com/spf13/viper"
 )
 
 type DriverLogsStreamer struct {
@@ -16,7 +17,9 @@ type DriverLogsStreamer struct {
 }
 
 func NewDriverLogsStreamer(NatsCon *nats.Conn) *DriverLogsStreamer {
-	lokiClient := logging.New("http://localhost:3100")
+	lokiClient := logging.New(
+		viper.GetString("loki.host"),
+	)
 	return &DriverLogsStreamer{
 		NatsCon: NatsCon,
 		Logger:  lokiClient,
