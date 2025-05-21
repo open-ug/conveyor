@@ -189,8 +189,48 @@ func (h *ResourceHandler) UpdateResource(c *fiber.Ctx) error {
 			"error": "Failed to marshal resource",
 		})
 	}
+	resourceDefinition, err := h.ResourceDefinitionModel.FindOne(resourceType)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": fmt.Sprintf("Failed to find resource definition: %v", err),
+		})
+	}
 
-	err = h.ResourceModel.Insert(resource.Name, resourceType, resourceData)
+	if resourceDefinition == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": fmt.Sprintf("Resource definition for type %s not found", resourceType),
+		})
+	}
+
+	var resourceDef types.ResourceDefinition
+	err = json.Unmarshal(resourceDefinition, &resourceDef)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to unmarshal resource definition",
+		})
+	}
+
+	if resourceDef.Schema == nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Resource definition schema is required",
+		})
+	}
+
+	// Validate the resource against the schema
+	isValid, err := helpers.ValidateResource(resource, resourceDef)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": fmt.Sprintf("Resource validation failed: %v", err),
+		})
+	}
+
+	if !isValid {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Resource does not conform to the schema",
+		})
+	}
+
+	err = h.ResourceModel.Update(resourceName, resourceType, resourceData)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": fmt.Sprintf("Failed to update resource: %v", err),
