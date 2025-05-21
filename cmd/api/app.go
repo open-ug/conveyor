@@ -31,7 +31,7 @@ func StartServer(port string) {
 	app.Use(cors.New())
 
 	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("CONVEYOR API SERVER contact info@cranom.tech for Documentation")
+		return c.SendString("CONVEYOR API SERVER. Visit https://conveyor.open.ug for Documentation")
 	})
 	app.Get("/ping", func(c *fiber.Ctx) error {
 		return c.SendString("pong")
@@ -50,6 +50,7 @@ func StartServer(port string) {
 
 	routes.ApplicationRoutes(app, etcd.Client, natsCon)
 	routes.DriverRoutes(app, etcd.Client, natsCon)
+	routes.ResourceRoutes(app, etcd.Client, natsCon)
 
 	app.Listen(":" + port)
 
