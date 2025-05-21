@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 Cranom Technologies Limited, Beingana Jim Junior and Contributors
+Copyright © 2024 Beingana Jim Junior and Contributors
 */
 package cli
 
@@ -11,10 +11,9 @@ import (
 
 var APIServerCmd = &cobra.Command{
 	Use:   "api-server",
-	Short: "Start the Cranom API Server",
-	Long: `Start the Cranom API Server to interact with the Cranom Platform.
+	Short: "Start the Conveyor API Server",
+	Long: `Start the Conveyor API Server
 
-Learn More at: https://www.cranom.tech/plaform-tools/crane
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		port := cmd.Flag("port").Value.String()

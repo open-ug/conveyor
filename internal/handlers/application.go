@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 Cranom Technologies Limited, Beingana Jim Junior and Contributors
+Copyright © 2024 Beingana Jim Junior and Contributors
 */
 package handlers
 
