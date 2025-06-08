@@ -33,6 +33,13 @@ services:
       - "4222:4222" # Client connections
     networks:
       - conveyor-network
+    command: [
+        "-js", # enable JetStream
+        "--store_dir",
+        "/data/js", # JetStream storage location
+      ]
+    volumes:
+      - nats-jsdata:/data/js
 
   app:
     image: openug/conveyor:latest
@@ -53,6 +60,7 @@ services:
 volumes:
   etcd-data:
   loki-data:
+  nats-jsdata:
 
 networks:
   conveyor-network:
