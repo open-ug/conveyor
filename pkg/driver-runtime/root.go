@@ -48,6 +48,10 @@ func (d *Driver) Validate() error {
 		return fmt.Errorf("driver name is not set")
 	}
 
+	if len(d.Resources) == 0 {
+		return fmt.Errorf("driver resources are not set")
+	}
+
 	return nil
 }
 
