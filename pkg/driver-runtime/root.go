@@ -7,22 +7,22 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
-	"github.com/docker/docker/client"
 	"github.com/fatih/color"
-	"github.com/nats-io/nats.go"
+	"github.com/google/uuid"
+	"github.com/nats-io/nats.go/jetstream"
 	config "github.com/open-ug/conveyor/internal/config"
 	internals "github.com/open-ug/conveyor/internal/shared"
+	utils "github.com/open-ug/conveyor/internal/utils"
 	"github.com/open-ug/conveyor/pkg/driver-runtime/log"
-	craneTypes "github.com/open-ug/conveyor/pkg/types"
+	types "github.com/open-ug/conveyor/pkg/types"
 )
 
 type DriverManager struct {
 	// The driver manager is responsible for managing the drivers
 	// and the driver lifecycle.
 
-	NatsCon *nats.Conn
+	NatsContext *internals.NatsContext
 
 	Driver *Driver
 
@@ -36,6 +36,8 @@ type Driver struct {
 	Reconcile func(message string, event string, runID string, logger *log.DriverLogger) error
 
 	Name string
+
+	Resources []string
 }
 
 // validate the driver
@@ -46,6 +48,7 @@ func (d *Driver) Validate() error {
 	if d.Name == "" {
 		return fmt.Errorf("driver name is not set")
 	}
+
 	return nil
 }
 
@@ -66,21 +69,48 @@ func NewDriverManager(
 	natsCon := internals.NewNatsConn()
 
 	return &DriverManager{
-		NatsCon: natsCon,
-		Driver:  driver,
-		Events:  events,
+		NatsContext: natsCon,
+		Driver:      driver,
+		Events:      events,
 	}, nil
 }
 
 func (d *DriverManager) Run() error {
+
 	// The driver manager will run the driver's reconcile function
 	// in a loop
 
 	// Get the resource from the message queue
-	_, err := d.NatsCon.Subscribe("application", func(msg *nats.Msg) {
+	randomStr, serr := utils.GenerateRandomShortStr()
+	if serr != nil {
+		color.Red("Error Occured while generating random string: %v", serr)
+	}
+	fmt.Println(randomStr)
 
-		var message craneTypes.DriverMessage
-		err := json.Unmarshal([]byte(msg.Data), &message)
+	// Resources
+	var filterSubjects []string
+	for _, resource := range d.Driver.Resources {
+		filterSubjects = append(filterSubjects, "resources."+resource)
+	}
+
+	consumer, err := d.NatsContext.JetStream.CreateOrUpdateConsumer(context.Background(), "messages", jetstream.ConsumerConfig{
+		Name:           d.Driver.Name + uuid.NewString(),
+		FilterSubjects: filterSubjects,
+		AckPolicy:      jetstream.AckExplicitPolicy,
+		MaxAckPending:  1,
+	})
+
+	if err != nil {
+		color.Red("Error Occured while subscribing to NATS channel: %v", err)
+	}
+
+	// CONSUMER
+	consumer.Consume(func(msg jetstream.Msg) {
+		fmt.Printf("Received message on subject: %s\n", msg.Subject())
+		msg.Ack()
+		data := msg.Data()
+		var message types.DriverMessage
+		err := json.Unmarshal([]byte(data), &message)
 		if err != nil {
 			fmt.Println("Error unmarshalling message: ", err)
 			//return err
@@ -104,7 +134,7 @@ func (d *DriverManager) Run() error {
 				"event":  message.Event,
 				"id":     message.ID,
 				"run_id": message.RunID,
-			}, d.NatsCon)
+			}, d.NatsContext.NatsCon)
 
 			err = d.Driver.Reconcile(message.Payload, message.Event, message.RunID, logger)
 			if err != nil {
@@ -112,46 +142,9 @@ func (d *DriverManager) Run() error {
 				//return err
 			}
 		}
-
 	})
-	if err != nil {
-		color.Red("Error Occured while subscribing to NATS channel: %v", err)
-	}
-	fmt.Println("Subscribed to NATS channel")
+
+	fmt.Println("Driver Manager is running for driver: ", d.Driver.Name)
 
 	select {}
-}
-
-func GetDockerClient() (*client.Client, error) {
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		return nil, fmt.Errorf("error creating docker client: %v", err)
-	}
-	return cli, nil
-}
-
-// a function that watches for docker container to start. it keeps checking the container status until it is running
-func WatchContainerStart(containerID string) error {
-	cli, err := GetDockerClient()
-	if err != nil {
-		return err
-	}
-
-	for {
-		fmt.Println("Waiting for System Component to start")
-		inspect, err := cli.ContainerInspect(context.Background(), containerID)
-		if err != nil {
-			color.Red("System Component failed to start")
-			return fmt.Errorf("error inspecting container: %v", err)
-		}
-
-		if inspect.State.Status == "running" {
-			color.Green("System Component is running")
-			break
-		}
-
-		time.Sleep(1 * time.Second)
-	}
-
-	return nil
 }
