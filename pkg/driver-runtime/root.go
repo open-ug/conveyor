@@ -9,7 +9,6 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
-	"github.com/google/uuid"
 	"github.com/nats-io/nats.go/jetstream"
 	config "github.com/open-ug/conveyor/internal/config"
 	internals "github.com/open-ug/conveyor/internal/shared"
@@ -94,7 +93,7 @@ func (d *DriverManager) Run() error {
 	}
 
 	consumer, err := d.NatsContext.JetStream.CreateOrUpdateConsumer(context.Background(), "messages", jetstream.ConsumerConfig{
-		Name:           d.Driver.Name + uuid.NewString(),
+		Name:           d.Driver.Name,
 		FilterSubjects: filterSubjects,
 		AckPolicy:      jetstream.AckExplicitPolicy,
 		MaxAckPending:  1,
