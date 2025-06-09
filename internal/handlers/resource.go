@@ -6,22 +6,23 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/nats-io/nats.go"
 	"github.com/open-ug/conveyor/internal/helpers"
 	models "github.com/open-ug/conveyor/internal/models"
+	internals "github.com/open-ug/conveyor/internal/shared"
+	utils "github.com/open-ug/conveyor/internal/utils"
 	"github.com/open-ug/conveyor/pkg/types"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type ResourceHandler struct {
-	NatsCon                 *nats.Conn
 	ResourceModel           *models.ResourceModel
 	ResourceDefinitionModel *models.ResourceDefinitionModel
+	NatsContext             *internals.NatsContext
 }
 
-func NewResourceHandler(db *clientv3.Client, natsCon *nats.Conn) *ResourceHandler {
+func NewResourceHandler(db *clientv3.Client, natsContext *internals.NatsContext) *ResourceHandler {
 	return &ResourceHandler{
-		NatsCon: natsCon,
+		NatsContext: natsContext,
 		ResourceModel: &models.ResourceModel{
 			Client: db,
 		},
@@ -97,6 +98,37 @@ func (h *ResourceHandler) CreateResource(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": fmt.Sprintf("Failed to insert resource: %v", err),
+		})
+	}
+
+	mID, err := utils.GenerateRandomID()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to generating id:",
+		})
+	}
+	driverMsg := types.DriverMessage{
+		ID:      mID,
+		Payload: string(resourceData),
+		Event:   "create",
+		RunID:   uuid.New().String(),
+	}
+
+	jsonMsg, merr := json.Marshal(driverMsg)
+	if merr != nil {
+		fmt.Println(merr)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": merr.Error(),
+		})
+	}
+
+	// Publish message to jetstream
+	subjectName := "resources." + resourceDef.Name
+	_, err = h.NatsContext.JetStream.PublishAsync(subjectName, jsonMsg)
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
 		})
 	}
 

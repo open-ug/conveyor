@@ -4,12 +4,6 @@ Copyright © 2024 Beingana Jim Junior and Contributors
 package api
 
 import (
-	"fmt"
-
-	"context"
-	"time"
-
-	"github.com/docker/docker/client"
 	"github.com/fatih/color"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
@@ -37,7 +31,8 @@ func StartServer(port string) {
 		return c.SendString("pong")
 	})
 
-	natsCon := internals.NewNatsConn()
+	natsContext := internals.NewNatsConn()
+	natsContext.InitiateStreams()
 
 	etcd, err := utils.NewEtcdClient(
 		viper.GetString("etcd.host"),
@@ -48,44 +43,10 @@ func StartServer(port string) {
 		return
 	}
 
-	routes.ApplicationRoutes(app, etcd.Client, natsCon)
-	routes.DriverRoutes(app, etcd.Client, natsCon)
-	routes.ResourceRoutes(app, etcd.Client, natsCon)
+	routes.ApplicationRoutes(app, etcd.Client, natsContext.NatsCon)
+	routes.DriverRoutes(app, etcd.Client, natsContext.NatsCon)
+	routes.ResourceRoutes(app, etcd.Client, natsContext)
 
 	app.Listen(":" + port)
 
-}
-
-func GetDockerClient() (*client.Client, error) {
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		return nil, fmt.Errorf("error creating docker client: %v", err)
-	}
-	return cli, nil
-}
-
-// a function that watches for docker container to start. it keeps checking the container status until it is running
-func WatchContainerStart(containerID string) error {
-	cli, err := GetDockerClient()
-	if err != nil {
-		return err
-	}
-
-	for {
-		fmt.Println("Waiting for System Component to start")
-		inspect, err := cli.ContainerInspect(context.Background(), containerID)
-		if err != nil {
-			color.Red("System Component failed to start")
-			return fmt.Errorf("error inspecting container: %v", err)
-		}
-
-		if inspect.State.Status == "running" {
-			//color.Green("System Component is running")
-			break
-		}
-
-		time.Sleep(1 * time.Second)
-	}
-
-	return nil
 }
