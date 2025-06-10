@@ -128,3 +128,53 @@ func (h *ResourceDefinitionHandler) UpdateResourceDefinition(c *fiber.Ctx) error
 
 	return c.JSON(resourceDefinition)
 }
+
+func (h *ResourceDefinitionHandler) CreateOrUpdateResourceDefinition(c *fiber.Ctx) error {
+	var resourceDefinition types.ResourceDefinition
+	if err := c.BodyParser(&resourceDefinition); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request payload",
+		})
+	}
+
+	resourceName := resourceDefinition.Name
+	if resourceName == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Resource name is required",
+		})
+	}
+	resourceDef, err := json.Marshal(resourceDefinition)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to marshal resource definition",
+		})
+	}
+
+	// Check if the resource definition already exists
+	existingDef, err := h.ResourceDefinitionModel.FindOne(resourceName)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": fmt.Sprintf("Failed to find resource definition: %v", err),
+		})
+	}
+
+	if existingDef != nil {
+		// If it exists, update it
+		err = h.ResourceDefinitionModel.Update(resourceName, resourceDef)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": fmt.Sprintf("Failed to update resource definition: %v", err),
+			})
+		}
+	} else {
+		// If it doesn't exist, create it
+		resourceDefinition.ID = uuid.New().String()
+		err = h.ResourceDefinitionModel.Insert(resourceName, resourceDef)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": fmt.Sprintf("Failed to insert resource definition: %v", err),
+			})
+		}
+	}
+	return c.Status(fiber.StatusCreated).JSON(resourceDefinition)
+}
