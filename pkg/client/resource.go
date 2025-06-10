@@ -67,3 +67,29 @@ func (c *Client) CreateResourceDefinition(ctx context.Context, app *types.Resour
 	}
 	return &responseApp, nil
 }
+
+func (c *Client) CreateOrUpdateResourceDefinition(ctx context.Context, app *types.ResourceDefinition) (*types.ResourceDefinition, error) {
+	client := resty.New()
+	client.SetHeader("Content-Type", "application/json")
+	baseURL := "http://" + c.APIHost + ":" + c.APIPort
+	jsonMessage, err := json.Marshal(app)
+	if err != nil {
+		fmt.Println("Error: ", err)
+		return nil, err
+	}
+	resp, err := client.R().
+		SetBody(jsonMessage).
+		SetContext(ctx).
+		Post(baseURL + "/resource-definitions/apply")
+	if err != nil {
+		fmt.Println("Error: ", err)
+		return nil, err
+	}
+	var responseApp types.ResourceDefinition
+	err = json.Unmarshal(resp.Body(), &responseApp)
+	if err != nil {
+		fmt.Println("Error: ", err)
+		return nil, err
+	}
+	return &responseApp, nil
+}

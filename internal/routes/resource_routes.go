@@ -28,6 +28,7 @@ func ResourceRoutes(app *fiber.App, db *clientv3.Client, natsContext *internals.
 
 	// Resource Definition Routes
 	resourceDefinitionPrefix.Post("/", resourceDefinitionHandler.CreateResourceDefinition)
+	resourceDefinitionPrefix.Post("/apply", resourceDefinitionHandler.CreateOrUpdateResourceDefinition)
 	resourceDefinitionPrefix.Get("/:name", resourceDefinitionHandler.GetResourceDefinition)
 	resourceDefinitionPrefix.Delete("/:name", resourceDefinitionHandler.DeleteResourceDefinition)
 	resourceDefinitionPrefix.Put("/:name", resourceDefinitionHandler.UpdateResourceDefinition)
