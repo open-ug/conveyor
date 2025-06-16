@@ -132,7 +132,12 @@ func (h *ResourceHandler) CreateResource(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(resource)
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"name":    resource.Name,
+		"runid":   driverMsg.RunID,
+		"message": "Resource created successfully",
+	},
+	)
 }
 
 func (h *ResourceHandler) GetResource(c *fiber.Ctx) error {

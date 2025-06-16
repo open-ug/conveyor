@@ -12,7 +12,7 @@ import (
 /*
 Creates a new resource in the Conveyor API.
 */
-func (c *Client) CreateResource(ctx context.Context, app *types.Resource) (*types.Resource, error) {
+func (c *Client) CreateResource(ctx context.Context, app *types.Resource) (*types.APIResponse, error) {
 	client := resty.New()
 	client.SetHeader("Content-Type", "application/json")
 	baseURL := "http://" + c.APIHost + ":" + c.APIPort
@@ -29,7 +29,7 @@ func (c *Client) CreateResource(ctx context.Context, app *types.Resource) (*type
 		fmt.Println("Error: ", err)
 		return nil, err
 	}
-	var responseApp types.Resource
+	var responseApp types.APIResponse
 	err = json.Unmarshal(resp.Body(), &responseApp)
 	if err != nil {
 		fmt.Println("Error: ", err)
