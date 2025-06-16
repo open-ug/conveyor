@@ -130,6 +130,7 @@ func (h *ResourceDefinitionHandler) UpdateResourceDefinition(c *fiber.Ctx) error
 }
 
 func (h *ResourceDefinitionHandler) CreateOrUpdateResourceDefinition(c *fiber.Ctx) error {
+	fmt.Println("CreateOrUpdateResourceDefinition called")
 	var resourceDefinition types.ResourceDefinition
 	if err := c.BodyParser(&resourceDefinition); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -151,12 +152,8 @@ func (h *ResourceDefinitionHandler) CreateOrUpdateResourceDefinition(c *fiber.Ct
 	}
 
 	// Check if the resource definition already exists
-	existingDef, err := h.ResourceDefinitionModel.FindOne(resourceName)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": fmt.Sprintf("Failed to find resource definition: %v", err),
-		})
-	}
+	existingDef, _ := h.ResourceDefinitionModel.FindOne(resourceName)
+	fmt.Println("resource exists")
 
 	if existingDef != nil {
 		// If it exists, update it
