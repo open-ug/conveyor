@@ -1,6 +1,6 @@
 <h1 align="center" style="border-bottom: none; height: 200px">
     <a href="https://conveyor.open.ug" target="_blank"><img alt="Prometheus" src="https://conveyor.open.ug/img/logo.png"
-    style="max-height: 200px; max-width: 100%;"></a>
+    style="max-height: 200px; max-width: 200px;"></a>
 
 </h1>
 
