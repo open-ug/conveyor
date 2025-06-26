@@ -25,3 +25,36 @@ Key features that Conveyor CI provides include:
 
 ## Installation
 
+Conveyor CI is distributed as an OCI container and can be found on Docker Hub, however considering the fact that it has dependency containers which are etcd, loki, and nats. A standard deployment configuration was created for docker compose and Helm charts are comming soon.
+
+To Install it on docker compose you can head over to the Releases page and download `compose.yml` and `loki.yml` or on a linux system you can download them using curl.
+
+```sh
+curl -s https://api.github.com/repos/open-ug/conveyor/releases/latest | grep browser_download_url | grep compose.yml | cut -d '"' -f 4 | xargs curl -L -o compose.yml
+
+curl -s https://api.github.com/repos/open-ug/conveyor/releases/latest | grep browser_download_url | grep loki.yml | cut -d '"' -f 4 | xargs curl -L -o loki.yml
+```
+
+Next start the containers using docker compose.
+
+```sh
+docker compose up
+
+# OR
+
+docker compose up -d
+```
+
+The Conveyor API Server will be reachable on [http://localhost:8080](http://localhost:8080)
+
+## More information
+
+For more information you can check out the [official documentation](https://conveyor.open.ug).
+
+## Contributing
+
+Refer to [CONTRIBUTING.md](./CONTRIBUTING.md)
+
+## License
+
+Apache License 2.0, see [LICENSE](./LICENSE).
