@@ -5,29 +5,37 @@
 
 <div align="center">
 
-
 ![Docker Pulls](https://img.shields.io/docker/pulls/openug/conveyor.svg?maxAge=604800)
 [![Go Report Card](https://goreportcard.com/badge/github.com/open-ug/conveyor)](https://goreportcard.com/report/github.com/open-ug/conveyor)
+![License](https://img.shields.io/github/license/open-ug/conveyor.svg)
+![GitHub release](https://img.shields.io/github/v/release/open-ug/conveyor)
+![GitHub issues](https://img.shields.io/github/issues/open-ug/conveyor)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/open-ug/conveyor)
 
 </div>
 
 ---
 
-Conveyor CI is a(the first) Software Framework for building CI/CD Platforms. It provides a set of tools(programs) and SDKs that abstract the complexities of building CI/CD Platforms by implementing common features that CI/CD platforms require.
+**Conveyor CI** is the first open-source **framework for building CI/CD platforms**.
 
-Key features that Conveyor CI provides include:
+Instead of building your own CI/CD system from scratch, Conveyor CI gives you a modular toolkit, SDKs, APIs, and drivers that handle the hard parts: execution, events, scaling, observability, and more.
 
-- **Built-In Observability**: Conveyor provides seamless integration of **Metrics**, **Tracing**, and **Logging**, so you can monitor, trace, and debug workflows at every stage without external setups
-- **Declarative API for CI/CD Workflows**: Conveyor CI and its API adopt a decelarative and this helps yor design pipelines that are highly customizable and extensible
-- **Realtime Event System**: Conveyor’s powerful event-driven architecture lets drivers publish and respond to events in realtime, enabling fast, responsive execution of tasks across your system.
-- **Effortless Horizontal Scaling**: Conveyor’s runtime enables automatic horizontal scaling of drivers across distributed systems, optimized for cloud-native deployments all with zero extra code.
-- **Realtime Log Management**: Conveyor CI Drivers include a built-in Logger that supports realtime log streaming and storage.
+## Key features
+
+- **Built-in Observability**: Metrics, tracing, and logging integrated out-of-the-box.
+- **Declarative CI/CD Workflows**: Define pipelines using a flexible, extensible API.
+- **Real-time Event System**: Event-driven architecture powers responsive, dynamic execution.
+- **Effortless Horizontal Scaling**: Built-in runtime scales drivers across distributed systems with zero extra code.
+- **Live Log Management**: Stream and store logs in real time from every running task.
+
 
 ## Installation
 
-Conveyor CI is distributed as an OCI container and can be found on Docker Hub, however considering the fact that it has dependency containers which are etcd, loki, and nats. A standard deployment configuration was created for docker compose and Helm charts are comming soon.
+Conveyor CI is distributed as an OCI container and available on Docker Hub. It depends on `etcd`, `loki`, and `nats`, so a standard Docker Compose configuration is provided.
 
-To Install it on docker compose you can head over to the Releases page and download `compose.yml` and `loki.yml` or on a linux system you can download them using curl.
+> **Helm charts coming soon**
+
+To Install it on docker compose you can head over to the Releases page and download `compose.yml` and `loki.yml` or on a linux system you can download them using `curl`.
 
 ```sh
 curl -s https://api.github.com/repos/open-ug/conveyor/releases/latest | grep browser_download_url | grep compose.yml | cut -d '"' -f 4 | xargs curl -L -o compose.yml
@@ -49,7 +57,7 @@ The Conveyor API Server will be reachable on [http://localhost:8080](http://loca
 
 ## More information
 
-For more information you can check out the [official documentation](https://conveyor.open.ug).
+Visit the [official documentation](https://conveyor.open.ug). for architecture, SDK usage, and driver development.
 
 ## Contributing
 
