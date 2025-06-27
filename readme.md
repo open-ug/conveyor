@@ -16,7 +16,27 @@
 
 The Python Implementation of the Conveyor CI Driver Runtime
 
+## Installation
+
+```sh
+pip install conveyor.py
+```
+
+## Usage
+
+```py
+from conveyor.client import Client
+
+cl = Client()
+
+response = cl.create_or_update_resource_definition(resource_definition)
+
+```
 
 ## Development Setup
 
 Check out [this Guide](https://conveyor.open.ug/blog/contributing-to-the-conveyor-ci-driver-runtime#environment-setup) for setting up your development environment.
+
+## License
+
+Apache License 2.0, see [LICENSE](./LICENSE).
