@@ -11,6 +11,7 @@
 ![GitHub release](https://img.shields.io/github/v/release/open-ug/conveyor)
 ![GitHub issues](https://img.shields.io/github/issues/open-ug/conveyor)
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/open-ug/conveyor)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fopen-ug%2Fconveyor.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fopen-ug%2Fconveyor?ref=badge_shield)
 
 </div>
 
@@ -66,3 +67,6 @@ Refer to [CONTRIBUTING.md](./CONTRIBUTING.md)
 ## License
 
 Apache License 2.0, see [LICENSE](./LICENSE).
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fopen-ug%2Fconveyor.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fopen-ug%2Fconveyor?ref=badge_large)
