@@ -11,6 +11,8 @@
 ![GitHub release](https://img.shields.io/github/v/release/open-ug/conveyor)
 ![GitHub issues](https://img.shields.io/github/issues/open-ug/conveyor)
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/open-ug/conveyor)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fopen-ug%2Fconveyor.svg?type=shield&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2Fopen-ug%2Fconveyor?ref=badge_shield&issueType=license)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fopen-ug%2Fconveyor.svg?type=shield&issueType=security)](https://app.fossa.com/projects/git%2Bgithub.com%2Fopen-ug%2Fconveyor?ref=badge_shield&issueType=security)
 
 </div>
 
