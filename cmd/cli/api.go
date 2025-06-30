@@ -5,7 +5,6 @@ package cli
 
 import (
 	apiServer "github.com/open-ug/conveyor/cmd/api"
-	"github.com/open-ug/conveyor/cmd/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -27,16 +26,4 @@ var APIServerCmd = &cobra.Command{
 
 func init() {
 	APIServerCmd.Flags().StringP("port", "p", "", "Port to run the API Server on (default: 3000)")
-}
-
-var CertBotDriverCmd = &cobra.Command{
-	Use:   "certbot-driver",
-	Short: "Start the Crane CertBot Driver",
-	Long: `Start the Cranom API Server to interact with the Cranom Platform.
-
-Learn More at: https://www.cranom.tech/plaform-tools/crane
-`,
-	Run: func(cmd *cobra.Command, args []string) {
-		logger.Listen()
-	},
 }
