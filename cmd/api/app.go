@@ -43,7 +43,6 @@ func StartServer(port string) {
 		return
 	}
 
-	routes.ApplicationRoutes(app, etcd.Client, natsContext.NatsCon)
 	routes.DriverRoutes(app, etcd.Client, natsContext.NatsCon)
 	routes.ResourceRoutes(app, etcd.Client, natsContext)
 
