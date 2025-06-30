@@ -80,7 +80,7 @@ func (s *DriverLogsStreamer) StreamLogs(ws *websocket.Conn) {
 
 	defer sub.Unsubscribe()
 
-	// 👇 Keep the connection open until the client closes it
+	// Keep the connection open until the client closes it
 	for {
 		_, _, err := ws.ReadMessage()
 		if err != nil {
