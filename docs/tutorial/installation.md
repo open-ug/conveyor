@@ -20,7 +20,7 @@ Conveyor CI requires a few prerequisites and dependecies to be able to run smoot
 - [Docker](https://docs.docker.com/engine/install/). you can install it on the official website.
 - The [Go](https://go.dev/doc/install) language Compiler.
 
-Once you have these installed you can run `go version` and `docer version` to verify their installation.
+Once you have these installed you can run `go version` and `docker version` to verify their installation.
 
 ## Downloading Conveyor Tools
 
