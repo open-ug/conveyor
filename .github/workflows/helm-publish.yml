@@ -27,7 +27,7 @@ jobs:
       - name: Package Helm chart
         run: |
           mkdir -p charts
-          helm package mychart -d charts
+          helm package helm -d charts
 
       - name: Create index.yaml
         run: |
