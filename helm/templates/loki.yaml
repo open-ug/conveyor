@@ -1,0 +1,114 @@
+# Loki
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: loki-data
+  namespace: conveyor
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+# Loki ConfigMap (must match the file ./loki.yml)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loki-config
+  namespace: conveyor
+data:
+  loki.yml: |
+    auth_enabled: false
+
+    server:
+      http_listen_port: 3100
+
+    common:
+      instance_addr: 127.0.0.1
+      path_prefix: /loki
+      storage:
+        filesystem:
+          chunks_directory: /loki/chunks
+          rules_directory: /loki/rules
+      replication_factor: 1
+      ring:
+        kvstore:
+          store: inmemory
+
+    query_range:
+      results_cache:
+        cache:
+          embedded_cache:
+            enabled: true
+            max_size_mb: 100
+
+    limits_config:
+      metric_aggregation_enabled: true
+
+    schema_config:
+      configs:
+        - from: 2020-10-24
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: index_
+            period: 24h
+
+    pattern_ingester:
+      enabled: true
+      metric_aggregation:
+        loki_address: localhost:3100
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loki
+  namespace: conveyor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loki
+  template:
+    metadata:
+      labels:
+        app: loki
+    spec:
+      containers:
+        - name: loki
+          image: grafana/loki:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - -config.file=/mnt/config/loki.yml
+          ports:
+            - containerPort: 3100
+          volumeMounts:
+            - name: loki-config
+              mountPath: /mnt/config
+            - name: loki-storage
+              mountPath: /loki
+      volumes:
+        - name: loki-config
+          configMap:
+            name: loki-config
+        - name: loki-storage
+          persistentVolumeClaim:
+            claimName: loki-data
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki
+  namespace: conveyor
+spec:
+  selector:
+    app: loki
+  ports:
+    - port: 3100
+      targetPort: 3100
