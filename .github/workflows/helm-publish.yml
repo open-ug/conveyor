@@ -1,12 +1,8 @@
 name: Publish Helm Chart to GitHub Pages
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "helm/**" # adjust this to match your chart folder
-      - ".github/workflows/helm-publish.yml"
+  release:
+    types: [published]
 
 jobs:
   publish:
