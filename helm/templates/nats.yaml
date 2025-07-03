@@ -1,0 +1,58 @@
+
+# NATS
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nats-jsdata
+  namespace: conveyor
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nats
+  namespace: conveyor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nats
+  template:
+    metadata:
+      labels:
+        app: nats
+    spec:
+      containers:
+        - name: nats
+          image: nats:latest
+          imagePullPolicy: IfNotPresent
+          args: ["-js", "--store_dir", "/data/js"]
+          ports:
+            - containerPort: 4222
+          volumeMounts:
+            - name: js-store
+              mountPath: /data/js
+      volumes:
+        - name: js-store
+          persistentVolumeClaim:
+            claimName: nats-jsdata
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nats
+  namespace: conveyor
+spec:
+  selector:
+    app: nats
+  ports:
+    - port: 4222
+      targetPort: 4222
+

@@ -1,0 +1,26 @@
+apiVersion: v2
+name: conveyor
+appVersion: v3.4.1
+version: 0.1.16
+kubeVersion: ">=1.19.0-0"
+description: Conveyor CI is a Platform/Framwork for building custom CI/CD pipelines
+home: https://conveyor.open.ug/
+icon: https://conveyor.open.ug/img/logo.png
+sources:
+  - https://github.com/open-ug/conveyor
+maintainers:
+  - name: jim-junior
+    email: jimjunior854@gmail.com
+    url: https://github.com/jim-junior
+type: application
+keywords:
+  - cicd
+  - devops
+  - monitoring
+annotations:
+  "artifacthub.io/license": Apache-2.0
+  "artifacthub.io/links": |
+    - name: Chart Source
+      url: https://github.com/open-ug/conveyor-helm-charts
+    - name: Upstream Project
+      url: https://github.com/open-ug/conveyor
