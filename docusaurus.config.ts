@@ -68,6 +68,18 @@ const config: Config = {
         theme: {
           customCss: "./src/css/custom.css",
         },
+        sitemap: {
+          lastmod: "date",
+          changefreq: "weekly",
+          priority: 0.5,
+          ignorePatterns: ["/tags/**"],
+          filename: "sitemap.xml",
+          createSitemapItems: async (params) => {
+            const { defaultCreateSitemapItems, ...rest } = params;
+            const items = await defaultCreateSitemapItems(rest);
+            return items.filter((item) => !item.url.includes("/page/"));
+          },
+        },
       } satisfies Preset.Options,
     ],
   ],
@@ -122,6 +134,10 @@ const config: Config = {
             {
               label: "Slack",
               href: "https://open-ug.slack.com/join/shared_invite/zt-382rwaqzr-aeB5ES_S94fYVPKCGHW~Qg",
+            },
+            {
+              label: "Sitemap",
+              href: "/sitemap.xml",
             },
           ],
         },
