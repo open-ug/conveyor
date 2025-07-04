@@ -137,7 +137,7 @@ const config: Config = {
             },
             {
               label: "Sitemap",
-              href: "/sitemap.xml",
+              href: "https://conveyor.open.ug/sitemap.xml",
             },
           ],
         },
