@@ -13,7 +13,7 @@ A detailed guide to contributing to the Conveyor CI Driver runtime.
 
 A brief introduction on the Conveyor CI Driver runtime.
 
-The Conveyor CI Driver runtime is a collection of SDKs(Software Devlopment Kits) used by developers to build Conveyor CI [Drivers](/docs/concepts/drivers). These SDKs are libraries that contain Utility functions that expose different Conveyor CI functionality. In this Guide we shall explore how one can contribute to the Conveyor CI Driver Runtime. This Guide is written to be language agnostic, meaning it can guide you to build or contribute to a driver runtime of your language of choice.
+The Conveyor CI Driver runtime is a collection of SDKs(Software Devlopment Kits) used by developers to build Conveyor CI [Drivers](/docs/concepts/terminology/drivers.md). These SDKs are libraries that contain Utility functions that expose different Conveyor CI functionality. In this Guide we shall explore how one can contribute to the Conveyor CI Driver Runtime. This Guide is written to be language agnostic, meaning it can guide you to build or contribute to a driver runtime of your language of choice.
 
 ## How the Driver Runtime Works
 
@@ -32,7 +32,7 @@ So even when building a Conveyor CI Driver, the final program is a combination o
 As mentioned earlier, the driver runtime provides necessary services and utilities for building CI Drivers. Some of these features are not just exclusive to the runtime but rather and extension of the base features provided by the Conveyor CI Ecosystem. These features include:
 
 - A realtime Event System: The driver runtime is designed to ensure drivers recieve and publish events within the Conveyor System to ensure quick and instant execution of taks.
-- Log Management: The Driver runtime provided a [Driver Logger](/docs/concepts/drivers#driver-logger), that provides drivers with functionality to export and save necessary logs in realtime. These can then be fetched or streamed in realtime or for future use.
+- Log Management: The Driver runtime provided a [Driver Logger](/docs/concepts/terminology/drivers.md#driver-logger), that provides drivers with functionality to export and save necessary logs in realtime. These can then be fetched or streamed in realtime or for future use.
 - Horizontal Scaling: The Driver runtime provides out of the box Horizontal Scaling to Drivers, meaning once you build a driver. It comes with the ability to horizontaly scale into a distributed system effeciently without you writing any custom code. This feature can be really important in Cloud Native environments.
 - Conveyor CI API Server Interaction: No driver runtime package is complete without utility functions to interact with the Conveyor API Server to for example create and manipulate Resources.
 - Observability out of the Box: The Driver runtime is designed to provide a comprehensive observability platfor that follows all the three prillars that include Metrics, Tracing and Logging.
