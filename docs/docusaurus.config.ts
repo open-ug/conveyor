@@ -48,7 +48,7 @@ const config: Config = {
           sidebarPath: "./sidebars.ts",
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: "https://github.com/open-ug/conveyor-docs/tree/main/",
+          editUrl: "https://github.com/open-ug/conveyor/tree/main/docs",
         },
         blog: {
           showReadingTime: true,
@@ -58,7 +58,7 @@ const config: Config = {
           },
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: "https://github.com/open-ug/conveyor-docs/tree/main/",
+          editUrl: "https://github.com/open-ug/conveyor/tree/main/docs",
           // Useful options to enforce blogging best practices
           onInlineTags: "warn",
           onInlineAuthors: "warn",
