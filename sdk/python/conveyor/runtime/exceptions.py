@@ -14,3 +14,11 @@ class InvalidRunIDException(DriverRuntimeException):
     def __init__(self, message: str):
         super().__init__(message)
         self.message = message
+
+
+class DriverException(DriverRuntimeException):
+    """Raised with issues to do with driver."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
