@@ -2,3 +2,4 @@
 output
 build/
 athens-data
+.venv
