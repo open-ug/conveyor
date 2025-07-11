@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-resty/resty/v2"
-	craneTypes "github.com/open-ug/conveyor/pkg/types"
+	t "github.com/open-ug/conveyor/pkg/types"
 	"github.com/spf13/viper"
 )
 
@@ -13,7 +13,7 @@ import (
 * Broad Cast An event message over nats Network.
  */
 func BroadCastMessage(
-	message craneTypes.DriverMessage,
+	message t.DriverMessage,
 ) error {
 	fmt.Println("BroadCasting Message")
 	client := resty.New()
