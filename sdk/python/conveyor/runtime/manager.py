@@ -26,7 +26,7 @@ class DriverManager:
         if not self.driver:
             raise DriverRuntimeException("Invalid driver instance provided.")
 
-        if not self.events or not isinstance(self.events, List):
+        if not self.events:
             raise DriverRuntimeException("Events must be a non-empty list.")
 
         for event in self.events:
@@ -79,8 +79,7 @@ class DriverManager:
 
             if not event:  
                 logging.warning("Message missing event field")
-                await msg.term()
-                raise DriverRuntimeException("Message missing event field for driver %s." % self.driver.name)
+                raise Exception("Message missing event field for driver %s." % self.driver.name)
 
             logging.debug("Received message for event: %s", event)
 
