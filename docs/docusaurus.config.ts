@@ -27,6 +27,52 @@ const config: Config = {
         content: "conveyor.open.ug git https://github.com/open-ug/conveyor",
       },
     },
+    {
+      tagName: "link",
+      attributes: {
+        rel: "icon",
+        type: "image/png",
+        href: "/favicon-96x96.png",
+        sizes: "96x96",
+      },
+    },
+    {
+      tagName: "link",
+      attributes: {
+        rel: "icon",
+        type: "image/svg+xml",
+        href: "/favicon.svg",
+      },
+    },
+    {
+      tagName: "link",
+      attributes: {
+        rel: "shortcut icon",
+        href: "/favicon.ico",
+      },
+    },
+    {
+      tagName: "link",
+      attributes: {
+        rel: "apple-touch-icon",
+        sizes: "180x180",
+        href: "/apple-touch-icon.png",
+      },
+    },
+    {
+      tagName: "meta",
+      attributes: {
+        name: "apple-mobile-web-app-title",
+        content: "Conveyor CI",
+      },
+    },
+    {
+      tagName: "link",
+      attributes: {
+        rel: "manifest",
+        href: "/site.webmanifest",
+      },
+    },
   ],
 
   onBrokenLinks: "throw",
@@ -90,7 +136,7 @@ const config: Config = {
       title: "Conveyor CI",
       logo: {
         alt: "Conveyor CI Logo",
-        src: "img/logo.png",
+        src: "logos/icon.svg",
       },
       items: [
         {
