@@ -18,7 +18,7 @@ func BroadCastMessage(
 	fmt.Println("BroadCasting Message")
 	client := resty.New()
 	client.SetHeader("Content-Type", "application/json")
-	baseURL := "http://" + viper.GetString("api.host") + ":" + viper.GetString("api.port")
+	baseURL := viper.GetString("api.host")
 	jsonMessage, err := json.Marshal(message)
 	if err != nil {
 		fmt.Println("Error: ", err)

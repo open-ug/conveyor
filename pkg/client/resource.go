@@ -18,7 +18,7 @@ It is important to ensure that the Resource object is properly defined according
 func (c *Client) CreateResource(ctx context.Context, app *types.Resource) (*types.APIResponse, error) {
 	client := resty.New()
 	client.SetHeader("Content-Type", "application/json")
-	baseURL := "http://" + c.APIHost + ":" + c.APIPort
+	baseURL := c.GetAPIURL()
 	jsonMessage, err := json.Marshal(app)
 	if err != nil {
 		fmt.Println("Error: ", err)
@@ -50,7 +50,7 @@ It is typically used to define the schema for resources that can be created and 
 func (c *Client) CreateResourceDefinition(ctx context.Context, app *types.ResourceDefinition) (*types.ResourceDefinition, error) {
 	client := resty.New()
 	client.SetHeader("Content-Type", "application/json")
-	baseURL := "http://" + c.APIHost + ":" + c.APIPort
+	baseURL := c.GetAPIURL()
 	jsonMessage, err := json.Marshal(app)
 	if err != nil {
 		fmt.Println("Error: ", err)
@@ -81,7 +81,7 @@ This is useful for managing resource definitions in a declarative manner.
 func (c *Client) CreateOrUpdateResourceDefinition(ctx context.Context, app *types.ResourceDefinition) (*types.ResourceDefinition, error) {
 	client := resty.New()
 	client.SetHeader("Content-Type", "application/json")
-	baseURL := "http://" + c.APIHost + ":" + c.APIPort
+	baseURL := c.GetAPIURL()
 	jsonMessage, err := json.Marshal(app)
 	if err != nil {
 		fmt.Println("Error: ", err)
@@ -112,7 +112,7 @@ It is useful for fetching details of a resource that has been previously created
 func (c *Client) GetResource(ctx context.Context, name string, resouce_definition string) (*types.Resource, error) {
 	client := resty.New()
 	client.SetHeader("Content-Type", "application/json")
-	baseURL := "http://" + c.APIHost + ":" + c.APIPort
+	baseURL := c.GetAPIURL()
 	resp, err := client.R().
 		SetContext(ctx).
 		Get(baseURL + "/resources/" + resouce_definition + "/" + name)
@@ -138,7 +138,7 @@ It is useful for fetching the schema or structure of a resource that has been pr
 func (c *Client) GetResourceDefinition(ctx context.Context, name string) (*types.ResourceDefinition, error) {
 	client := resty.New()
 	client.SetHeader("Content-Type", "application/json")
-	baseURL := "http://" + c.APIHost + ":" + c.APIPort
+	baseURL := c.GetAPIURL()
 	resp, err := client.R().
 		SetContext(ctx).
 		Get(baseURL + "/resource-definitions/" + name)
@@ -163,7 +163,7 @@ It is useful for modifying the properties of a resource that has been previously
 func (c *Client) UpdateResource(ctx context.Context, resource *types.Resource) (*types.Resource, error) {
 	client := resty.New()
 	client.SetHeader("Content-Type", "application/json")
-	baseURL := "http://" + c.APIHost + ":" + c.APIPort
+	baseURL := c.GetAPIURL()
 	jsonMessage, err := json.Marshal(resource)
 	if err != nil {
 		fmt.Println("Error: ", err)
@@ -194,7 +194,7 @@ It is useful for modifying the schema or structure of a resource that has been p
 func (c *Client) UpdateResourceDefinition(ctx context.Context, resourceDefinition *types.ResourceDefinition) (*types.ResourceDefinition, error) {
 	client := resty.New()
 	client.SetHeader("Content-Type", "application/json")
-	baseURL := "http://" + c.APIHost + ":" + c.APIPort
+	baseURL := c.GetAPIURL()
 	jsonMessage, err := json.Marshal(resourceDefinition)
 	if err != nil {
 		fmt.Println("Error: ", err)
@@ -225,7 +225,7 @@ It is useful for removing a resource that is no longer needed or has been replac
 func (c *Client) DeleteResource(ctx context.Context, name string, resource_definition string) (*types.APIResponse, error) {
 	client := resty.New()
 	client.SetHeader("Content-Type", "application/json")
-	baseURL := "http://" + c.APIHost + ":" + c.APIPort
+	baseURL := c.GetAPIURL()
 	resp, err := client.R().
 		SetContext(ctx).
 		Delete(baseURL + "/resources/" + resource_definition + "/" + name)
@@ -250,7 +250,7 @@ It is useful for removing a resource definition that is no longer needed or has 
 func (c *Client) DeleteResourceDefinition(ctx context.Context, name string) (*types.APIResponse, error) {
 	client := resty.New()
 	client.SetHeader("Content-Type", "application/json")
-	baseURL := "http://" + c.APIHost + ":" + c.APIPort
+	baseURL := c.GetAPIURL()
 	resp, err := client.R().
 		SetContext(ctx).
 		Delete(baseURL + "/resource-definitions/" + name)
