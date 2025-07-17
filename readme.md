@@ -1,5 +1,5 @@
 <h1 align="center" style="border-bottom: none; height: 200px;">
-    <a style="height: 200px; max-width: 200px;" href="https://conveyor.open.ug" target="_blank"><img alt="Prometheus" src="https://conveyor.open.ug/logos/logo.svg"
+    <a style="height: 200px; max-width: 200px;" href="https://conveyor.open.ug" target="_blank"><img alt="Conveyor CI Logo" src="https://conveyor.open.ug/logos/logo.svg"
     style="height: 200px; max-width: 200px;"></a>
 </h1>
 

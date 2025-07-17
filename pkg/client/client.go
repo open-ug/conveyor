@@ -7,7 +7,6 @@ import (
 
 type Client struct {
 	APIHost string
-	APIPort string
 }
 
 func NewClient() *Client {
@@ -16,11 +15,10 @@ func NewClient() *Client {
 	// Create a new client instance
 	return &Client{
 		APIHost: viper.GetString("api.host"),
-		APIPort: viper.GetString("api.port"),
 	}
 }
 
 func (c *Client) GetAPIURL() string {
 	// Return the API URL
-	return c.APIHost + ":" + c.APIPort
+	return c.APIHost
 }
