@@ -19,13 +19,11 @@ func InitConfig() {
 	//check for the following environment variables
 
 	viper.BindEnv("api.host", "CONVEYOR_SERVER_HOST")
-	viper.BindEnv("api.port", "CONVEYOR_SERVER_PORT")
 	viper.BindEnv("etcd.host", "ETCD_ENDPOINT")
 	viper.BindEnv("loki.host", "LOKI_ENDPOINT")
 	viper.BindEnv("nats.url", "NATS_URL")
 
-	viper.SetDefault("api.host", "localhost")
-	viper.SetDefault("api.port", "8080")
+	viper.SetDefault("api.host", "http://localhost:8080")
 	viper.SetDefault("etcd.host", "localhost:2379")
 	viper.SetDefault("loki.host", "http://localhost:3100")
 	viper.SetDefault("nats.url", "nats://localhost:4222")
