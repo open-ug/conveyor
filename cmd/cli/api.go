@@ -17,7 +17,7 @@ var APIServerCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		port := cmd.Flag("port").Value.String()
 		if port == "" {
-			port = "3000"
+			port = "8080"
 		}
 		apiServer.StartServer(port)
 	},
