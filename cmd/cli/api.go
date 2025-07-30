@@ -6,7 +6,6 @@ package cli
 import (
 	apiServer "github.com/open-ug/conveyor/cmd/api"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var APIServerCmd = &cobra.Command{
@@ -18,7 +17,7 @@ var APIServerCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		port := cmd.Flag("port").Value.String()
 		if port == "" {
-			port = viper.GetString("api.port")
+			port = "8080"
 		}
 		apiServer.StartServer(port)
 	},
