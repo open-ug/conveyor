@@ -1,70 +1,52 @@
 ---
-sidebar_position: 1
+sidebar_position: 2
 ---
 
 # Resources
 
-:::danger
+Resources in Conveyor CI are objects that store the state of CI/CD processes. They define information that is used by Drivers to know what to do and how to do it.
 
-Documentation still in early stages
+The data stored by resources does not follow any standard format. Its format must be predefined using [Resource Definitions](resource-definitions). These are other internal objects that define the syntax of Resource objects.
 
-:::
+## Parts of a Resource
 
+Resource objects contain specific fields that are required when creating them. These parts include:
 
-A Resource is the core object in a Conveyor CI Platform that defines the pipeline configuration. It tells the CI Driver what to do, when to do it and how to do it. A comparison would be the Workflow file in the GitHub Actions.
+- **Name**: The name field is used to specify the name of the Resource. It is meant to be unique across different Resources. It is an alpha-numerical string field that does not include spaces or any special characters except “-”
+- **Resource**: The resource field is used to specify what Resource Definition schema to use. It corresponds and has to be equal to the name of an existing Resource Definition.
+- **Spec**: The spec field contains the resource data. The data must follow the convection defined in the Resource Definition.
 
-## Resource Definitions
+## Resources workflow
 
-By default, Conveyor CI does not come with any Resource in its API. You have to install them into Conveyor CI. To install a Resource, you must define a Resource Definetion. A Resource defenition is method of defining the Schema of a Resource. It determines how the Resouce will be defined, what properties it will have and also the validation schema for the resource.
+When a Resource is created, Conveyor CI stores it in the data store and then sends an event to the drivers that are associated with that Resource. The Drivers then read the Resource spec and use it to carry out executions depending on the Resource data.
 
-Resource definitions are created by following the [Open API Specification](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md). They can be defined either in Yaml or JSON syntax and saved into the Conveyor CI API. Resource Definitions have only two mandatory requirementsa and these are:
+## Creating a Resource
 
-An example of a Resource definition in yaml.
+To create a Resource you have to follow a few steps:
 
-```yml
-name: workflow
-version: 0.0.1
-schema:
-  pipeline:
-    type: object
-    properties:
-      name:
-        type: string
-      stages:
-        type: array
-        items:
-          type: string
-      distributed:
-        type: boolean
-      runners:
-        type: array
-        items:
-          type: string
-    required:
-      - name
-      - stages
-      - distributed
-      - runners
+- First you should create and register a Resource Definition for your resource or ensure one already exists.
+- Then write the schema of your resource and send it to the API Server via a POST request to the `/resources/` route.
+- This will validate the resource and save it to the data store.
+
+An example of a resource is here
+
+```json
+{
+  "name": "example-resource",
+  "resource": "workflow",
+  "spec": {
+    "pipeline": {
+      "name": "build-and-deploy",
+      "stages": [
+        "test",
+        "build",
+        "deploy"
+      ],
+      "distributed": true,
+      "runners": [
+        "cloud-native"
+      ]
+    }
+  }
+}
 ```
-
-This above Resouce Definition defines a Resource named `application` and it can be used like this below.
-
-```yml
-name: example-resource
-resource: workflow
-pipeline:
-  name: build-and-deploy
-  stages:
-    - test
-    - build
-    - deploy
-  distributed: true
-  runners:
-    - cloud-native
-```
-
-A Resouce Definition have three mandatory fields.
-
-- `name`: This defines the name of the Resource.
-- `version`: This defines the version of the Resouce Definition
-- `schema`: This contains the Open API Schema used to validate the resource
