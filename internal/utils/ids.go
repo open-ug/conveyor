@@ -14,11 +14,3 @@ func GenerateRandomID() (string, error) {
 	}
 	return hex.EncodeToString(bytes), nil
 }
-
-func GenerateRandomShortStr() (string, error) {
-	bytes := make([]byte, 2) // 12 bytes = 24 hex characters
-	if _, err := rand.Read(bytes); err != nil {
-		return "", fmt.Errorf("failed to generate random ID: %v", err)
-	}
-	return hex.EncodeToString(bytes), nil
-}
