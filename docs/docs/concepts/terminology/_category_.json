@@ -1,8 +1,0 @@
-{
-  "label": "Terminology",
-  "position": 2,
-  "link": {
-    "type": "generated-index",
-    "description": "A collection of concepts to help you understand the library."
-  }
-}
