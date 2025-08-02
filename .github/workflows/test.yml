@@ -9,6 +9,46 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      etcd:
+        image: bitnami/etcd:latest
+        ports:
+          - 2379:2379
+          - 2380:2380
+        env:
+          ALLOW_NONE_AUTHENTICATION: yes
+          ETCD_ADVERTISE_CLIENT_URLS: http://etcd:2379
+        options: >-
+          --health-cmd "etcdctl endpoint health --endpoints=http://127.0.0.1:2379 || exit 1"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      loki:
+        image: grafana/loki:latest
+        ports:
+          - 3100:3100
+        options: >-
+          --health-cmd "wget --quiet --tries=1 --spider http://127.0.0.1:3100/ready || exit 1"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+        # Mounting a config file isn't trivial in GitHub Actions, so use default config
+        # If your tests require a custom config, bake it into a custom image
+
+      nats:
+        image: nats:latest
+        ports:
+          - 4222:4222
+        options: >-
+          --health-cmd "wget --quiet --tries=1 --spider http://127.0.0.1:8222 || exit 1"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+          --entrypoint "nats-server -js --store_dir /data/js"
+        volumes:
+          - /tmp/nats-jsdata:/data/js
+
     steps:
       # 1. Checkout the PR code
       - name: Checkout code
