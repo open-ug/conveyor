@@ -2,11 +2,11 @@ jim-junior:
   name: Beingana Jim Junior
   title: Software Engineer
   url: https://jim-junior.github.io
-  image_url: https://jim-junior.github.io/assets/passport_photo-DarRP5LM.jpg
+  image_url: https://raw.githubusercontent.com/jim-junior/jim-junior.github.io/refs/heads/main/assets/passport_photo.jpg
   page:
-    # customize the url of the author page at /blog/authors/<permalink>
     permalink: '/all-jim-junior-articles'
   socials:
     x: jimjuniorb
     linkedin: jim-junior-beingana
     github: jim-junior
+    newsletter: https://jim-junior.github.io
