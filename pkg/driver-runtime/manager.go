@@ -12,7 +12,6 @@ import (
 	"github.com/nats-io/nats.go/jetstream"
 	config "github.com/open-ug/conveyor/internal/config"
 	internals "github.com/open-ug/conveyor/internal/shared"
-	utils "github.com/open-ug/conveyor/internal/utils"
 	"github.com/open-ug/conveyor/pkg/driver-runtime/log"
 	types "github.com/open-ug/conveyor/pkg/types"
 )
@@ -55,16 +54,6 @@ func NewDriverManager(
 
 func (d *DriverManager) Run() error {
 
-	// The driver manager will run the driver's reconcile function
-	// in a loop
-
-	// Get the resource from the message queue
-	randomStr, serr := utils.GenerateRandomShortStr()
-	if serr != nil {
-		color.Red("Error Occured while generating random string: %v", serr)
-	}
-	fmt.Println(randomStr)
-
 	// Resources
 	var filterSubjects []string
 	for _, resource := range d.Driver.Resources {
@@ -80,10 +69,11 @@ func (d *DriverManager) Run() error {
 
 	if err != nil {
 		color.Red("Error Occured while subscribing to NATS channel: %v", err)
+		return err
 	}
 
 	// CONSUMER
-	consumer.Consume(func(msg jetstream.Msg) {
+	_, err = consumer.Consume(func(msg jetstream.Msg) {
 		fmt.Printf("Received message on subject: %s\n", msg.Subject())
 		msg.Ack()
 		data := msg.Data()
@@ -121,6 +111,11 @@ func (d *DriverManager) Run() error {
 			}
 		}
 	})
+
+	if err != nil {
+		color.Red("Error Occured while consuming messages: %v", err)
+		return err
+	}
 
 	fmt.Println("Driver Manager is running for driver: ", d.Driver.Name)
 
