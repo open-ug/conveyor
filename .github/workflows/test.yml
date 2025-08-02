@@ -43,7 +43,7 @@ jobs:
 
         volumes:
           - /tmp/nats-jsdata:/data/js
-          - ./config/nats-server.conf:/etc/nats/nats-server.conf
+          - ./config/nats-server.conf:/etc/nats/nats-server.conf:ro
 
     steps:
       # 1. Checkout the PR code
