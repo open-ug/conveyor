@@ -36,20 +36,6 @@ jobs:
         # Mounting a config file isn't trivial in GitHub Actions, so use default config
         # If your tests require a custom config, bake it into a custom image
 
-      nats:
-        image: nats:latest
-        ports:
-          - 4222:4222
-        options: >-
-          -js --store_dir /data/js
-          --health-cmd "wget --quiet --tries=1 --spider http://127.0.0.1:8222 || exit 1"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-
-        volumes:
-          - /tmp/nats-jsdata:/data/js
-
     steps:
       # 1. Checkout the PR code
       - name: Checkout code
@@ -60,6 +46,18 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.23.5"
+
+      - name: Start NATS service
+        run: |
+          docker run -d \
+            --name nats-js \
+            -p 4222:4222 \
+            -v "/tmp/nats-jsdata":"/data/js" \
+            --health-cmd "wget --quiet --tries=1 --spider http://127.0.0.1:8222 || exit 1" \
+            --health-interval 5s \
+            --health-timeout 5s \
+            --health-retries 20 \
+            nats:latest -js --store_dir /data/js
 
       - name: Download Go modules
         run: go mod tidy
