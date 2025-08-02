@@ -41,11 +41,12 @@ jobs:
         ports:
           - 4222:4222
         options: >-
+          -js --store_dir /data/js
           --health-cmd "wget --quiet --tries=1 --spider http://127.0.0.1:8222 || exit 1"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
-          --entrypoint "nats-server -js --store_dir /data/js"
+
         volumes:
           - /tmp/nats-jsdata:/data/js
 
