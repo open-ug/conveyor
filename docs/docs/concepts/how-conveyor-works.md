@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 1
 ---
 
-# How Conveyor Works
+# How Conveyor CI Works
