@@ -2,7 +2,6 @@ package shared_test
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
@@ -15,10 +14,6 @@ import (
 func TestNatsContext_Integration(t *testing.T) {
 	// Ensure NATS URL is set (assume container is on localhost)
 	viper.Set("nats.url", "nats://localhost:4222")
-	if os.Getenv("CI") != "" {
-		// If running in GitHub Actions, ensure service name works
-		viper.Set("nats.url", "nats://nats:4222")
-	}
 
 	// 1. Connect to NATS
 	nc := shared.NewNatsConn()
