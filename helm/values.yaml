@@ -1,2 +1,24 @@
 
-namespace: "conveyor"
+# Default values for Conveyor Helm Chart
+namespace: ""
+
+# etcd configuration
+storageClass: "standard"
+
+# Ingress configuration
+ingress:
+  enabled: false
+
+  conveyor:
+    host: # conveyor.example.com
+  
+  loki:
+    host: # loki.example.com
+
+  nats:
+    host: # nats.example.com
+
+api:
+
+  service:
+    servicePort: 8080
