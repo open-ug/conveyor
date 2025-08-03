@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: etcd
+  namespace: {{ include "conveyor.namespace" . }}
+  labels:
+    app.kubernetes.io/name: conveyor-ci
+    app.kubernetes.io/component: datastore
+    app.kubernetes.io/part-of: ci-platform
+spec:
+  serviceName: etcd
+  replicas: 1
+  selector:
+    matchLabels:
+      app: etcd
+  template:
+    metadata:
+      labels:
+        app: etcd
+    spec:
+      containers:
+        - name: etcd
+          image: bitnami/etcd:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 2379
+            - containerPort: 2380
+          env:
+            - name: ALLOW_NONE_AUTHENTICATION
+              value: "yes"
+            - name: ETCD_ADVERTISE_CLIENT_URLS
+              value: "http://etcd:2379"
+          volumes:
+            - name: etcd-data
+              mountPath: /bitnami/etcd
+      volumeClaimTemplates:
+        - metadata:
+            name: etcd-data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 1Gi
+            storageClassName: {{ .Values.storageClass | default "standard" }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: etcd
+  namespace: {{ include "conveyor.namespace" . }}
+  labels:
+    app.kubernetes.io/name: conveyor-ci
+    app.kubernetes.io/component: datastore
+    app.kubernetes.io/part-of: ci-platform
+spec:
+  ports:
+    - port: 2379
+      targetPort: 2379
+      protocol: TCP
+      name: client
+    - port: 2380
+      targetPort: 2380
+      protocol: TCP
+      name: peer
+  selector:
+    app: etcd
+  type: ClusterIP
