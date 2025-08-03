@@ -1,9 +1,13 @@
-# Loki
+# Loki Helm Chart Template
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: loki-data
-  namespace: conveyor
+  namespace: {{ include "conveyor.namespace" . }}
+  labels:
+    app.kubernetes.io/name: conveyor-ci
+    app.kubernetes.io/component: logging
+    app.kubernetes.io/part-of: ci-platform
 spec:
   accessModes:
     - ReadWriteOnce
@@ -17,7 +21,10 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: loki-config
-  namespace: conveyor
+  namespace: {{ include "conveyor.namespace" . }}
+  labels:
+    app.kubernetes.io/component: logging
+    app.kubernetes.io/part-of: ci-platform
 data:
   loki.yml: |
     auth_enabled: false
@@ -62,13 +69,16 @@ data:
       metric_aggregation:
         loki_address: localhost:3100
 
-
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: loki
-  namespace: conveyor
+  namespace: {{ include "conveyor.namespace" . }}
+  labels:
+    app.kubernetes.io/name: conveyor-ci
+    app.kubernetes.io/component: logging
+    app.kubernetes.io/part-of: ci-platform
 spec:
   replicas: 1
   selector:
@@ -105,7 +115,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: loki
-  namespace: conveyor
+  namespace: {{ include "conveyor.namespace" . }}
 spec:
   selector:
     app: loki
