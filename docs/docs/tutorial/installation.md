@@ -4,63 +4,30 @@ sidebar_position: 1
 
 # Installation & Setup
 
-:::danger
+The Conveyor CI engine is composed of a set of software components. This is because of its highly modular design. This can sometimes mean that installing can get tedious since each system requires its own specific configuration. However, the official team provides a simplified set of installation options each configured to run in a specific environment. These are the available options.
 
-Documentation still in early stages
+## Install using Docker Compose
 
-:::
+Ensure you have Docker installed on your environment.
 
+First you will have to download the configuration files. These include a compose file and the default Loki configuration. Head to the [Releases page](https://github.com/open-ug/conveyor/releases) and download the `compose.yml` and `loki.yml` file in the release assets. You can also run this command on a UNIX system to download the latest release files.
 
-Conveyor CI is designed to be installed easily. It involved a set of programs and software libraries. In this tutorial we shall take you through a guide to setup Conveyor CI for your development Environment.
-
-## Prerequisites
-
-Conveyor CI requires a few prerequisites and dependecies to be able to run smoothly on your local development environment.
-
-- [Docker](https://docs.docker.com/engine/install/). you can install it on the official website.
-- The [Go](https://go.dev/doc/install) language Compiler.
-
-Once you have these installed you can run `go version` and `docker version` to verify their installation.
-
-## Downloading Conveyor Tools
-
-Next we shall install the conveyor dependency tools.
-
-We shall begin by downloading the docker compose files and config files for dependecy containers. In a new directory run the following commands to do this.
-
-```sh
+```bash
 curl -s https://api.github.com/repos/open-ug/conveyor/releases/latest | grep browser_download_url | grep compose.yml | cut -d '"' -f 4 | xargs curl -L -o compose.yml
 
 curl -s https://api.github.com/repos/open-ug/conveyor/releases/latest | grep browser_download_url | grep loki.yml | cut -d '"' -f 4 | xargs curl -L -o loki.yml
 ```
 
-Next start the containers using docker compose.
+Once you have all the files, you can then start they system using Docker Compose
 
 ```sh
-docker compose up
-
-# OR
-
 docker compose up -d
 ```
 
-This will start containers that for the Conveyor CI API Server, ETCD Data Store, NATS and Grafana Loki.
+And *Viola!!*, Conveyor  is up and running
 
-## Setting up Devlopment Project
+:::info
 
-Next we shall setup the development projects by downloading the software libraries. In this tutorial we shall use a Go project and use the Golang SDKs. Within a new directory, create your Go Project.
+The Official team is working on Helm Charts to enable installation on Kubernetes and also a bare metal installation workflow.
 
-```bash
-go mod init example-project
-```
-
-Then install the Go SDKs
-
-```bash
-go get conveyor.open.ug
-
-# OR
-go get github.com/open-ug/conveyor
-```
-
-Congratulations, you now have Conveyor CI installed on your platform.
+:::
