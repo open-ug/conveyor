@@ -35,16 +35,6 @@ const CallToActionSection = () => {
       buttonAction: "https://github.com/open-ug/conveyor",
       primary: false,
     },
-    {
-      id: "community",
-      title: "Join Community",
-      description: "Connect with other developers using Conveyor CI",
-      icon: <FaSlack />,
-      buttonText: "Join Slack",
-      buttonAction:
-        "https://open-ug.slack.com/join/shared_invite/zt-382rwaqzr-aeB5ES_S94fYVPKCGHW~Qg",
-      primary: false,
-    },
   ];
 
   return (
