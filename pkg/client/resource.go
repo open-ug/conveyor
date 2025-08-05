@@ -6,16 +6,10 @@ import (
 	"fmt"
 	"net/http"
 
-	types "github.com/open-ug/conveyor/pkg/types"
+	"github.com/open-ug/conveyor/pkg/types"
 )
 
-/*
-Creates a new resource in the Conveyor API.
-This function is used to create a new resource, which can be any type of resource defined in the Conveyor API.
-It takes a context and a Resource object as input, and returns an APIResponse object or an error.
-It is important to ensure that the Resource object is properly defined according to the API specifications.
-*/
-
+// doRequest is a helper function to make HTTP requests to the Conveyor API.
 func (c *Client) doRequest(ctx context.Context, method, path string, body, dest any) error {
 	if (method == http.MethodPost || method == http.MethodPut) && body == nil {
 		return fmt.Errorf("body cannot be nil for POST/PUT requests")
@@ -46,6 +40,12 @@ func (c *Client) doRequest(ctx context.Context, method, path string, body, dest 
 	return nil
 }
 
+/*
+Creates a new resource in the Conveyor API.
+This function is used to create a new resource, which can be any type of resource defined in the Conveyor API.
+It takes a context and a Resource object as input, and returns an APIResponse object or an error.
+It is important to ensure that the Resource object is properly defined according to the API specifications.
+*/
 func (c *Client) CreateResource(ctx context.Context, resource *types.Resource) (*types.APIResponse, error) {
 	var resp types.APIResponse
 	if err := c.doRequest(ctx, http.MethodPost, "/resources/", resource, &resp); err != nil {
