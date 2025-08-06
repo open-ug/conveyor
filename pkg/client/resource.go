@@ -33,6 +33,10 @@ func (c *Client) doRequest(ctx context.Context, method, path string, body, dest 
 		return fmt.Errorf("doRequest: failed to execute %s request: %w", method, err)
 	}
 
+	if resp.IsError() {
+		return fmt.Errorf("doRequest: server returned %d: %s", resp.StatusCode(), string(resp.Body()))
+	}
+
 	if err := json.Unmarshal(resp.Body(), dest); err != nil {
 		return fmt.Errorf("doRequest: failed to unmarshal response body: %w", err)
 	}
