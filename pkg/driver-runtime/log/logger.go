@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/nats-io/nats.go"
-	lokiLog "github.com/open-ug/conveyor/internal/logging"
+	utils "github.com/open-ug/conveyor/internal/utils"
 	"github.com/spf13/viper"
 )
 
@@ -14,7 +14,7 @@ type DriverLogger struct {
 	// The driver logger is responsible for logging the driver
 	// and the driver lifecycle.
 	// Logger is the logger for the driver manager
-	Logger *lokiLog.LokiClient
+	Logger *utils.LokiClient
 
 	// The driver name
 	DriverName string
@@ -28,7 +28,7 @@ type DriverLogger struct {
 
 func NewDriverLogger(driverName string, labels map[string]string, natsCon *nats.Conn) *DriverLogger {
 	// Load the configuration
-	lokiClient := lokiLog.New(
+	lokiClient := utils.NewLokiClient(
 		viper.GetString("loki.host"),
 	)
 
