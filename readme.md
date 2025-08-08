@@ -15,7 +15,7 @@
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fopen-ug%2Fconveyor.svg?type=shield&issueType=security)](https://app.fossa.com/projects/git%2Bgithub.com%2Fopen-ug%2Fconveyor?ref=badge_shield&issueType=security)
 [![Maintainability](https://qlty.sh/badges/229750f3-9423-4ea6-8528-8e0f8cf854b5/maintainability.svg)](https://qlty.sh/gh/open-ug/projects/conveyor)
 [![Code Coverage](https://qlty.sh/badges/229750f3-9423-4ea6-8528-8e0f8cf854b5/test_coverage.svg)](https://qlty.sh/gh/open-ug/projects/conveyor)
-
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10999/badge)](https://www.bestpractices.dev/projects/10999)
 
 </div>
 
