@@ -1,11 +1,11 @@
-package log_test
+package utils_test
 
 import (
 	"fmt"
 	"testing"
 	"time"
 
-	log "github.com/open-ug/conveyor/internal/logging"
+	utils "github.com/open-ug/conveyor/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,7 +16,7 @@ func TestLokiClient_PushAndQuery(t *testing.T) {
 		t.Skip("Skipping Loki integration test in short mode.")
 	}
 
-	client := log.New(lokiURL)
+	client := utils.NewLokiClient(lokiURL)
 	assert.NotNil(t, client)
 
 	// Unique label to identify our test log
