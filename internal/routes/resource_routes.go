@@ -6,11 +6,11 @@ package routes
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/open-ug/conveyor/internal/handlers"
-	internals "github.com/open-ug/conveyor/internal/shared"
+	utils "github.com/open-ug/conveyor/internal/utils"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-func ResourceRoutes(app *fiber.App, db *clientv3.Client, natsContext *internals.NatsContext) {
+func ResourceRoutes(app *fiber.App, db *clientv3.Client, natsContext *utils.NatsContext) {
 
 	// Initialize resource and resource definition handlers
 	resourcePrefix := app.Group("/resources")

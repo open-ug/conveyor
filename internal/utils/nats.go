@@ -1,7 +1,4 @@
-/*
-Copyright © 2024 Beingana Jim Junior and Contributors
-*/
-package shared
+package utils
 
 import (
 	"context"

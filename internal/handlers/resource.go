@@ -6,9 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/open-ug/conveyor/internal/helpers"
 	models "github.com/open-ug/conveyor/internal/models"
-	internals "github.com/open-ug/conveyor/internal/shared"
 	utils "github.com/open-ug/conveyor/internal/utils"
 	"github.com/open-ug/conveyor/pkg/types"
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -17,10 +15,10 @@ import (
 type ResourceHandler struct {
 	ResourceModel           *models.ResourceModel
 	ResourceDefinitionModel *models.ResourceDefinitionModel
-	NatsContext             *internals.NatsContext
+	NatsContext             *utils.NatsContext
 }
 
-func NewResourceHandler(db *clientv3.Client, natsContext *internals.NatsContext) *ResourceHandler {
+func NewResourceHandler(db *clientv3.Client, natsContext *utils.NatsContext) *ResourceHandler {
 	return &ResourceHandler{
 		NatsContext: natsContext,
 		ResourceModel: &models.ResourceModel{
@@ -75,7 +73,7 @@ func (h *ResourceHandler) CreateResource(c *fiber.Ctx) error {
 	}
 
 	// Validate the resource against the schema
-	isValid, err := helpers.ValidateResource(resource, resourceDef)
+	isValid, err := utils.ValidateResource(resource, resourceDef)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": fmt.Sprintf("Resource validation failed: %v", err),
@@ -254,7 +252,7 @@ func (h *ResourceHandler) UpdateResource(c *fiber.Ctx) error {
 	}
 
 	// Validate the resource against the schema
-	isValid, err := helpers.ValidateResource(resource, resourceDef)
+	isValid, err := utils.ValidateResource(resource, resourceDef)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": fmt.Sprintf("Resource validation failed: %v", err),

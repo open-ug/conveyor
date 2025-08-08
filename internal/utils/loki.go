@@ -1,4 +1,4 @@
-package log
+package utils
 
 import (
 	"bytes"
@@ -23,7 +23,7 @@ type LokiPayload struct {
 }
 
 // New creates a new LokiClient.
-func New(url string) *LokiClient {
+func NewLokiClient(url string) *LokiClient {
 	return &LokiClient{
 		URL:    url,
 		Client: &http.Client{Timeout: 5 * time.Second},
