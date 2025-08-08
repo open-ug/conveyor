@@ -13,7 +13,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	metrics "github.com/open-ug/conveyor/internal/metrics"
 	routes "github.com/open-ug/conveyor/internal/routes"
-	internals "github.com/open-ug/conveyor/internal/shared"
 	utils "github.com/open-ug/conveyor/internal/utils"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/viper"
@@ -53,7 +52,7 @@ func StartServer(port string) {
 	// Metrics endpoint
 	app.Get("/metrics", adaptor.HTTPHandler(promhttp.Handler()))
 
-	natsContext := internals.NewNatsConn()
+	natsContext := utils.NewNatsConn()
 	natsContext.InitiateStreams()
 
 	etcd, err := utils.NewEtcdClient(

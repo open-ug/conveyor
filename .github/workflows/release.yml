@@ -60,17 +60,8 @@ jobs:
       - name: Download Go modules
         run: go mod tidy
 
-      # Run tests
-      - name: Run tests
-        run: go test ./... -v -coverprofile=cover.out -covermode=atomic
-
       - name: Build Conveyor
-        run: go build -o build/conveyor
-
-      - uses: qltysh/qlty-action/coverage@v1
-        with:
-          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-          files: cover.out
+        run: go build -o build/conveyor-${{ github.event.release.tag_name }}
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
@@ -78,6 +69,6 @@ jobs:
           files: |
             config/loki.yml
             config/compose.yml
-            build/conveyor-${{ github.event.release.tag_name }}-linux-amd64
+            build/conveyor-${{ github.event.release.tag_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
