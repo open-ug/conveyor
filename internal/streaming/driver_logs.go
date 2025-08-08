@@ -7,17 +7,17 @@ import (
 
 	"github.com/gofiber/websocket/v2"
 	"github.com/nats-io/nats.go"
-	logging "github.com/open-ug/conveyor/internal/logging"
+	utils "github.com/open-ug/conveyor/internal/utils"
 	"github.com/spf13/viper"
 )
 
 type DriverLogsStreamer struct {
 	NatsCon *nats.Conn
-	Logger  *logging.LokiClient
+	Logger  *utils.LokiClient
 }
 
 func NewDriverLogsStreamer(NatsCon *nats.Conn) *DriverLogsStreamer {
-	lokiClient := logging.New(
+	lokiClient := utils.NewLokiClient(
 		viper.GetString("loki.host"),
 	)
 	return &DriverLogsStreamer{

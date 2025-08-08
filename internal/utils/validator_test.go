@@ -1,9 +1,9 @@
-package helpers_test
+package utils_test
 
 import (
 	"testing"
 
-	"github.com/open-ug/conveyor/internal/helpers"
+	"github.com/open-ug/conveyor/internal/utils"
 	"github.com/open-ug/conveyor/pkg/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -31,7 +31,7 @@ func TestValidateResource_ValidInput(t *testing.T) {
 		},
 	}
 
-	valid, err := helpers.ValidateResource(resource, definition)
+	valid, err := utils.ValidateResource(resource, definition)
 	assert.True(t, valid)
 	assert.NoError(t, err)
 }
@@ -59,7 +59,7 @@ func TestValidateResource_InvalidInput(t *testing.T) {
 		},
 	}
 
-	valid, err := helpers.ValidateResource(resource, definition)
+	valid, err := utils.ValidateResource(resource, definition)
 	assert.False(t, valid)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "validation failed")
