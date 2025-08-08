@@ -1,0 +1,52 @@
+name: Publish Conveyor Python Client Package to PyPI
+
+
+on:
+  push:
+    tags:
+      - 'python-v*'
+
+
+jobs:
+  build-and-publish:
+    name: Build and Publish Conveyor Python Client SDK
+    runs-on: ubuntu-latest
+
+
+    defaults:
+      run:
+        working-directory: sdk/python
+
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+
+      - name: Upgrade pip and install tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+
+      - name: Build the package
+        run: python -m build
+
+
+      - name: Twine Dry Run 
+        run: twine check dist/*
+
+
+      - name: Publish to PyPI
+        if: startsWith(github.ref, 'refs/tags/python-v') 
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*
+

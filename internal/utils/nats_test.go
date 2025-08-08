@@ -1,4 +1,4 @@
-package shared_test
+package utils_test
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/nats-io/nats.go/jetstream"
-	"github.com/open-ug/conveyor/internal/shared"
+	"github.com/open-ug/conveyor/internal/utils"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,7 +16,7 @@ func TestNatsContext_Integration(t *testing.T) {
 	viper.Set("nats.url", "nats://localhost:4222")
 
 	// 1. Connect to NATS
-	nc := shared.NewNatsConn()
+	nc := utils.NewNatsConn()
 	assert.NotNil(t, nc.NatsCon)
 	assert.NotNil(t, nc.JetStream)
 

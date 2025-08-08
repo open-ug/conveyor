@@ -11,7 +11,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/nats-io/nats.go/jetstream"
 	config "github.com/open-ug/conveyor/internal/config"
-	internals "github.com/open-ug/conveyor/internal/shared"
+	utils "github.com/open-ug/conveyor/internal/utils"
 	"github.com/open-ug/conveyor/pkg/driver-runtime/log"
 	types "github.com/open-ug/conveyor/pkg/types"
 )
@@ -20,7 +20,7 @@ type DriverManager struct {
 	// The driver manager is responsible for managing the drivers
 	// and the driver lifecycle.
 
-	NatsContext *internals.NatsContext
+	NatsContext *utils.NatsContext
 
 	Driver *Driver
 
@@ -43,7 +43,7 @@ func NewDriverManager(
 		return nil, err
 	}
 
-	natsCon := internals.NewNatsConn()
+	natsCon := utils.NewNatsConn()
 
 	return &DriverManager{
 		NatsContext: natsCon,

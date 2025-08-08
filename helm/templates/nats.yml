@@ -1,10 +1,9 @@
-
 # NATS
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: nats-jsdata
-  namespace: conveyor
+  namespace: {{ include "conveyor.namespace" . }}
 spec:
   accessModes:
     - ReadWriteOnce
@@ -17,7 +16,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nats
-  namespace: conveyor
+  namespace: {{ include "conveyor.namespace" . }}
+  labels:
+    app.kubernetes.io/name: conveyor-ci
+    app.kubernetes.io/component: broker
+    app.kubernetes.io/part-of: ci-platform
 spec:
   replicas: 1
   selector:
@@ -48,11 +51,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nats
-  namespace: conveyor
+  namespace: {{ include "conveyor.namespace" . }}
 spec:
   selector:
     app: nats
   ports:
     - port: 4222
       targetPort: 4222
-

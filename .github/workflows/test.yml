@@ -64,4 +64,13 @@ jobs:
 
       # Run tests
       - name: Run tests
-        run: go test ./... -v
+        run: go test ./... -v -coverprofile=cover.out -covermode=atomic
+
+      # Stop NATS service
+      - name: Stop NATS service
+        run: docker stop nats-js
+
+      - uses: qltysh/qlty-action/coverage@v1
+        with:
+          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+          files: cover.out
