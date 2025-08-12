@@ -1,0 +1,464 @@
+basePath: /
+definitions:
+  types.DriverMessage:
+    properties:
+      event:
+        description: Event Name rg. `docker-build-complete`
+        type: string
+      id:
+        type: string
+      payload:
+        description: JSON Payload
+        type: string
+      run_id:
+        type: string
+    type: object
+  types.Resource:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      resource:
+        type: string
+      spec: {}
+    type: object
+  types.ResourceDefinition:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      schema: {}
+      version:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@conveyor.open.ug
+    name: Conveyor Support
+    url: https://conveyor.open.ug/support
+  description: Conveyor is a platform for managing and orchestrating resources, drivers,
+    and workflows.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: https://conveyor.open.ug/terms
+  title: Conveyor API
+  version: "1.0"
+paths:
+  /drivers/broadcast-message:
+    post:
+      consumes:
+      - application/json
+      description: Create a new message and broadcast it to drivers via NATS
+      parameters:
+      - description: Driver message object
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/types.DriverMessage'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Message published successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request - Invalid payload
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Publish a message
+      tags:
+      - drivers
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Get the health status of the API server
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Health status
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Health check
+      tags:
+      - health
+  /ping:
+    get:
+      consumes:
+      - application/json
+      description: Simple ping endpoint to check if the server is running
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: pong
+          schema:
+            type: string
+      summary: Ping the server
+      tags:
+      - health
+  /resource-definitions:
+    post:
+      consumes:
+      - application/json
+      description: Create a new resource definition with the specified configuration
+      parameters:
+      - description: Resource definition object
+        in: body
+        name: resourceDefinition
+        required: true
+        schema:
+          $ref: '#/definitions/types.ResourceDefinition'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Resource definition created successfully
+          schema:
+            $ref: '#/definitions/types.ResourceDefinition'
+        "400":
+          description: Bad request - Invalid payload
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a resource definition
+      tags:
+      - resource-definitions
+  /resource-definitions/{name}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a specific resource definition by its name
+      parameters:
+      - description: Resource definition name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Resource definition deleted successfully
+          schema:
+            type: string
+        "400":
+          description: Bad request - Missing parameters
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a resource definition
+      tags:
+      - resource-definitions
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific resource definition by its name
+      parameters:
+      - description: Resource definition name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resource definition object
+          schema:
+            $ref: '#/definitions/types.ResourceDefinition'
+        "400":
+          description: Bad request - Missing parameters
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a resource definition
+      tags:
+      - resource-definitions
+    put:
+      consumes:
+      - application/json
+      description: Update a specific resource definition by its name
+      parameters:
+      - description: Resource definition name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Resource definition object
+        in: body
+        name: resourceDefinition
+        required: true
+        schema:
+          $ref: '#/definitions/types.ResourceDefinition'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resource definition updated successfully
+          schema:
+            $ref: '#/definitions/types.ResourceDefinition'
+        "400":
+          description: Bad request - Invalid payload or missing parameters
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update a resource definition
+      tags:
+      - resource-definitions
+  /resource-definitions/apply:
+    post:
+      consumes:
+      - application/json
+      description: Create a new resource definition or update existing one by name
+      parameters:
+      - description: Resource definition object
+        in: body
+        name: resourceDefinition
+        required: true
+        schema:
+          $ref: '#/definitions/types.ResourceDefinition'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Resource definition created or updated successfully
+          schema:
+            $ref: '#/definitions/types.ResourceDefinition'
+        "400":
+          description: Bad request - Invalid payload or missing name
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create or update a resource definition
+      tags:
+      - resource-definitions
+  /resources:
+    post:
+      consumes:
+      - application/json
+      description: Create a new resource with the specified type and configuration
+      parameters:
+      - description: Resource object
+        in: body
+        name: resource
+        required: true
+        schema:
+          $ref: '#/definitions/types.Resource'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Resource created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request - Invalid payload or validation failed
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Resource definition not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new resource
+      tags:
+      - resources
+  /resources/{type}:
+    get:
+      consumes:
+      - application/json
+      description: List all resources of a specific type
+      parameters:
+      - description: Resource type
+        in: path
+        name: type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of resources
+          schema:
+            items:
+              $ref: '#/definitions/types.Resource'
+            type: array
+        "400":
+          description: Bad request - Missing parameters
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List resources
+      tags:
+      - resources
+  /resources/{type}/{name}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a specific resource by its name and type
+      parameters:
+      - description: Resource type
+        in: path
+        name: type
+        required: true
+        type: string
+      - description: Resource name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Resource deleted successfully
+          schema:
+            type: string
+        "400":
+          description: Bad request - Missing parameters
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a resource
+      tags:
+      - resources
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific resource by its name and type
+      parameters:
+      - description: Resource type
+        in: path
+        name: type
+        required: true
+        type: string
+      - description: Resource name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resource object
+          schema:
+            $ref: '#/definitions/types.Resource'
+        "400":
+          description: Bad request - Missing parameters
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a resource
+      tags:
+      - resources
+    put:
+      consumes:
+      - application/json
+      description: Update a specific resource by its name and type
+      parameters:
+      - description: Resource type
+        in: path
+        name: type
+        required: true
+        type: string
+      - description: Resource name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Resource object
+        in: body
+        name: resource
+        required: true
+        schema:
+          $ref: '#/definitions/types.Resource'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resource updated successfully
+          schema:
+            $ref: '#/definitions/types.Resource'
+        "400":
+          description: Bad request - Invalid payload or missing parameters
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update a resource
+      tags:
+      - resources
+schemes:
+- http
+- https
+swagger: "2.0"

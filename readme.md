@@ -60,6 +60,28 @@ docker compose up -d
 
 The Conveyor API Server will be reachable on [http://localhost:8080](http://localhost:8080)
 
+## API Documentation
+
+Conveyor CI provides comprehensive API documentation using Swagger/OpenAPI. The interactive API documentation is automatically generated from code comments and is available when the server is running.
+
+### Accessing Swagger UI
+
+Once the Conveyor API Server is running, you can access the interactive API documentation at:
+
+**Swagger UI**: [http://localhost:8080/swagger/](http://localhost:8080/swagger/)
+
+### Swagger Development Setup
+
+For local development and API documentation generation:
+
+```bash
+# Install swag CLI tool
+make install-swag
+
+# Generate Swagger documentation
+make swagger-init
+```
+
 ## More information
 
 Visit the [official documentation](https://conveyor.open.ug). for architecture, SDK usage, and driver development.
