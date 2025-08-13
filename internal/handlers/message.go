@@ -31,7 +31,17 @@ func NewMessageHandler(db *clientv3.Client, natsCon *nats.Conn) *MessageHandler 
 	}
 }
 
-// PublishMessage creates a new message
+// PublishMessage creates a new message and broadcasts it to drivers
+// @Summary Publish a message
+// @Description Create a new message and broadcast it to drivers via NATS
+// @Tags drivers
+// @Accept json
+// @Produce json
+// @Param message body craneTypes.DriverMessage true "Driver message object"
+// @Success 200 {object} map[string]interface{} "Message published successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request - Invalid payload"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /drivers/broadcast-message [post]
 func (h *MessageHandler) PublishMessage(c *fiber.Ctx) error {
 	var message craneTypes.DriverMessage
 	if err := c.BodyParser(&message); err != nil {

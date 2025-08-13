@@ -30,6 +30,18 @@ func NewResourceHandler(db *clientv3.Client, natsContext *utils.NatsContext) *Re
 	}
 }
 
+// CreateResource creates a new resource
+// @Summary Create a new resource
+// @Description Create a new resource with the specified type and configuration
+// @Tags resources
+// @Accept json
+// @Produce json
+// @Param resource body types.Resource true "Resource object"
+// @Success 201 {object} map[string]interface{} "Resource created successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request - Invalid payload or validation failed"
+// @Failure 404 {object} map[string]interface{} "Resource definition not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /resources [post]
 func (h *ResourceHandler) CreateResource(c *fiber.Ctx) error {
 	var resource types.Resource
 	if err := c.BodyParser(&resource); err != nil {
@@ -138,6 +150,18 @@ func (h *ResourceHandler) CreateResource(c *fiber.Ctx) error {
 	)
 }
 
+// GetResource retrieves a specific resource by name and type
+// @Summary Get a resource
+// @Description Retrieve a specific resource by its name and type
+// @Tags resources
+// @Accept json
+// @Produce json
+// @Param type path string true "Resource type"
+// @Param name path string true "Resource name"
+// @Success 200 {object} types.Resource "Resource object"
+// @Failure 400 {object} map[string]interface{} "Bad request - Missing parameters"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /resources/{type}/{name} [get]
 func (h *ResourceHandler) GetResource(c *fiber.Ctx) error {
 	resourceName := c.Params("name")
 	resourceType := c.Params("type")
@@ -165,6 +189,18 @@ func (h *ResourceHandler) GetResource(c *fiber.Ctx) error {
 	return c.JSON(resource)
 }
 
+// DeleteResource deletes a specific resource by name and type
+// @Summary Delete a resource
+// @Description Delete a specific resource by its name and type
+// @Tags resources
+// @Accept json
+// @Produce json
+// @Param type path string true "Resource type"
+// @Param name path string true "Resource name"
+// @Success 204 {string} string "Resource deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request - Missing parameters"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /resources/{type}/{name} [delete]
 func (h *ResourceHandler) DeleteResource(c *fiber.Ctx) error {
 	resourceName := c.Params("name")
 	resourceType := c.Params("type")
@@ -184,6 +220,17 @@ func (h *ResourceHandler) DeleteResource(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+// ListResources lists all resources of a specific type
+// @Summary List resources
+// @Description List all resources of a specific type
+// @Tags resources
+// @Accept json
+// @Produce json
+// @Param type path string true "Resource type"
+// @Success 200 {array} types.Resource "List of resources"
+// @Failure 400 {object} map[string]interface{} "Bad request - Missing parameters"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /resources/{type} [get]
 func (h *ResourceHandler) ListResources(c *fiber.Ctx) error {
 	resourceType := c.Params("type")
 	if resourceType == "" {
@@ -202,6 +249,19 @@ func (h *ResourceHandler) ListResources(c *fiber.Ctx) error {
 	return c.JSON(resources)
 }
 
+// UpdateResource updates a specific resource by name and type
+// @Summary Update a resource
+// @Description Update a specific resource by its name and type
+// @Tags resources
+// @Accept json
+// @Produce json
+// @Param type path string true "Resource type"
+// @Param name path string true "Resource name"
+// @Param resource body types.Resource true "Resource object"
+// @Success 200 {object} types.Resource "Resource updated successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request - Invalid payload or missing parameters"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /resources/{type}/{name} [put]
 func (h *ResourceHandler) UpdateResource(c *fiber.Ctx) error {
 	resourceName := c.Params("name")
 	resourceType := c.Params("type")
