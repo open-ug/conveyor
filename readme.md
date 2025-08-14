@@ -21,7 +21,7 @@
 
 ---
 
-**Conveyor CI** is the first open-source **framework for building CI/CD platforms**.
+**Conveyor CI** is an open-source **engine framework for building CI/CD platforms**.
 
 Instead of building your own CI/CD system from scratch, Conveyor CI gives you a modular toolkit, SDKs, APIs, and drivers that handle the hard parts: execution, events, scaling, observability, and more.
 
