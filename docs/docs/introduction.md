@@ -4,12 +4,6 @@ sidebar_position: 1
 
 # Introduction
 
-:::danger
-
-Documentation still in early stages
-
-:::
-
 <div align="center">
 
 ![Docker Pulls](https://img.shields.io/docker/pulls/openug/conveyor.svg?maxAge=604800)
