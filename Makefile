@@ -1,10 +1,9 @@
-# Conveyor Makefile - Swagger Documentation Commands
-# Provides convenient commands for Swagger documentation management
+# Conveyor Makefile -
 
 # Version constants
 SWAG_VERSION := v1.16.6
 
-.PHONY: help install-swag swagger-init
+.PHONY: help install-swag swagger-init start
 
 # Default target
 help: ## Show this help message
@@ -15,10 +14,18 @@ help: ## Show this help message
 # Swagger documentation commands
 swagger-init: ## Generate Swagger documentation
 	@echo "Generating Swagger documentation..."
-	swag init -g cmd/api/app.go -o docs/swagger
+	swag init -g cmd/api/app.go -o internal/swagger
 	@echo "Swagger documentation generated in docs/swagger/"
 
 install-swag: ## Install swag CLI tool
 	@echo "Installing swag CLI tool version $(SWAG_VERSION)..."
 	go install github.com/swaggo/swag/cmd/swag@$(SWAG_VERSION)
 	@echo "swag CLI tool installed" 
+
+start: ## Start the API server
+	@echo "Starting API server..."
+	go run main.go api-server
+
+test: ## Run tests
+	@echo "Running tests..."
+	go test ./... -v
