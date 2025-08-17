@@ -37,7 +37,7 @@ LOKI_ENDPOINT=http://localhost:3100
 You can then start the api server using the `go run` command.
 
 ```sh
-go run main.go api-server
+make start
 ```
 
 ## Testing
@@ -47,7 +47,7 @@ Conveyor CI is a Go Application and uses a combination of [stretchr/testify](htt
 When you make a change, it is required to write a test for your change as we aim for 100% test coverage. To run your tests, first start all the dependency containers mentioned above then run:
 
 ```sh
-go test -v ./…
+make test
 ```
 
 And ensure all tests are passing.
