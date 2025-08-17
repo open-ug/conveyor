@@ -17,6 +17,10 @@ definitions:
     properties:
       id:
         type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
       name:
         type: string
       resource:
@@ -456,6 +460,52 @@ paths:
             additionalProperties: true
             type: object
       summary: Update a resource
+      tags:
+      - resources
+  /resources/{type}/{name}/{version}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific resource by its name, type, and version
+      parameters:
+      - description: Resource type
+        in: path
+        name: type
+        required: true
+        type: string
+      - description: Resource name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Resource version
+        in: path
+        name: version
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resource object
+          schema:
+            $ref: '#/definitions/types.Resource'
+        "400":
+          description: Bad request - Missing parameters
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Resource not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a resource by version
       tags:
       - resources
 schemes:

@@ -23,6 +23,7 @@ func ResourceRoutes(app *fiber.App, db *clientv3.Client, natsContext *utils.Nats
 	resourcePrefix.Get("/:type/:name", resourceHandler.GetResource)
 	resourcePrefix.Delete("/:type/:name", resourceHandler.DeleteResource)
 	resourcePrefix.Put("/:type/:name", resourceHandler.UpdateResource)
+	resourcePrefix.Get("/:type/:name/:version", resourceHandler.GetResourceByVersion)
 
 	resourcePrefix.Get("/", resourceHandler.ListResources)
 
