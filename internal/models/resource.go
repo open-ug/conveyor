@@ -2,9 +2,12 @@ package models
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
+	"github.com/open-ug/conveyor/pkg/types"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
@@ -41,12 +44,17 @@ func (m *ResourceModel) Insert(name string, resourceType string, resource []byte
 	}
 
 	_, err = m.Client.Put(ctx, key, string(resource))
+	if err != nil {
+		return fmt.Errorf("failed to insert resource: %v", err)
+	}
+
+	_, err = m.Client.Put(ctx, key+"/1", string(resource))
 	return err
 }
 
 // FindOne retrieves a single resource by its name and type.
 // It returns the resource data as a byte slice or an error if not found.
-func (m *ResourceModel) FindOne(name string, resourceType string) ([]byte, error) {
+func (m *ResourceModel) FindOne(name string, resourceType string) (types.Resource, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -54,13 +62,19 @@ func (m *ResourceModel) FindOne(name string, resourceType string) ([]byte, error
 
 	getResp, err := m.Client.Get(ctx, key)
 	if err != nil {
-		return nil, err
+		return types.Resource{}, err
 	}
 	if len(getResp.Kvs) == 0 {
-		return nil, fmt.Errorf("resource with name %s and type %s not found", name, resourceType)
+		return types.Resource{}, fmt.Errorf("resource with name %s and type %s not found", name, resourceType)
 	}
 
-	return getResp.Kvs[0].Value, nil
+	resource := types.Resource{}
+	err = json.Unmarshal(getResp.Kvs[0].Value, &resource)
+	if err != nil {
+		return types.Resource{}, fmt.Errorf("failed to unmarshal resource: %v", err)
+	}
+
+	return resource, nil
 }
 
 // Delete removes a resource by its name and type.
@@ -97,23 +111,47 @@ func (m *ResourceModel) List(resourceType string) ([]string, error) {
 
 // Update modifies an existing resource's data.
 // It returns an error if the resource does not exist.
-func (m *ResourceModel) Update(name string, resourceType string, resource []byte) error {
+func (m *ResourceModel) Update(name string, resourceType string, resource types.Resource) (types.Resource, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	key := m.key(name, resourceType)
 
 	// Check existence
-	getResp, err := m.Client.Get(ctx, key)
+	currentResource, err := m.FindOne(name, resourceType)
 	if err != nil {
-		return err
-	}
-	if len(getResp.Kvs) == 0 {
-		return fmt.Errorf("resource with name %s and type %s not found", name, resourceType)
+		return types.Resource{}, fmt.Errorf("resource with name %s and type %s not found: %v ", name, resourceType, err)
 	}
 
-	_, err = m.Client.Put(ctx, key, string(resource))
-	return err
+	resource.ID = currentResource.ID // Ensure the ID remains unchanged
+	vesion, err := strconv.Atoi(currentResource.Metadata["version"])
+	if err != nil {
+		return types.Resource{}, fmt.Errorf("failed to parse version: %v", err)
+	}
+
+	if resource.Metadata == nil {
+		resource.Metadata = make(map[string]string)
+	}
+	resource.Metadata["version"] = strconv.Itoa(vesion + 1) // Increment version
+
+	// Marshal the updated resource to JSON
+	resourceData, err := json.Marshal(resource)
+	if err != nil {
+		return types.Resource{}, fmt.Errorf("failed to marshal resource: %v", err)
+	}
+
+	_, err = m.Client.Put(ctx, key, string(resourceData))
+	if err != nil {
+		return types.Resource{}, fmt.Errorf("failed to update resource: %v", err)
+	}
+
+	// save versioned resource
+	versionedKey := fmt.Sprintf("%s/%s", key, resource.Metadata["version"])
+	_, err = m.Client.Put(ctx, versionedKey, string(resourceData))
+	if err != nil {
+		return types.Resource{}, fmt.Errorf("failed to save versioned resource: %v", err)
+	}
+	return resource, err
 }
 
 // FindAll retrieves all resources of a specific type.
@@ -135,4 +173,29 @@ func (m *ResourceModel) FindAll(resourceType string) ([]string, error) {
 		resources = append(resources, string(kv.Value))
 	}
 	return resources, nil
+}
+
+// FindByVersion retrieves a specific version of a resource by its name and type and version.
+// It returns the resource data or an error if not found.
+func (m *ResourceModel) FindByVersion(name string, resourceType string, version string) (types.Resource, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	key := fmt.Sprintf("/resources/%s/%s/%s", resourceType, name, version)
+
+	getResp, err := m.Client.Get(ctx, key)
+	if err != nil {
+		return types.Resource{}, err
+	}
+	if len(getResp.Kvs) == 0 {
+		return types.Resource{}, fmt.Errorf("resource with name %s, type %s and version %s not found", name, resourceType, version)
+	}
+
+	resource := types.Resource{}
+	err = json.Unmarshal(getResp.Kvs[0].Value, &resource)
+	if err != nil {
+		return types.Resource{}, fmt.Errorf("failed to unmarshal resource: %v", err)
+	}
+
+	return resource, nil
 }
