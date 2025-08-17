@@ -22,6 +22,8 @@ func (m *ResourceDefinitionModel) key(name string) string {
 	return fmt.Sprintf("/resource_definitions/%s", name)
 }
 
+// Insert adds a new resource definition to the etcd store.
+// It returns an error if a resource definition with the same name already exists.
 func (m *ResourceDefinitionModel) Insert(name string, definition []byte) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -41,6 +43,8 @@ func (m *ResourceDefinitionModel) Insert(name string, definition []byte) error {
 	return err
 }
 
+// FindOne retrieves a single resource definition by its name.
+// It returns the resource definition data as a byte slice or an error if not found.
 func (m *ResourceDefinitionModel) FindOne(name string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -58,6 +62,8 @@ func (m *ResourceDefinitionModel) FindOne(name string) ([]byte, error) {
 	return getResp.Kvs[0].Value, nil
 }
 
+// Delete removes a resource definition by its name.
+// It returns an error if the resource definition does not exist.
 func (m *ResourceDefinitionModel) Delete(name string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -77,6 +83,8 @@ func (m *ResourceDefinitionModel) Delete(name string) error {
 	return err
 }
 
+// FindAll retrieves all resource definitions.
+// It returns a slice of resource definition names or an error if no definitions are found.
 func (m *ResourceDefinitionModel) FindAll() ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -96,6 +104,8 @@ func (m *ResourceDefinitionModel) FindAll() ([]string, error) {
 	return resourceDefinitions, nil
 }
 
+// Update modifies an existing resource definition's data.
+// It returns an error if the resource definition does not exist.
 func (m *ResourceDefinitionModel) Update(name string, definition []byte) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
