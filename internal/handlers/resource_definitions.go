@@ -26,6 +26,17 @@ func NewResourceDefinitionHandler(db *clientv3.Client, natsCon *nats.Conn) *Reso
 	}
 }
 
+// CreateResourceDefinition creates a new resource definition
+// @Summary Create a resource definition
+// @Description Create a new resource definition with the specified configuration
+// @Tags resource-definitions
+// @Accept json
+// @Produce json
+// @Param resourceDefinition body types.ResourceDefinition true "Resource definition object"
+// @Success 201 {object} types.ResourceDefinition "Resource definition created successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request - Invalid payload"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /resource-definitions [post]
 func (h *ResourceDefinitionHandler) CreateResourceDefinition(c *fiber.Ctx) error {
 	var resourceDefinition types.ResourceDefinition
 	if err := c.BodyParser(&resourceDefinition); err != nil {
@@ -53,6 +64,17 @@ func (h *ResourceDefinitionHandler) CreateResourceDefinition(c *fiber.Ctx) error
 	return c.Status(fiber.StatusCreated).JSON(resourceDefinition)
 }
 
+// GetResourceDefinition retrieves a specific resource definition by name
+// @Summary Get a resource definition
+// @Description Retrieve a specific resource definition by its name
+// @Tags resource-definitions
+// @Accept json
+// @Produce json
+// @Param name path string true "Resource definition name"
+// @Success 200 {object} types.ResourceDefinition "Resource definition object"
+// @Failure 400 {object} map[string]interface{} "Bad request - Missing parameters"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /resource-definitions/{name} [get]
 func (h *ResourceDefinitionHandler) GetResourceDefinition(c *fiber.Ctx) error {
 	resourceName := c.Params("name")
 	if resourceName == "" {
@@ -79,6 +101,17 @@ func (h *ResourceDefinitionHandler) GetResourceDefinition(c *fiber.Ctx) error {
 	return c.JSON(resourceDefinition)
 }
 
+// DeleteResourceDefinition deletes a specific resource definition by name
+// @Summary Delete a resource definition
+// @Description Delete a specific resource definition by its name
+// @Tags resource-definitions
+// @Accept json
+// @Produce json
+// @Param name path string true "Resource definition name"
+// @Success 204 {string} string "Resource definition deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request - Missing parameters"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /resource-definitions/{name} [delete]
 func (h *ResourceDefinitionHandler) DeleteResourceDefinition(c *fiber.Ctx) error {
 	resourceName := c.Params("name")
 	if resourceName == "" {
@@ -97,6 +130,18 @@ func (h *ResourceDefinitionHandler) DeleteResourceDefinition(c *fiber.Ctx) error
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+// UpdateResourceDefinition updates a specific resource definition by name
+// @Summary Update a resource definition
+// @Description Update a specific resource definition by its name
+// @Tags resource-definitions
+// @Accept json
+// @Produce json
+// @Param name path string true "Resource definition name"
+// @Param resourceDefinition body types.ResourceDefinition true "Resource definition object"
+// @Success 200 {object} types.ResourceDefinition "Resource definition updated successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request - Invalid payload or missing parameters"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /resource-definitions/{name} [put]
 func (h *ResourceDefinitionHandler) UpdateResourceDefinition(c *fiber.Ctx) error {
 	resourceName := c.Params("name")
 	if resourceName == "" {
@@ -129,6 +174,17 @@ func (h *ResourceDefinitionHandler) UpdateResourceDefinition(c *fiber.Ctx) error
 	return c.JSON(resourceDefinition)
 }
 
+// CreateOrUpdateResourceDefinition creates or updates a resource definition
+// @Summary Create or update a resource definition
+// @Description Create a new resource definition or update existing one by name
+// @Tags resource-definitions
+// @Accept json
+// @Produce json
+// @Param resourceDefinition body types.ResourceDefinition true "Resource definition object"
+// @Success 201 {object} types.ResourceDefinition "Resource definition created or updated successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request - Invalid payload or missing name"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /resource-definitions/apply [post]
 func (h *ResourceDefinitionHandler) CreateOrUpdateResourceDefinition(c *fiber.Ctx) error {
 	fmt.Println("CreateOrUpdateResourceDefinition called")
 	var resourceDefinition types.ResourceDefinition
