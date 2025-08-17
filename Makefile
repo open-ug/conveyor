@@ -3,7 +3,7 @@
 # Version constants
 SWAG_VERSION := v1.16.6
 
-.PHONY: help install-swag swagger-init start
+.PHONY: help install-swag swagger-init start docs
 
 # Default target
 help: ## Show this help message
@@ -29,3 +29,6 @@ start: ## Start the API server
 test: ## Run tests
 	@echo "Running tests..."
 	go test ./... -v
+
+docs:
+	cd docs && npm run start
