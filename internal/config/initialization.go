@@ -16,8 +16,6 @@ func InitConfig() {
 	}
 	viper.AutomaticEnv()
 
-	//check for the following environment variables
-
 	viper.BindEnv("api.host", "CONVEYOR_SERVER_HOST")
 	viper.BindEnv("etcd.host", "ETCD_ENDPOINT")
 	viper.BindEnv("loki.host", "LOKI_ENDPOINT")
