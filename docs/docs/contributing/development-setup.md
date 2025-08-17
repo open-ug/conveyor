@@ -40,6 +40,28 @@ You can then start the api server using the `go run` command.
 make start
 ```
 
+## API Documentation
+
+Conveyor CI provides comprehensive API documentation using Swagger/OpenAPI. The interactive API documentation is automatically generated from code comments and is available when the server is running.
+
+### Accessing Swagger UI
+
+Once the Conveyor API Server is running, you can access the interactive API documentation at:
+
+**Swagger UI**: [http://localhost:8080/swagger/](http://localhost:8080/swagger/)
+
+### Swagger Development Setup
+
+For local development and API documentation generation:
+
+```bash
+# Install swag CLI tool
+make install-swag
+
+# Generate Swagger documentation
+make swagger-init
+```
+
 ## Testing
 
 Conveyor CI is a Go Application and uses a combination of [stretchr/testify](https://github.com/stretchr/testify) and the go testing package in the standard library.
