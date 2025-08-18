@@ -193,6 +193,14 @@ const config: Config = {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
     },
+    algolia: {
+      appId: "USAUNMNBNA", // from Algolia dashboard
+      apiKey: "4288a08ddb44ade100ca370de70cd1f1", // search-only API key (NOT admin key)
+      indexName: "Documentation", // provided by Algolia
+      contextualSearch: true, // makes search aware of versioned/docs structure
+      searchParameters: {}, // optional: pass custom search params
+      searchPagePath: "search", // optional: adds a full search page
+    },
   } satisfies Preset.ThemeConfig,
 };
 
