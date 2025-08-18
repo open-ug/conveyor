@@ -51,6 +51,9 @@ func (h *ResourceHandler) CreateResource(c *fiber.Ctx) error {
 	}
 
 	resource.ID = uuid.New().String()
+	resource.Metadata = make(map[string]string)
+	// set version to 1
+	resource.Metadata["version"] = "1"
 
 	resourceType := resource.Resource
 	if resourceType == "" {
@@ -146,6 +149,7 @@ func (h *ResourceHandler) CreateResource(c *fiber.Ctx) error {
 		"name":    resource.Name,
 		"runid":   driverMsg.RunID,
 		"message": "Resource created successfully",
+		"version": resource.Metadata["version"],
 	},
 	)
 }
@@ -171,18 +175,10 @@ func (h *ResourceHandler) GetResource(c *fiber.Ctx) error {
 		})
 	}
 
-	resourceData, err := h.ResourceModel.FindOne(resourceName, resourceType)
+	resource, err := h.ResourceModel.FindOne(resourceName, resourceType)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": fmt.Sprintf("Failed to find resource: %v", err),
-		})
-	}
-
-	var resource types.Resource
-	err = json.Unmarshal(resourceData, &resource)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to unmarshal resource data",
 		})
 	}
 
@@ -278,12 +274,6 @@ func (h *ResourceHandler) UpdateResource(c *fiber.Ctx) error {
 		})
 	}
 
-	resourceData, err := json.Marshal(resource)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to marshal resource",
-		})
-	}
 	resourceDefinition, err := h.ResourceDefinitionModel.FindOne(resourceType)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -325,10 +315,44 @@ func (h *ResourceHandler) UpdateResource(c *fiber.Ctx) error {
 		})
 	}
 
-	err = h.ResourceModel.Update(resourceName, resourceType, resourceData)
+	r, err := h.ResourceModel.Update(resourceName, resourceType, resource)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": fmt.Sprintf("Failed to update resource: %v", err),
+		})
+	}
+
+	return c.JSON(r)
+}
+
+// GetResourceByVersion retrieves a specific resource by name, type, and version
+// @Summary Get a resource by version
+// @Description Retrieve a specific resource by its name, type, and version
+// @Tags resources
+// @Accept json
+// @Produce json
+// @Param type path string true "Resource type"
+// @Param name path string true "Resource name"
+// @Param version path string true "Resource version"
+// @Success 200 {object} types.Resource "Resource object"
+// @Failure 400 {object} map[string]interface{} "Bad request - Missing parameters"
+// @Failure 404 {object} map[string]interface{} "Resource not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /resources/{type}/{name}/{version} [get]
+func (h *ResourceHandler) GetResourceByVersion(c *fiber.Ctx) error {
+	resourceName := c.Params("name")
+	resourceType := c.Params("type")
+	resourceVersion := c.Params("version")
+	if resourceName == "" || resourceType == "" || resourceVersion == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Resource name, type, and version are required",
+		})
+	}
+
+	resource, err := h.ResourceModel.FindByVersion(resourceName, resourceType, resourceVersion)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": fmt.Sprintf("Failed to find resource: %v", err),
 		})
 	}
 
