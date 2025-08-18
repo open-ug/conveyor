@@ -37,17 +37,6 @@ import (
 	fiberSwagger "github.com/swaggo/fiber-swagger"
 )
 
-// @Summary Ping the server
-// @Description Simple ping endpoint to check if the server is running
-// @Tags health
-// @Accept json
-// @Produce text/plain
-// @Success 200 {string} string "pong"
-// @Router /ping [get]
-func pingHandler(c *fiber.Ctx) error {
-	return c.SendString("pong")
-}
-
 // @Summary Health check
 // @Description Get the health status of the API server
 // @Tags health
@@ -63,6 +52,18 @@ func healthHandler(c *fiber.Ctx) error {
 }
 
 func StartServer(port string) {
+
+	app, err := Setup()
+	if err != nil {
+		color.Red("Error setting up the server: %v", err)
+		return
+	}
+	app.Listen(":" + port)
+
+}
+
+// Setup Server
+func Setup() (*fiber.App, error) {
 
 	app := fiber.New(fiber.Config{
 		AppName:     "Conveyor API Server",
@@ -85,7 +86,6 @@ func StartServer(port string) {
 		return c.SendString("CONVEYOR API SERVER. Visit https://conveyor.open.ug for Documentation")
 	})
 
-	app.Get("/ping", pingHandler)
 	app.Get("/health", healthHandler)
 
 	// Metrics endpoint
@@ -100,12 +100,11 @@ func StartServer(port string) {
 
 	if err != nil {
 		color.Red("Error Occured while creating etcd client: %v", err)
-		return
+		return nil, err
 	}
 
 	routes.DriverRoutes(app, etcd.Client, natsContext.NatsCon)
 	routes.ResourceRoutes(app, etcd.Client, natsContext)
 
-	app.Listen(":" + port)
-
+	return app, nil
 }
