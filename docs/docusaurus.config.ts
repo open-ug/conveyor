@@ -194,8 +194,8 @@ const config: Config = {
       darkTheme: prismThemes.dracula,
     },
     algolia: {
-      appId: "USAUNMNBNA", // from Algolia dashboard
-      apiKey: "4288a08ddb44ade100ca370de70cd1f1", // search-only API key (NOT admin key)
+      appId: "24UQIZNCF1", // from Algolia dashboard
+      apiKey: "78e628b0218b46cdafd5bf410e611a7a", // search-only API key (NOT admin key)
       indexName: "Documentation", // provided by Algolia
       contextualSearch: true, // makes search aware of versioned/docs structure
       searchParameters: {}, // optional: pass custom search params
