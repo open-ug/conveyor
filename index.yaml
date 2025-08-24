@@ -1,18 +1,11 @@
 apiVersion: v1
 entries:
   conveyor:
-  - annotations:
-      artifacthub.io/license: Apache-2.0
-      artifacthub.io/links: |-
-        - name: Chart Source
-          url: https://github.com/open-ug/conveyor-helm-charts
-        - name: Upstream Project
-          url: https://github.com/open-ug/conveyor
-    apiVersion: v2
+  - apiVersion: v2
     appVersion: v3.4.1
-    created: "2025-08-02T21:12:12.149748547Z"
-    description: Conveyor CI is a Platform/Framwork for building custom CI/CD pipelines
-    digest: a07273101392fb20f672b5ee66aaac23feb65f23eb2bf4723a4f7fae65f78870
+    created: "2025-08-24T07:26:55.884992958Z"
+    description: Conveyor CI is an Engine/Framwork for building custom CI/CD Platforms.
+    digest: ff24d6c3772546078a564a0d96d6dacb52bf1eb85e87a301fcb4d0b0efea0cc8
     home: https://conveyor.open.ug/
     icon: https://conveyor.open.ug/img/logo.png
     keywords:
@@ -31,4 +24,4 @@ entries:
     urls:
     - https://open-ug.github.io/conveyor/conveyor-0.1.16.tgz
     version: 0.1.16
-generated: "2025-08-02T21:12:12.149377994Z"
+generated: "2025-08-24T07:26:55.884565172Z"
