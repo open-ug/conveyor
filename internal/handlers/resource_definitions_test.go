@@ -48,11 +48,13 @@ var payload = types.ResourceDefinition{
 
 func Test_ResourceDefinition_CRUD(t *testing.T) {
 	config.InitConfig()
-	// setup app (assumes api.Setup configures routes and dependencies for tests)
-	app, err := api.Setup()
+
+	appctx, err := api.Setup()
 	if err != nil {
 		t.Fatalf("failed to setup api: %v", err)
 	}
+
+	app := appctx.App
 
 	// --- Create ---
 	t.Run("create", func(t *testing.T) {
