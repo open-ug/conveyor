@@ -33,7 +33,6 @@ import (
 	_ "github.com/open-ug/conveyor/internal/swagger"
 	utils "github.com/open-ug/conveyor/internal/utils"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/spf13/viper"
 	fiberSwagger "github.com/swaggo/fiber-swagger"
 )
 
@@ -94,9 +93,7 @@ func Setup() (*fiber.App, error) {
 	natsContext := utils.NewNatsConn()
 	natsContext.InitiateStreams()
 
-	etcd, err := utils.NewEtcdClient(
-		viper.GetString("etcd.host"),
-	)
+	etcd, err := utils.NewEtcdClient()
 
 	if err != nil {
 		color.Red("Error Occured while creating etcd client: %v", err)

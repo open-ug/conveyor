@@ -10,9 +10,8 @@ import (
 )
 
 func TestNewEtcdClient_Integration(t *testing.T) {
-	endpoint := "http://localhost:2379"
 
-	client, err := utils.NewEtcdClient(endpoint)
+	client, err := utils.NewEtcdClient()
 	assert.NoError(t, err, "Expected to connect to etcd without error")
 	assert.NotNil(t, client)
 	assert.NotNil(t, client.Client)
