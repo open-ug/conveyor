@@ -99,6 +99,12 @@ type APIServerContext struct {
 	ETCD        *utils.EtcdClient
 }
 
+func (c *APIServerContext) ShutDown() {
+	c.App.Shutdown()
+	c.NatsContext.Shutdown()
+	c.ETCD.ServerStop()
+}
+
 // Setup Server
 func Setup() (APIServerContext, error) {
 

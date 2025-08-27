@@ -46,7 +46,6 @@ func NewNatsConn() *NatsContext {
 	}
 
 	log.Printf("NATS server started on %s\n", natsServer.ClientURL())
-	defer natsServer.Shutdown()
 
 	// --- Connect a NATS client to the embedded server ---
 	nc, err := nats.Connect(natsServer.ClientURL())

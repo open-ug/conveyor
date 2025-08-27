@@ -1,19 +1,5 @@
 # Edit this file to configure your Docker Compose setup
 services:
-  etcd:
-    image: bitnami/etcd:latest
-    container_name: etcd
-    volumes:
-      - etcd-data:/bitnami/etcd
-    environment:
-      - ALLOW_NONE_AUTHENTICATION=yes
-      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
-    ports:
-      - "2379:2379"
-      - "2380:2380"
-    networks:
-      - conveyor-network
-
   loki:
     image: grafana/loki:latest
     container_name: loki
@@ -26,21 +12,6 @@ services:
     networks:
       - conveyor-network
 
-  nats:
-    image: nats:latest
-    container_name: nats
-    ports:
-      - "4222:4222" # Client connections
-    networks:
-      - conveyor-network
-    command: [
-        "-js", # enable JetStream
-        "--store_dir",
-        "/data/js", # JetStream storage location
-      ]
-    volumes:
-      - nats-jsdata:/data/js
-
   app:
     image: openug/conveyor:latest
     container_name: app
@@ -50,10 +21,11 @@ services:
       - nats
     ports:
       - "8080:8080"
+      - "2379:2379"
+      - "2380:2380"
+      - "4222:4222"
     environment:
-      - ETCD_ENDPOINT=http://etcd:2379
       - LOKI_ENDPOINT=http://loki:3100
-      - NATS_URL=nats://nats:4222
     networks:
       - conveyor-network
 

@@ -17,7 +17,6 @@ func InitConfig() {
 	viper.AutomaticEnv()
 
 	viper.BindEnv("api.host", "CONVEYOR_SERVER_HOST")
-	viper.BindEnv("etcd.data", "ETCD_ENDPOINT")
 	viper.BindEnv("loki.host", "LOKI_ENDPOINT")
 	viper.BindEnv("nats.url", "NATS_URL")
 

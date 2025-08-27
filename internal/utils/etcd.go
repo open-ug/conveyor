@@ -3,6 +3,9 @@ package utils
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"os"
+	"path/filepath"
 	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -27,6 +30,12 @@ func NewEtcdClient() (*EtcdClient, error) {
 	cfg.Dir = "default.etcd"
 	cfg.Logger = "zap"
 	cfg.ClusterState = "new"
+
+	if IsTestMode() {
+		cfg.Dir = filepath.Join(os.TempDir(), cfg.Name)
+		cfg.ListenClientUrls = []url.URL{{Scheme: "http", Host: "localhost:0"}}
+		cfg.ListenPeerUrls = []url.URL{{Scheme: "http", Host: "localhost:0"}}
+	}
 
 	// Start etcd
 	e, err := embed.StartEtcd(cfg)

@@ -14,7 +14,6 @@ func TestInitConfig(t *testing.T) {
 	originalEnv := map[string]string{
 		"CONVEYOR_SERVER_HOST": os.Getenv("CONVEYOR_SERVER_HOST"),
 		"CONVEYOR_SERVER_PORT": os.Getenv("CONVEYOR_SERVER_PORT"),
-		"ETCD_ENDPOINT":        os.Getenv("ETCD_ENDPOINT"),
 		"LOKI_ENDPOINT":        os.Getenv("LOKI_ENDPOINT"),
 		"NATS_URL":             os.Getenv("NATS_URL"),
 	}
@@ -31,7 +30,6 @@ func TestInitConfig(t *testing.T) {
 	config.InitConfig()
 
 	assert.Equal(t, "127.0.0.1", viper.GetString("api.host"))
-	assert.Equal(t, "127.0.0.1:2380", viper.GetString("etcd.host"))
 	assert.Equal(t, "http://loki:3100", viper.GetString("loki.host"))
 	assert.Equal(t, "nats://test:4222", viper.GetString("nats.url"))
 

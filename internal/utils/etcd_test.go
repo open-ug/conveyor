@@ -43,4 +43,5 @@ func TestNewEtcdClient_Integration(t *testing.T) {
 	// Close client
 	client.Cancel()
 	client.Client.Close()
+	client.ServerStop()
 }
