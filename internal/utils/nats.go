@@ -3,12 +3,12 @@ package utils
 import (
 	"context"
 	"log"
-	"os"
 	"time"
 
 	"github.com/nats-io/nats-server/v2/server"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
+	"github.com/spf13/viper"
 )
 
 type NatsContext struct {
@@ -19,12 +19,8 @@ type NatsContext struct {
 
 func NewNatsConn() *NatsContext {
 
-	// Create a temporary directory for JetStream's data.
-	// This is critical, as JetStream needs a place to persist messages.
-	dataDir, err := os.MkdirTemp("", "nats-jetstream-data-")
-	if err != nil {
-		log.Fatalf("failed to create temp dir for JetStream: %v", err)
-	}
+	conveyorDataDir := viper.GetString("api.data")
+	dataDir := conveyorDataDir + "/nats"
 
 	opts := &server.Options{
 		Port:      -1,

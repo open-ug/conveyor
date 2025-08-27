@@ -10,6 +10,7 @@ import (
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 
+	"github.com/spf13/viper"
 	"go.etcd.io/etcd/server/v3/embed"
 	"go.etcd.io/etcd/server/v3/etcdserver/api/v3client"
 )
@@ -27,7 +28,8 @@ type EtcdClient struct {
 func NewEtcdClient() (*EtcdClient, error) {
 	// --- configure embedded etcd ---
 	cfg := embed.NewConfig()
-	cfg.Dir = "default.etcd"
+	conveyorDataDir := viper.GetString("api.data")
+	cfg.Dir = conveyorDataDir + "/etcd"
 	cfg.Logger = "zap"
 	cfg.ClusterState = "new"
 
