@@ -211,4 +211,6 @@ func Test_Resource_CRUD(t *testing.T) {
 		// If you change handler behavior to return 404, update this assertion accordingly.
 		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode, "expected 500 after deleted resource (handler's current behavior)")
 	})
+
+	appctx.ShutDown()
 }
