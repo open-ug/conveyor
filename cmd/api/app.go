@@ -93,7 +93,11 @@ func Setup() (*fiber.App, error) {
 	natsContext := utils.NewNatsConn()
 	natsContext.InitiateStreams()
 
+	defer natsContext.Shutdown()
+
 	etcd, err := utils.NewEtcdClient()
+
+	defer etcd.ServerStop()
 
 	if err != nil {
 		color.Red("Error Occured while creating etcd client: %v", err)
