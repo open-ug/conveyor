@@ -22,8 +22,14 @@ func NewNatsConn() *NatsContext {
 	conveyorDataDir := viper.GetString("api.data")
 	dataDir := conveyorDataDir + "/nats"
 
+	var port int
+	if IsTestMode() {
+		port = -1
+	} else {
+		port = 4222
+	}
 	opts := &server.Options{
-		Port:      -1,
+		Port:      port,
 		JetStream: true,
 		StoreDir:  dataDir,
 	}
@@ -39,7 +45,7 @@ func NewNatsConn() *NatsContext {
 	// Wait for the server to be ready.
 	if !natsServer.ReadyForConnections(5 * time.Second) {
 		log.Println("NATS server failed to start within timeout. retrying...")
-		if !natsServer.ReadyForConnections(5 * time.Second) {
+		if !natsServer.ReadyForConnections(20 * time.Second) {
 			log.Fatal("NATS server failed to start within timeout.")
 		}
 	}

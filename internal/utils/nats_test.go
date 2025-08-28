@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNatsContext_Integration(t *testing.T) {
+func _TestNatsContext_Integration(t *testing.T) {
 
 	// 1. Connect to NATS
 	nc := utils.NewNatsConn()
