@@ -21,6 +21,11 @@ Copyright © 2024 Beingana Jim Junior and Contributors
 package api
 
 import (
+	"context"
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/fatih/color"
@@ -33,7 +38,6 @@ import (
 	_ "github.com/open-ug/conveyor/internal/swagger"
 	utils "github.com/open-ug/conveyor/internal/utils"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/spf13/viper"
 	fiberSwagger "github.com/swaggo/fiber-swagger"
 )
 
@@ -53,17 +57,56 @@ func healthHandler(c *fiber.Ctx) error {
 
 func StartServer(port string) {
 
-	app, err := Setup()
+	appCtx, err := Setup()
 	if err != nil {
 		color.Red("Error setting up the server: %v", err)
 		return
 	}
-	app.Listen(":" + port)
+
+	// Run server in a goroutine
+	go func() {
+		if err := appCtx.App.Listen(":3000"); err != nil {
+			fmt.Printf("Server stopped: %v\n", err)
+		}
+	}()
+
+	// Setup channel to listen for interrupt/terminate signals
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit // Wait until a signal is received
+
+	fmt.Println("Shutting down server...")
+
+	// Create a context with timeout for cleanup
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := appCtx.App.ShutdownWithContext(ctx); err != nil {
+		fmt.Printf("Server forced to shutdown: %v\n", err)
+	}
+
+	appCtx.NatsContext.Shutdown()
+	fmt.Println("Sracefully shutting down Datastore")
+	appCtx.ETCD.ServerStop()
+
+	fmt.Println("Server gracefully stopped")
 
 }
 
+type APIServerContext struct {
+	App         *fiber.App
+	NatsContext *utils.NatsContext
+	ETCD        *utils.EtcdClient
+}
+
+func (c *APIServerContext) ShutDown() {
+	c.App.Shutdown()
+	c.NatsContext.Shutdown()
+	c.ETCD.ServerStop()
+}
+
 // Setup Server
-func Setup() (*fiber.App, error) {
+func Setup() (APIServerContext, error) {
 
 	app := fiber.New(fiber.Config{
 		AppName:     "Conveyor API Server",
@@ -94,17 +137,19 @@ func Setup() (*fiber.App, error) {
 	natsContext := utils.NewNatsConn()
 	natsContext.InitiateStreams()
 
-	etcd, err := utils.NewEtcdClient(
-		viper.GetString("etcd.host"),
-	)
+	etcd, err := utils.NewEtcdClient()
 
 	if err != nil {
 		color.Red("Error Occured while creating etcd client: %v", err)
-		return nil, err
+		return APIServerContext{}, err
 	}
 
 	routes.DriverRoutes(app, etcd.Client, natsContext.NatsCon)
 	routes.ResourceRoutes(app, etcd.Client, natsContext)
 
-	return app, nil
+	return APIServerContext{
+		NatsContext: natsContext,
+		App:         app,
+		ETCD:        etcd,
+	}, nil
 }
