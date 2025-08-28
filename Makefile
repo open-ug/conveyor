@@ -28,7 +28,7 @@ start: ## Start the API server
 
 test: ## Run tests
 	@echo "Running tests..."
-	go test ./... -v
+	APP_ENV=test go test ./... -v
 
 docs:
 	cd docs && npm run start

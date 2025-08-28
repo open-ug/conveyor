@@ -79,10 +79,12 @@ func Test_Resource_CRUD(t *testing.T) {
 	config.InitConfig()
 
 	// setup app (assumes api.Setup configures routes and dependencies for tests)
-	app, err := api.Setup()
+	appctx, err := api.Setup()
 	if err != nil {
 		t.Fatalf("failed to setup api: %v", err)
 	}
+
+	app := appctx.App
 
 	// --- Create Resource Definition ---
 	t.Run("create-resource-definition", func(t *testing.T) {
@@ -209,4 +211,6 @@ func Test_Resource_CRUD(t *testing.T) {
 		// If you change handler behavior to return 404, update this assertion accordingly.
 		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode, "expected 500 after deleted resource (handler's current behavior)")
 	})
+
+	appctx.ShutDown()
 }

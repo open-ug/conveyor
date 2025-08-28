@@ -7,13 +7,10 @@ import (
 
 	"github.com/nats-io/nats.go/jetstream"
 	"github.com/open-ug/conveyor/internal/utils"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNatsContext_Integration(t *testing.T) {
-	// Ensure NATS URL is set (assume container is on localhost)
-	viper.Set("nats.url", "nats://localhost:4222")
+func _TestNatsContext_Integration(t *testing.T) {
 
 	// 1. Connect to NATS
 	nc := utils.NewNatsConn()

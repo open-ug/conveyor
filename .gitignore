@@ -3,3 +3,4 @@ output
 build/
 athens-data
 .venv
+default.etcd
