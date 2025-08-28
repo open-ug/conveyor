@@ -6,11 +6,13 @@ import (
 	"time"
 
 	"github.com/nats-io/nats.go/jetstream"
+	"github.com/open-ug/conveyor/internal/config"
 	"github.com/open-ug/conveyor/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 
-func _TestNatsContext_Integration(t *testing.T) {
+func TestNatsContext_Integration(t *testing.T) {
+	config.InitConfig()
 
 	// 1. Connect to NATS
 	nc := utils.NewNatsConn()
