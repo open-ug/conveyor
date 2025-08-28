@@ -15,7 +15,7 @@ Before you begin development, ensure you have the following software on your dev
 
 ## Starting Dependency Services
 
-First you need to start the dependency containers. Within the `config` directory, there is a `compose.dev.yml` file. Start is using Docker Compose.
+First you need to start the Loki container. Within the `config` directory, there is a `compose.dev.yml` file. Start is using Docker Compose.
 
 ```sh
 docker compose -f config/compose.dev.yml up -d
@@ -29,8 +29,6 @@ First, add a `.env` file in the root of your project.
 
 ```env
 CONVEYOR_SERVER_HOST=http://localhost:8080
-NATS_URL=nats://localhost:4222
-ETCD_ENDPOINT=localhost:2379
 LOKI_ENDPOINT=http://localhost:3100
 ```
 
