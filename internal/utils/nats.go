@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -22,6 +23,8 @@ func NewNatsConn() *NatsContext {
 	conveyorDataDir := viper.GetString("api.data")
 	dataDir := conveyorDataDir + "/nats"
 
+	fmt.Println(dataDir)
+
 	var port int
 	if IsTestMode() {
 		port = -1
@@ -32,6 +35,7 @@ func NewNatsConn() *NatsContext {
 		Port:      port,
 		JetStream: true,
 		StoreDir:  dataDir,
+		NoLog:     false,
 	}
 
 	log.Println("Starting embedded NATS server with JetStream...")
@@ -39,6 +43,8 @@ func NewNatsConn() *NatsContext {
 	if err != nil {
 		log.Fatalf("failed to create NATS server: %v", err)
 	}
+
+	natsServer.ConfigureLogger()
 
 	// Start the server in a separate goroutine so it doesn't block the main thread.
 	go natsServer.Start()
