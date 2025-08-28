@@ -38,7 +38,10 @@ func NewNatsConn() *NatsContext {
 	go natsServer.Start()
 	// Wait for the server to be ready.
 	if !natsServer.ReadyForConnections(5 * time.Second) {
-		log.Fatal("NATS server failed to start within timeout.")
+		log.Println("NATS server failed to start within timeout. retrying...")
+		if !natsServer.ReadyForConnections(5 * time.Second) {
+			log.Fatal("NATS server failed to start within timeout.")
+		}
 	}
 
 	log.Printf("NATS server started on %s\n", natsServer.ClientURL())
