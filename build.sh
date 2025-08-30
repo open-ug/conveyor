@@ -1,1 +1,0 @@
-go build -ldflags "-X 'github.com/open-ug/conveyor/cmd/cli.Version=1.1.1'" -o output/crane
