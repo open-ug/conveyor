@@ -165,9 +165,9 @@ const Footer = () => {
               <Stack spacing={1}>
                 <Chip
                   //variant="outlined"
-                  color="success"
                   size="sm"
                   sx={{
+                    color: "#10b981",
                     width: "fit-content",
                     bgcolor: "rgba(16, 185, 129, 0.1)",
                   }}
@@ -267,26 +267,6 @@ const Footer = () => {
               >
                 v0.1.30
               </Chip>
-            </Box>
-
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Typography level="body-xs" sx={{ color: "#64748b" }}>
-                Status:
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                <Box
-                  sx={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    bgcolor: "#10b981",
-                    animation: "pulse 2s infinite",
-                  }}
-                />
-                <Typography level="body-xs" sx={{ color: "#10b981" }}>
-                  All Systems Operational
-                </Typography>
-              </Box>
             </Box>
 
             <Button
