@@ -14,11 +14,8 @@ export default function FooterCopyright({ copyright }: Props): ReactNode {
       }}
     >
       Conveyor CI is a free and open-source project. Copyrighted under the
-      Apache License 2.0. Copyright © {new Date().getFullYear()}{" "}
-      <Link component="a" href="https://open.ug">
-        Open UG Labs
-      </Link>{" "}
-      & Conveyor CI contributors.
+      Apache License 2.0. Copyright © {new Date().getFullYear()} Conveyor CI
+      contributors.
     </Typography>
   );
 }
