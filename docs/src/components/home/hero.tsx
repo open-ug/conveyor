@@ -402,7 +402,7 @@ const Hero = () => {
                       maxWidth: "400px",
                     }}
                   >
-                    $ curl -fsSL conveyor.dev/install | sh
+                    $ curl -fsSL conveyor.open.ug/install | sh
                   </Box>
                 </Box>
               </Stack>
