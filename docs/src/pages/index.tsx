@@ -9,6 +9,11 @@ import styles from "./index.module.css";
 import HeroSection from "../components/home/hero";
 import FeaturesSection from "../components/home/features";
 import CallToActionSection from "../components/home/calltoaction";
+import { ProblemSolution } from "../components/home/problem";
+import Features from "../components/home/features";
+import CodeSamplesDemo from "../components/home/install";
+import CommunityProjectStatus from "../components/home/status";
+import Footer from "../components/home/footer";
 
 export default function Home(): ReactNode {
   const { siteConfig } = useDocusaurusContext();
@@ -18,8 +23,7 @@ export default function Home(): ReactNode {
       description="Conveyor CI is a Software framework for building Custom CI/CD Pipelines"
     >
       <HeroSection />
-      <FeaturesSection />
-      <CallToActionSection />
+      <ProblemSolution />
     </Layout>
   );
 }

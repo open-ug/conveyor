@@ -177,10 +177,6 @@ const config: Config = {
               href: "https://github.com/open-ug/conveyor",
             },
             {
-              label: "Slack",
-              href: "https://open-ug.slack.com/join/shared_invite/zt-382rwaqzr-aeB5ES_S94fYVPKCGHW~Qg",
-            },
-            {
               label: "Sitemap",
               href: "https://conveyor.open.ug/sitemap.xml",
             },
