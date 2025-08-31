@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 Beingana Jim Junior and Contributors
+Copyright © 2024 Conveyor CI Contributors
 */
 package cli
 
@@ -9,9 +9,9 @@ import (
 )
 
 var APIServerCmd = &cobra.Command{
-	Use:   "api-server",
-	Short: "Start the Conveyor API Server",
-	Long: `Start the Conveyor API Server
+	Use:   "up",
+	Short: "Start the Conveyor Service",
+	Long: `Start the Conveyor Service
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
