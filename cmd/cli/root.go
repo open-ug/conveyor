@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 Beingana Jim Junior and Contributors
+Copyright © 2024 Conveyor CI Contributors
 */
 package cli
 
@@ -16,13 +16,14 @@ var Version string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "conveyor",
-	Short: "Conveyor CLI",
-	Long: `Conveyor CLI is a command line interface for managing and interacting with the Conveyor platform.
+	Short: "Conveyor CI",
+	Long: `The lightweight, distributed CI/CD engine built for platform developers who demand simplicity without compromise.
 	`,
 	Version: Version,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Welcome to Conveyor CLI")
-		fmt.Println("Use conveyor --help to see available commands")
+		fmt.Println("Conveyor CI " + Version)
+		fmt.Println("Run 'conveyor --help' to see available commands")
+		fmt.Println("Visit https://conveyor.open.ug for more information")
 	},
 }
 

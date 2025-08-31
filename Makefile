@@ -24,7 +24,7 @@ install-swag: ## Install swag CLI tool
 
 start: ## Start the API server
 	@echo "Starting API server..."
-	go run main.go api-server
+	go run main.go up
 
 test: ## Run tests
 	@echo "Running tests..."

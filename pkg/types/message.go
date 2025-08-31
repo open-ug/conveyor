@@ -1,7 +1,7 @@
 package types
 
 type DriverMessage struct {
-	// Event Name rg. `docker-build-complete`
+	// Event Name e.g. `create`
 	Event string `json:"event" bson:"event"`
 	// JSON Payload
 	Payload string `json:"payload" bson:"payload"`
