@@ -1,5 +1,7 @@
 /*
-Copyright © 2024 Beingana Jim Junior and Contributors
+The Driver Runtime is responsible for managing the lifecycle of drivers and their interactions with the system.
+
+Copyright © 2024 Conveyor CI Contributors
 */
 package driverruntime
 

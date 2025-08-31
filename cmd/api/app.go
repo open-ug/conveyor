@@ -1,18 +1,17 @@
 /*
-Copyright © 2024 Beingana Jim Junior and Contributors
+Copyright © 2024 Conveyor CI Contributors
 */
 
-// @title Conveyor API
-// @version 1.0
-// @description Conveyor is a platform for managing and orchestrating resources, drivers, and workflows.
-// @termsOfService https://conveyor.open.ug/terms
+// @title Conveyor CI API
+// @version 0.1.31
+// @description Conveyor is a lightweight, distributed CI/CD engine built for platform developers who demand simplicity without compromise.
 
 // @contact.name Conveyor Support
-// @contact.url https://conveyor.open.ug/support
-// @contact.email support@conveyor.open.ug
+// @contact.url https://conveyor.open.ug/
+// @contact.email conveyor@open.ug
 
-// @license.name MIT
-// @license.url https://opensource.org/licenses/MIT
+// @license.name Apache 2.0
+// @license.url https://opensource.org/license/apache-2-0
 
 // @host localhost:8080
 // @BasePath /
@@ -65,7 +64,7 @@ func StartServer(port string) {
 
 	// Run server in a goroutine
 	go func() {
-		if err := appCtx.App.Listen(":3000"); err != nil {
+		if err := appCtx.App.Listen(":" + port); err != nil {
 			fmt.Printf("Server stopped: %v\n", err)
 		}
 	}()
