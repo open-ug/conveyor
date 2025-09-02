@@ -9,15 +9,14 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "https://conveyor.open.ug/terms",
         "contact": {
             "name": "Conveyor Support",
-            "url": "https://conveyor.open.ug/support",
-            "email": "support@conveyor.open.ug"
+            "url": "https://conveyor.open.ug/",
+            "email": "conveyor@open.ug"
         },
         "license": {
-            "name": "MIT",
-            "url": "https://opensource.org/licenses/MIT"
+            "name": "Apache 2.0",
+            "url": "https://opensource.org/license/apache-2-0"
         },
         "version": "{{.Version}}"
     },
@@ -92,29 +91,6 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/ping": {
-            "get": {
-                "description": "Simple ping endpoint to check if the server is running",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "text/plain"
-                ],
-                "tags": [
-                    "health"
-                ],
-                "summary": "Ping the server",
-                "responses": {
-                    "200": {
-                        "description": "pong",
-                        "schema": {
-                            "type": "string"
                         }
                     }
                 }
@@ -701,7 +677,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "event": {
-                    "description": "Event Name rg. ` + "`" + `docker-build-complete` + "`" + `",
+                    "description": "Event Name e.g. ` + "`" + `create` + "`" + `",
                     "type": "string"
                 },
                 "id": {
@@ -760,12 +736,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
+	Version:          "0.1.31",
 	Host:             "localhost:8080",
 	BasePath:         "/",
 	Schemes:          []string{"http", "https"},
-	Title:            "Conveyor API",
-	Description:      "Conveyor is a platform for managing and orchestrating resources, drivers, and workflows.",
+	Title:            "Conveyor CI API",
+	Description:      "Conveyor is a lightweight, distributed CI/CD engine built for platform developers who demand simplicity without compromise.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
