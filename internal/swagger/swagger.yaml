@@ -3,7 +3,7 @@ definitions:
   types.DriverMessage:
     properties:
       event:
-        description: Event Name rg. `docker-build-complete`
+        description: Event Name e.g. `create`
         type: string
       id:
         type: string
@@ -42,17 +42,16 @@ definitions:
 host: localhost:8080
 info:
   contact:
-    email: support@conveyor.open.ug
+    email: conveyor@open.ug
     name: Conveyor Support
-    url: https://conveyor.open.ug/support
-  description: Conveyor is a platform for managing and orchestrating resources, drivers,
-    and workflows.
+    url: https://conveyor.open.ug/
+  description: Conveyor is a lightweight, distributed CI/CD engine built for platform
+    developers who demand simplicity without compromise.
   license:
-    name: MIT
-    url: https://opensource.org/licenses/MIT
-  termsOfService: https://conveyor.open.ug/terms
-  title: Conveyor API
-  version: "1.0"
+    name: Apache 2.0
+    url: https://opensource.org/license/apache-2-0
+  title: Conveyor CI API
+  version: 0.1.31
 paths:
   /drivers/broadcast-message:
     post:
@@ -101,21 +100,6 @@ paths:
             additionalProperties: true
             type: object
       summary: Health check
-      tags:
-      - health
-  /ping:
-    get:
-      consumes:
-      - application/json
-      description: Simple ping endpoint to check if the server is running
-      produces:
-      - text/plain
-      responses:
-        "200":
-          description: pong
-          schema:
-            type: string
-      summary: Ping the server
       tags:
       - health
   /resource-definitions:
