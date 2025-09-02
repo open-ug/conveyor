@@ -2,19 +2,18 @@
   "schemes": ["http", "https"],
   "swagger": "2.0",
   "info": {
-    "description": "Conveyor is a platform for managing and orchestrating resources, drivers, and workflows.",
-    "title": "Conveyor API",
-    "termsOfService": "https://conveyor.open.ug/terms",
+    "description": "Conveyor is a lightweight, distributed CI/CD engine built for platform developers who demand simplicity without compromise.",
+    "title": "Conveyor CI API",
     "contact": {
       "name": "Conveyor Support",
-      "url": "https://conveyor.open.ug/support",
-      "email": "support@conveyor.open.ug"
+      "url": "https://conveyor.open.ug/",
+      "email": "conveyor@open.ug"
     },
     "license": {
-      "name": "MIT",
-      "url": "https://opensource.org/licenses/MIT"
+      "name": "Apache 2.0",
+      "url": "https://opensource.org/license/apache-2-0"
     },
-    "version": "1.0"
+    "version": "0.1.31"
   },
   "host": "localhost:8080",
   "basePath": "/",
@@ -75,23 +74,6 @@
             "schema": {
               "type": "object",
               "additionalProperties": true
-            }
-          }
-        }
-      }
-    },
-    "/ping": {
-      "get": {
-        "description": "Simple ping endpoint to check if the server is running",
-        "consumes": ["application/json"],
-        "produces": ["text/plain"],
-        "tags": ["health"],
-        "summary": "Ping the server",
-        "responses": {
-          "200": {
-            "description": "pong",
-            "schema": {
-              "type": "string"
             }
           }
         }
@@ -612,7 +594,7 @@
       "type": "object",
       "properties": {
         "event": {
-          "description": "Event Name rg. `docker-build-complete`",
+          "description": "Event Name e.g. `create`",
           "type": "string"
         },
         "id": {
