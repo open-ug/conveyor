@@ -40,6 +40,7 @@ import (
 	_ "github.com/open-ug/conveyor/internal/swagger"
 	utils "github.com/open-ug/conveyor/internal/utils"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/spf13/viper"
 	fiberSwagger "github.com/swaggo/fiber-swagger"
 )
 
@@ -150,7 +151,8 @@ func Setup() (APIServerContext, error) {
 	}
 
 	// Initialize BadgerDB
-	badgerOpts := badger.DefaultOptions("./badgerdb")
+	conveyorDataDir := viper.GetString("api.data")
+	badgerOpts := badger.DefaultOptions(conveyorDataDir + "/badger")
 	badgerDB, err := badger.Open(badgerOpts)
 	if err != nil {
 		color.Red("Error opening BadgerDB: %v", err)

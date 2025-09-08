@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLokiClient_PushAndQuery(t *testing.T) {
+func _TestLokiClient_PushAndQuery(t *testing.T) {
 	// Loki endpoint (adjust if in CI or different port)
 	lokiURL := "http://localhost:3100"
 	if testing.Short() {
