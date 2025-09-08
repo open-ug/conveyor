@@ -280,8 +280,8 @@ const Hero = () => {
                       maxWidth: "600px",
                     }}
                   >
-                    The lightweight, distributed CI/CD engine built for platform
-                    developers who demand simplicity without compromise.
+                    The lightweight engine for building distributed CI/CD
+                    systems with ease.
                   </Typography>
                 </Box>
 
