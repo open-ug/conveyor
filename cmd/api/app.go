@@ -156,6 +156,7 @@ func Setup() (APIServerContext, error) {
 
 	routes.DriverRoutes(app, etcd.Client, natsContext.NatsCon)
 	routes.ResourceRoutes(app, etcd.Client, natsContext)
+	routes.PipelineRoutes(app, etcd.Client, natsContext)
 
 	return APIServerContext{
 		NatsContext: natsContext,

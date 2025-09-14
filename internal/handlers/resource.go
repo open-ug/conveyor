@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/open-ug/conveyor/internal/engine"
 	models "github.com/open-ug/conveyor/internal/models"
 	utils "github.com/open-ug/conveyor/internal/utils"
 	"github.com/open-ug/conveyor/pkg/types"
@@ -13,6 +14,7 @@ import (
 )
 
 type ResourceHandler struct {
+	PipelineModel           *models.PipelineModel
 	ResourceModel           *models.ResourceModel
 	ResourceDefinitionModel *models.ResourceDefinitionModel
 	NatsContext             *utils.NatsContext
@@ -25,6 +27,9 @@ func NewResourceHandler(db *clientv3.Client, natsContext *utils.NatsContext) *Re
 			Client: db,
 		},
 		ResourceDefinitionModel: &models.ResourceDefinitionModel{
+			Client: db,
+		},
+		PipelineModel: &models.PipelineModel{
 			Client: db,
 		},
 	}
@@ -100,6 +105,28 @@ func (h *ResourceHandler) CreateResource(c *fiber.Ctx) error {
 		})
 	}
 
+	if resource.Pipeline != "" {
+		// Check if resource is part of a pipeline
+		pipeline, err := h.PipelineModel.GetPipeline(resource.Pipeline)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": fmt.Sprintf("Failed to get pipeline: %v", err),
+			})
+		}
+
+		if pipeline == nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": fmt.Sprintf("Pipeline %s not found", resource.Pipeline),
+			})
+		}
+
+		if pipeline.Resource != resource.Resource {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": fmt.Sprintf("Resource type %s does not match pipeline resource type %s", resource.Resource, pipeline.Resource),
+			})
+		}
+	}
+
 	resourceData, err := json.Marshal(resource)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -114,44 +141,20 @@ func (h *ResourceHandler) CreateResource(c *fiber.Ctx) error {
 		})
 	}
 
-	mID, err := utils.GenerateRandomID()
+	// Publish resource creation event to NATS JetStream
+	run_id, err := engine.PublishResourceEvent("create", resource, h.NatsContext.JetStream)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to generating id:",
-		})
-	}
-	driverMsg := types.DriverMessage{
-		ID:      mID,
-		Payload: string(resourceData),
-		Event:   "create",
-		RunID:   uuid.New().String(),
-	}
-
-	jsonMsg, merr := json.Marshal(driverMsg)
-	if merr != nil {
-		fmt.Println(merr)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": merr.Error(),
-		})
-	}
-
-	// Publish message to jetstream
-	subjectName := "resources." + resourceDef.Name
-	_, err = h.NatsContext.JetStream.PublishAsync(subjectName, jsonMsg)
-
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
+			"error": fmt.Sprintf("Failed to publish resource event: %v", err),
 		})
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"name":    resource.Name,
-		"runid":   driverMsg.RunID,
+		"runid":   run_id,
 		"message": "Resource created successfully",
 		"version": resource.Metadata["version"],
-	},
-	)
+	})
 }
 
 // GetResource retrieves a specific resource by name and type

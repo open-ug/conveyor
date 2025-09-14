@@ -5,6 +5,7 @@ import (
 
 	"fmt"
 	"log"
+	"time"
 
 	runtime "github.com/open-ug/conveyor/pkg/driver-runtime"
 	logger "github.com/open-ug/conveyor/pkg/driver-runtime/log"
@@ -16,6 +17,7 @@ func Reconcile(payload string, event string, runID string, logger *logger.Driver
 
 	log.SetFlags(log.Ldate | log.Ltime)
 	log.Printf("Sample Driver Reconciling::: EVENT: %v PAYLOAD: %v", event, payload)
+	time.Sleep(3 * time.Second)
 
 	return types.DriverResult{
 		Success: true,
@@ -23,11 +25,14 @@ func Reconcile(payload string, event string, runID string, logger *logger.Driver
 	}
 }
 
-func Listen() {
+func Listen(
+	name string,
+	resources []string,
+) {
 	driver := &runtime.Driver{
 		Reconcile: Reconcile,
-		Name:      "sampledriver",
-		Resources: []string{"pipe"},
+		Name:      name,
+		Resources: resources,
 	}
 
 	driverManager, err := runtime.NewDriverManager(driver, []string{"*"})
