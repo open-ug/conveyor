@@ -14,3 +14,8 @@ type Step struct {
 	Name   string `json:"name"`
 	Driver string `json:"driver"`
 }
+
+type DriverResult struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}

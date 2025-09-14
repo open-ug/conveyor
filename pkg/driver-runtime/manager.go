@@ -11,9 +11,9 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
+	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
-	config "github.com/open-ug/conveyor/internal/config"
-	utils "github.com/open-ug/conveyor/internal/utils"
+	"github.com/open-ug/conveyor/internal/engine"
 	"github.com/open-ug/conveyor/pkg/driver-runtime/log"
 	types "github.com/open-ug/conveyor/pkg/types"
 )
@@ -21,8 +21,6 @@ import (
 type DriverManager struct {
 	// The driver manager is responsible for managing the drivers
 	// and the driver lifecycle.
-
-	NatsContext *utils.NatsContext
 
 	Driver *Driver
 
@@ -35,9 +33,6 @@ func NewDriverManager(
 	driver *Driver,
 	events []string,
 ) (*DriverManager, error) {
-	// Load the configuration
-	config.InitConfig()
-
 	// Validate the driver
 	err := driver.Validate()
 	if err != nil {
@@ -45,16 +40,24 @@ func NewDriverManager(
 		return nil, err
 	}
 
-	natsCon := utils.NewNatsConn()
-
 	return &DriverManager{
-		NatsContext: natsCon,
-		Driver:      driver,
-		Events:      events,
+		Driver: driver,
+		Events: events,
 	}, nil
 }
 
 func (d *DriverManager) Run() error {
+	// Setup NATS JetStream
+	nc, err := nats.Connect(nats.DefaultURL)
+	if err != nil {
+		color.Red("Error Occured while connecting to NATS: %v", err)
+		return err
+	}
+	js, err := jetstream.New(nc)
+	if err != nil {
+		color.Red("Error Occured while creating JetStream context: %v", err)
+		return err
+	}
 
 	// Resources
 	var filterSubjects []string
@@ -62,7 +65,7 @@ func (d *DriverManager) Run() error {
 		filterSubjects = append(filterSubjects, "resources."+resource)
 	}
 
-	consumer, err := d.NatsContext.JetStream.CreateOrUpdateConsumer(context.Background(), "messages", jetstream.ConsumerConfig{
+	consumer, err := js.CreateOrUpdateConsumer(context.Background(), "messages", jetstream.ConsumerConfig{
 		Name:           d.Driver.Name,
 		FilterSubjects: filterSubjects,
 		AckPolicy:      jetstream.AckExplicitPolicy,
@@ -82,8 +85,8 @@ func (d *DriverManager) Run() error {
 		var message types.DriverMessage
 		err := json.Unmarshal([]byte(data), &message)
 		if err != nil {
-			fmt.Println("Error unmarshalling message: ", err)
-			//return err
+			color.Red("Error Occured while unmarshalling message: %v", err)
+			return
 		}
 
 		// check if the event is in the list of events
@@ -104,13 +107,25 @@ func (d *DriverManager) Run() error {
 				"event":  message.Event,
 				"id":     message.ID,
 				"run_id": message.RunID,
-			}, d.NatsContext.NatsCon)
+			}, nc)
 
-			err = d.Driver.Reconcile(message.Payload, message.Event, message.RunID, logger)
-			if err != nil {
-				fmt.Println("Error reconciling resource: ", err)
-				//return err
+			result := d.Driver.Reconcile(message.Payload, message.Event, message.RunID, logger)
+
+			driverevent := engine.DriverResultEvent{
+				Success: result.Success,
+				Message: result.Message,
+				Driver:  d.Driver.Name,
 			}
+
+			var resource types.Resource
+			err := json.Unmarshal([]byte(message.Payload), &resource)
+			if err != nil {
+				color.Red("Error Occured while unmarshalling resource: %v", err)
+				return
+			}
+
+			driverevent.PublishEvent(message.RunID, resource, js)
+
 		}
 	})
 

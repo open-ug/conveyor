@@ -5,6 +5,7 @@ package cli
 
 import (
 	apiServer "github.com/open-ug/conveyor/cmd/api"
+	sampledriver "github.com/open-ug/conveyor/cmd/sample-driver"
 	"github.com/spf13/cobra"
 )
 
@@ -20,6 +21,15 @@ var APIServerCmd = &cobra.Command{
 			port = "8080"
 		}
 		apiServer.StartServer(port)
+	},
+}
+
+var SampleDriverCmd = &cobra.Command{
+	Use:   "sampledriver",
+	Short: "Start the Sample Driver",
+	Long:  `Start the Sample Driver`,
+	Run: func(cmd *cobra.Command, args []string) {
+		sampledriver.Listen()
 	},
 }
 

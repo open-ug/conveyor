@@ -38,6 +38,7 @@ func init() {
 	cobra.OnInitialize(config.InitConfig)
 
 	rootCmd.AddCommand(APIServerCmd)
+	rootCmd.AddCommand(SampleDriverCmd)
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

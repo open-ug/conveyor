@@ -5,6 +5,7 @@ import (
 
 	driverruntime "github.com/open-ug/conveyor/pkg/driver-runtime"
 	"github.com/open-ug/conveyor/pkg/driver-runtime/log"
+	"github.com/open-ug/conveyor/pkg/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,8 +19,8 @@ func TestDriver_Validate(t *testing.T) {
 		{
 			name: "valid driver",
 			driver: driverruntime.Driver{
-				Reconcile: func(message, event, runID string, logger *log.DriverLogger) error {
-					return nil
+				Reconcile: func(message, event, runID string, logger *log.DriverLogger) types.DriverResult {
+					return types.DriverResult{}
 				},
 				Name:      "test-driver",
 				Resources: []string{"pods", "services"},
@@ -39,8 +40,8 @@ func TestDriver_Validate(t *testing.T) {
 		{
 			name: "missing name",
 			driver: driverruntime.Driver{
-				Reconcile: func(message, event, runID string, logger *log.DriverLogger) error {
-					return nil
+				Reconcile: func(message, event, runID string, logger *log.DriverLogger) types.DriverResult {
+					return types.DriverResult{}
 				},
 				Name:      "",
 				Resources: []string{"pods"},
@@ -51,8 +52,8 @@ func TestDriver_Validate(t *testing.T) {
 		{
 			name: "missing resources",
 			driver: driverruntime.Driver{
-				Reconcile: func(message, event, runID string, logger *log.DriverLogger) error {
-					return nil
+				Reconcile: func(message, event, runID string, logger *log.DriverLogger) types.DriverResult {
+					return types.DriverResult{}
 				},
 				Name:      "test-driver",
 				Resources: []string{},
