@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -31,6 +32,7 @@ func NewEtcdClient() (*EtcdClient, error) {
 	conveyorDataDir := viper.GetString("api.data")
 	cfg.Dir = conveyorDataDir + "/etcd"
 	cfg.Logger = "zap"
+	cfg.LogOutputs = []string{conveyorDataDir + "/etcd.log"}
 	cfg.ClusterState = "new"
 
 	if IsTestMode() {
@@ -48,7 +50,7 @@ func NewEtcdClient() (*EtcdClient, error) {
 	// Wait until ready
 	select {
 	case <-e.Server.ReadyNotify():
-		fmt.Println("Embedded etcd is ready on")
+		log.Println("Embedded etcd is ready on")
 	case <-time.After(60 * time.Second):
 		e.Server.Stop()
 		return nil, fmt.Errorf("etcd server took too long to start")

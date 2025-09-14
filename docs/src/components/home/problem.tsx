@@ -83,7 +83,8 @@ export const ProblemSolution = () => {
       icon: <GrConfigure style={{ color: "#3b82f6" }} />,
       title: "Declarative Simplicity",
       metric: "5 Min Setup",
-      description: "Intuitive YAML configuration, minimal learning curve",
+      description:
+        "Intuitive YAML/JSON configuration, minimal learning curve and you can define your own DSL",
     },
     {
       icon: <VscGraphLine style={{ color: "whitesmoke" }} />,

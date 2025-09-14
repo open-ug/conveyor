@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -23,8 +22,6 @@ func NewNatsConn() *NatsContext {
 	conveyorDataDir := viper.GetString("api.data")
 	dataDir := conveyorDataDir + "/nats"
 
-	fmt.Println(dataDir)
-
 	var port int
 	if IsTestMode() {
 		port = -1
@@ -35,7 +32,7 @@ func NewNatsConn() *NatsContext {
 		Port:      port,
 		JetStream: true,
 		StoreDir:  dataDir,
-		NoLog:     false,
+		NoLog:     true,
 	}
 
 	log.Println("Starting embedded NATS server with JetStream...")
@@ -81,7 +78,18 @@ func (n *NatsContext) InitiateStreams() error {
 	_, err := n.JetStream.CreateOrUpdateStream(context.Background(),
 		jetstream.StreamConfig{
 			Name:      "messages",
-			Subjects:  []string{"resources.>", "events.>"},
+			Subjects:  []string{"resources.>", "events.>", "drivers.>"},
+			Retention: jetstream.InterestPolicy,
+		})
+	if err != nil {
+		return err
+	}
+
+	// Create a stream for pipeline events
+	_, err = n.JetStream.CreateOrUpdateStream(context.Background(),
+		jetstream.StreamConfig{
+			Name:      "pipeline-engine",
+			Subjects:  []string{"pipelines.>"},
 			Retention: jetstream.WorkQueuePolicy,
 		})
 	if err != nil {
