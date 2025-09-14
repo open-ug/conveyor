@@ -11,6 +11,7 @@ type ResourceDefinition struct {
 type Resource struct {
 	ID       string            `json:"id"`
 	Name     string            `json:"name"`
+	Pipeline string            `json:"pipeline,omitempty"`
 	Resource string            `json:"resource"`
 	Metadata map[string]string `json:"metadata"`
 	Spec     interface{}       `json:"spec"`
