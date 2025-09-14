@@ -27,13 +27,17 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/dgraph-io/badger/v4"
 	"github.com/fatih/color"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/open-ug/conveyor/internal/engine"
+	"github.com/open-ug/conveyor/internal/handlers"
+
 	metrics "github.com/open-ug/conveyor/internal/metrics"
+	"github.com/open-ug/conveyor/internal/models"
 	routes "github.com/open-ug/conveyor/internal/routes"
 	_ "github.com/open-ug/conveyor/internal/swagger"
 	utils "github.com/open-ug/conveyor/internal/utils"
@@ -107,12 +111,16 @@ type APIServerContext struct {
 	App         *fiber.App
 	NatsContext *utils.NatsContext
 	ETCD        *utils.EtcdClient
+	BadgerDB    *badger.DB
 }
 
 func (c *APIServerContext) ShutDown() {
 	c.App.Shutdown()
 	c.NatsContext.Shutdown()
 	c.ETCD.ServerStop()
+	if c.BadgerDB != nil {
+		c.BadgerDB.Close()
+	}
 }
 
 // Setup Server
@@ -148,11 +156,22 @@ func Setup() (APIServerContext, error) {
 	natsContext.InitiateStreams()
 
 	etcd, err := utils.NewEtcdClient()
-
 	if err != nil {
 		color.Red("Error Occured while creating etcd client: %v", err)
 		return APIServerContext{}, err
 	}
+
+	// Initialize BadgerDB
+	badgerOpts := badger.DefaultOptions("./badgerdb")
+	badgerDB, err := badger.Open(badgerOpts)
+	if err != nil {
+		color.Red("Error opening BadgerDB: %v", err)
+		return APIServerContext{}, err
+	}
+
+	// Register routes
+	logModel := &models.LogModel{DB: badgerDB}
+	routes.LogRoutes(app, &handlers.LogHandler{Model: logModel})
 
 	routes.DriverRoutes(app, etcd.Client, natsContext.NatsCon)
 	routes.ResourceRoutes(app, etcd.Client, natsContext)
@@ -162,5 +181,6 @@ func Setup() (APIServerContext, error) {
 		NatsContext: natsContext,
 		App:         app,
 		ETCD:        etcd,
+		BadgerDB:    badgerDB,
 	}, nil
 }
