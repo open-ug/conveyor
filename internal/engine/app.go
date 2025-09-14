@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/google/uuid"
 	"github.com/nats-io/nats.go/jetstream"
 	"github.com/open-ug/conveyor/internal/models"
 	"github.com/open-ug/conveyor/internal/utils"
@@ -36,6 +37,7 @@ func NewEngineContext(db *clientv3.Client, natsContext utils.NatsContext) *Engin
 
 func (ec *EngineContext) Start() error {
 	log.Println("Starting the engine...")
+
 	consumer, err := ec.NatsContext.JetStream.CreateOrUpdateConsumer(context.Background(), "pipeline-engine", jetstream.ConsumerConfig{
 		Name:          "pipeline-engine",
 		FilterSubject: "pipelines.>",
@@ -66,14 +68,14 @@ func (ec *EngineContext) consumePipelineEvents(msg jetstream.Msg) {
 	var event PipelineEvent
 	err := json.Unmarshal(data, &event)
 	if err != nil {
-		// Handle error
+		log.Println("Error unmarshaling pipeline event: ", err)
 		return
 	}
 
 	// Get pipeline details
 	pipeline, err := ec.PipelineModel.GetPipeline(event.Resource.Pipeline)
 	if err != nil {
-		// Handle error
+		log.Println("Error getting pipeline details: ", err)
 		return
 	}
 
@@ -91,7 +93,7 @@ func (ec *EngineContext) consumePipelineEvents(msg jetstream.Msg) {
 
 		resourceJson, err := json.Marshal(event.Resource)
 		if err != nil {
-			// Handle error
+			log.Println("Error marshaling resource: ", err)
 			return
 		}
 		// Driver message
@@ -105,8 +107,12 @@ func (ec *EngineContext) consumePipelineEvents(msg jetstream.Msg) {
 		// Publish to the first step's driver
 		if len(pipeline.Steps) > 0 {
 			firstStep := pipeline.Steps[0]
-			subject := firstStep.Driver + ".resources." + event.Resource.Resource
-			ec.publishEvent(subject, driverMessage)
+			subject := "drivers." + firstStep.Driver + ".resources." + event.Resource.Resource
+			err = ec.publishEvent(subject, driverMessage)
+			if err != nil {
+				log.Println("Error publishing event to driver: ", err)
+				return
+			}
 		}
 	}
 
@@ -123,6 +129,7 @@ func (ec *EngineContext) publishEvent(subject string, message types.DriverMessag
 	_, err := ec.NatsContext.JetStream.PublishAsync(subject, jsonMsg)
 
 	if err != nil {
+		log.Println("Error publishing event to driver: ", err)
 		return err
 	}
 	return nil
@@ -166,7 +173,7 @@ func (ec *EngineContext) handleProcessDriverResult(event PipelineEvent, pipeline
 				ID:      mID,
 			}
 
-			subject := nextStep.Driver + ".resources." + event.Resource.Resource
+			subject := "drivers." + nextStep.Driver + ".resources." + event.Resource.Resource
 			ec.publishEvent(subject, driverMessage)
 		} else {
 			// Pipeline completed successfully
@@ -180,4 +187,61 @@ func (ec *EngineContext) handleProcessDriverResult(event PipelineEvent, pipeline
 func (ec *EngineContext) Stop() error {
 	// Logic to stop the engine
 	return nil
+}
+
+func PublishResourceEvent(
+	event string,
+	resource types.Resource,
+	js jetstream.JetStream) (string, error) {
+
+	run_id := uuid.New().String()
+	if resource.Pipeline == "" {
+
+		mID, err := utils.GenerateRandomID()
+		if err != nil {
+			return "", err
+		}
+		resourceData, err := json.Marshal(resource)
+		if err != nil {
+			return "", err
+		}
+		driverMsg := types.DriverMessage{
+			ID:      mID,
+			Payload: string(resourceData),
+			Event:   "create",
+			RunID:   run_id,
+		}
+
+		jsonMsg, merr := json.Marshal(driverMsg)
+		if merr != nil {
+			return "", merr
+		}
+
+		// Publish message to jetstream
+		subjectName := "resources." + resource.Resource
+		_, err = js.PublishAsync(subjectName, jsonMsg)
+
+		if err != nil {
+			return "", err
+		}
+		return run_id, nil
+	} else {
+		resourceEvent := PipelineEvent{
+			Event:    event,
+			RunID:    run_id,
+			Resource: resource,
+		}
+
+		eventJson, err := json.Marshal(resourceEvent)
+		if err != nil {
+			return "", err
+		}
+
+		_, err = js.PublishAsync("pipelines.pipeline.init", eventJson)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return run_id, nil
 }

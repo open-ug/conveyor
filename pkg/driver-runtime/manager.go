@@ -63,6 +63,7 @@ func (d *DriverManager) Run() error {
 	var filterSubjects []string
 	for _, resource := range d.Driver.Resources {
 		filterSubjects = append(filterSubjects, "resources."+resource)
+		filterSubjects = append(filterSubjects, "drivers."+d.Driver.Name+".resources."+resource)
 	}
 
 	consumer, err := js.CreateOrUpdateConsumer(context.Background(), "messages", jetstream.ConsumerConfig{
@@ -70,6 +71,8 @@ func (d *DriverManager) Run() error {
 		FilterSubjects: filterSubjects,
 		AckPolicy:      jetstream.AckExplicitPolicy,
 		MaxAckPending:  1,
+		// Deliver from last acknowledged message
+		DeliverPolicy: jetstream.DeliverAllPolicy,
 	})
 
 	if err != nil {
@@ -79,7 +82,6 @@ func (d *DriverManager) Run() error {
 
 	// CONSUMER
 	_, err = consumer.Consume(func(msg jetstream.Msg) {
-		fmt.Printf("Received message on subject: %s\n", msg.Subject())
 		msg.Ack()
 		data := msg.Data()
 		var message types.DriverMessage
