@@ -88,6 +88,17 @@ func (n *NatsContext) InitiateStreams() error {
 		return err
 	}
 
+	// Create a stream for pipeline events
+	_, err = n.JetStream.CreateOrUpdateStream(context.Background(),
+		jetstream.StreamConfig{
+			Name:      "pipeline-engine",
+			Subjects:  []string{"pipelines.>"},
+			Retention: jetstream.WorkQueuePolicy,
+		})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

@@ -32,6 +32,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/open-ug/conveyor/internal/engine"
 	metrics "github.com/open-ug/conveyor/internal/metrics"
 	routes "github.com/open-ug/conveyor/internal/routes"
 	_ "github.com/open-ug/conveyor/internal/swagger"
@@ -66,6 +67,16 @@ func StartServer(port string) {
 	go func() {
 		if err := appCtx.App.Listen(":" + port); err != nil {
 			fmt.Printf("Server stopped: %v\n", err)
+		}
+	}()
+
+	engineCtx := engine.NewEngineContext(appCtx.ETCD.Client, *appCtx.NatsContext)
+
+	go func() {
+		err := engineCtx.Start()
+		if err != nil {
+			color.Red("Error starting the engine: %v", err)
+			return
 		}
 	}()
 
