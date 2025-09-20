@@ -35,6 +35,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/open-ug/conveyor/internal/engine"
 	"github.com/open-ug/conveyor/internal/handlers"
+	"github.com/spf13/viper"
 
 	metrics "github.com/open-ug/conveyor/internal/metrics"
 	"github.com/open-ug/conveyor/internal/models"
@@ -74,7 +75,7 @@ func StartServer(port string) {
 		}
 	}()
 
-	engineCtx := engine.NewEngineContext(appCtx.ETCD.Client, *appCtx.NatsContext)
+	engineCtx := engine.NewEngineContext(appCtx.ETCD.Client, appCtx.LogModel, *appCtx.NatsContext)
 
 	go func() {
 		err := engineCtx.Start()
@@ -100,7 +101,7 @@ func StartServer(port string) {
 	}
 
 	appCtx.NatsContext.Shutdown()
-	fmt.Println("Sracefully shutting down Datastore")
+	fmt.Println("Gracefully shutting down Datastore")
 	appCtx.ETCD.ServerStop()
 
 	fmt.Println("Server gracefully stopped")
@@ -111,6 +112,7 @@ type APIServerContext struct {
 	App         *fiber.App
 	NatsContext *utils.NatsContext
 	ETCD        *utils.EtcdClient
+	LogModel    *models.LogModel
 	BadgerDB    *badger.DB
 }
 
@@ -162,7 +164,8 @@ func Setup() (APIServerContext, error) {
 	}
 
 	// Initialize BadgerDB
-	badgerOpts := badger.DefaultOptions("./badgerdb")
+	conveyorDataDir := viper.GetString("api.data")
+	badgerOpts := badger.DefaultOptions(conveyorDataDir + "/badger")
 	badgerDB, err := badger.Open(badgerOpts)
 	if err != nil {
 		color.Red("Error opening BadgerDB: %v", err)
@@ -181,6 +184,7 @@ func Setup() (APIServerContext, error) {
 		NatsContext: natsContext,
 		App:         app,
 		ETCD:        etcd,
+		LogModel:    logModel,
 		BadgerDB:    badgerDB,
 	}, nil
 }

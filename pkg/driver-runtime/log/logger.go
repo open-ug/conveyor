@@ -1,20 +1,22 @@
 package log
 
 import (
+	"context"
 	"encoding/json"
 	"strconv"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/nats-io/nats.go"
-	utils "github.com/open-ug/conveyor/internal/utils"
-	"github.com/spf13/viper"
+	"github.com/nats-io/nats.go/jetstream"
+	"github.com/open-ug/conveyor/pkg/types"
 )
 
 type DriverLogger struct {
 	// The driver logger is responsible for logging the driver
 	// and the driver lifecycle.
 	// Logger is the logger for the driver manager
-	Logger *utils.LokiClient
+	Logger Logger
 
 	// The driver name
 	DriverName string
@@ -26,15 +28,15 @@ type DriverLogger struct {
 	NatsCon *nats.Conn
 }
 
+type Logger interface {
+	PushLog(labels map[string]string, message string) error
+}
+
 func NewDriverLogger(driverName string, labels map[string]string, natsCon *nats.Conn) *DriverLogger {
-	// Load the configuration
-	lokiClient := utils.NewLokiClient(
-		viper.GetString("loki.host"),
-	)
 
 	return &DriverLogger{
 		DriverName: driverName,
-		Logger:     lokiClient,
+		Logger:     NewDefaultLogger(natsCon),
 		Labels:     labels,
 		NatsCon:    natsCon,
 	}
@@ -84,4 +86,44 @@ func (d *DriverLogger) Write(p []byte) (n int, err error) {
 		return 0, err
 	}
 	return len(p), nil
+}
+
+type DefaultLogger struct {
+	NatsCon *nats.Conn
+	js      jetstream.JetStream
+}
+
+func NewDefaultLogger(natsCon *nats.Conn) *DefaultLogger {
+	js, err := jetstream.New(natsCon)
+	if err != nil {
+		color.Red("Error Occured while creating JetStream context: %v", err)
+		return nil
+	}
+	return &DefaultLogger{
+		NatsCon: natsCon,
+		js:      js,
+	}
+}
+
+func (d *DefaultLogger) PushLog(labels map[string]string, message string) error {
+	logEntry := types.Log{
+		RunID:     labels["run_id"],
+		Driver:    labels["driver"],
+		Message:   message,
+		Timestamp: strconv.FormatInt(time.Now().Unix(), 10),
+	}
+
+	// Marshal the log entry to JSON
+	logEntryBytes, err := json.Marshal(logEntry)
+	if err != nil {
+		return err
+	}
+
+	// Publish the log entry to NATS JetStream
+	_, err = d.js.Publish(context.Background(), "logs."+logEntry.RunID, logEntryBytes)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
