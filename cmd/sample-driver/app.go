@@ -17,7 +17,13 @@ func Reconcile(payload string, event string, runID string, logger *logger.Driver
 
 	log.SetFlags(log.Ldate | log.Ltime)
 	log.Printf("Sample Driver Reconciling::: EVENT: %v PAYLOAD: %v", event, payload)
-	time.Sleep(3 * time.Second)
+
+	/// simulate doing some work by looping 5 times
+	for i := 0; i < 5; i++ {
+		log.Printf("Sample Driver Working... %d/5", i+1)
+		logger.Log(map[string]string{"step": fmt.Sprintf("%d", i+1)}, fmt.Sprintf("Sample Driver Working... %d/5", i+1))
+		time.Sleep(2 * time.Second)
+	}
 
 	return types.DriverResult{
 		Success: true,
