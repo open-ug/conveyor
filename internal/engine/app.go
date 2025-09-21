@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/google/uuid"
 	"github.com/nats-io/nats.go/jetstream"
 	"github.com/open-ug/conveyor/internal/models"
 	"github.com/open-ug/conveyor/internal/utils"
@@ -17,6 +16,7 @@ type EngineContext struct {
 	NatsContext   utils.NatsContext
 	PipelineModel *models.PipelineModel
 	ResourceModel *models.ResourceModel
+	LogModel      *models.LogModel
 }
 
 type PipelineEvent struct {
@@ -26,12 +26,13 @@ type PipelineEvent struct {
 	DriverResultEvent DriverResultEvent `json:"driverresult"`
 }
 
-func NewEngineContext(db *clientv3.Client, natsContext utils.NatsContext) *EngineContext {
+func NewEngineContext(db *clientv3.Client, logmodel *models.LogModel, natsContext utils.NatsContext) *EngineContext {
 
 	return &EngineContext{
 		NatsContext:   natsContext,
 		PipelineModel: models.NewPipelineModel(db),
 		ResourceModel: models.NewResourceModel(db),
+		LogModel:      logmodel,
 	}
 }
 
@@ -56,6 +57,24 @@ func (ec *EngineContext) Start() error {
 	}
 	defer cc.Stop()
 
+	logconsumer, err := ec.NatsContext.JetStream.CreateOrUpdateConsumer(context.Background(), "logs-engine", jetstream.ConsumerConfig{
+		Name:          "logs-engine",
+		FilterSubject: "logs.>",
+		AckPolicy:     jetstream.AckExplicitPolicy,
+	})
+	if err != nil {
+		log.Println("Error creating consumer: ", err)
+		return err
+	}
+
+	log.Println("Log consumer started...")
+	lc, err := logconsumer.Consume(ec.consumeLogEvents)
+	if err != nil {
+		log.Println("Error consuming log events: ", err)
+		return err
+	}
+	defer lc.Stop()
+
 	select {}
 }
 
@@ -72,6 +91,11 @@ func (ec *EngineContext) consumePipelineEvents(msg jetstream.Msg) {
 		return
 	}
 
+	if event.Resource.Pipeline == "" {
+		// No pipeline associated, ignore
+		return
+	}
+
 	// Get pipeline details
 	pipeline, err := ec.PipelineModel.GetPipeline(event.Resource.Pipeline)
 	if err != nil {
@@ -82,10 +106,7 @@ func (ec *EngineContext) consumePipelineEvents(msg jetstream.Msg) {
 	mID, _ := utils.GenerateRandomID()
 
 	if subject == "pipelines.driver.result" {
-		if event.Resource.Pipeline == "" {
-			// No pipeline associated, ignore
-			return
-		}
+
 		// Process driver result and move to next step
 		ec.handleProcessDriverResult(event, pipeline)
 
@@ -147,7 +168,7 @@ func (ec *EngineContext) handleProcessDriverResult(event PipelineEvent, pipeline
 	}
 
 	if currentStepIndex == -1 {
-		// Current step not found, handle error
+		// Current step not found
 		return
 	}
 
@@ -177,71 +198,13 @@ func (ec *EngineContext) handleProcessDriverResult(event PipelineEvent, pipeline
 			ec.publishEvent(subject, driverMessage)
 		} else {
 			// Pipeline completed successfully
-			// You can add logic here to mark the pipeline as completed in your system
 		}
 	} else {
-		// Handle failure case, e.g., log the error or notify someone
+		// TODO: Handle failure case
 	}
 }
 
 func (ec *EngineContext) Stop() error {
 	// Logic to stop the engine
 	return nil
-}
-
-func PublishResourceEvent(
-	event string,
-	resource types.Resource,
-	js jetstream.JetStream) (string, error) {
-
-	run_id := uuid.New().String()
-	if resource.Pipeline == "" {
-
-		mID, err := utils.GenerateRandomID()
-		if err != nil {
-			return "", err
-		}
-		resourceData, err := json.Marshal(resource)
-		if err != nil {
-			return "", err
-		}
-		driverMsg := types.DriverMessage{
-			ID:      mID,
-			Payload: string(resourceData),
-			Event:   "create",
-			RunID:   run_id,
-		}
-
-		jsonMsg, merr := json.Marshal(driverMsg)
-		if merr != nil {
-			return "", merr
-		}
-
-		// Publish message to jetstream
-		subjectName := "resources." + resource.Resource
-		_, err = js.PublishAsync(subjectName, jsonMsg)
-
-		if err != nil {
-			return "", err
-		}
-		return run_id, nil
-	} else {
-		resourceEvent := PipelineEvent{
-			Event:    event,
-			RunID:    run_id,
-			Resource: resource,
-		}
-
-		eventJson, err := json.Marshal(resourceEvent)
-		if err != nil {
-			return "", err
-		}
-
-		_, err = js.PublishAsync("pipelines.pipeline.init", eventJson)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	return run_id, nil
 }
