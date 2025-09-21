@@ -174,7 +174,7 @@ func Setup() (APIServerContext, error) {
 
 	// Register routes
 	logModel := &models.LogModel{DB: badgerDB}
-	routes.LogRoutes(app, &handlers.LogHandler{Model: logModel})
+	routes.LogRoutes(app, &handlers.LogHandler{Model: logModel}, natsContext.NatsCon)
 
 	routes.DriverRoutes(app, etcd.Client, natsContext.NatsCon)
 	routes.ResourceRoutes(app, etcd.Client, natsContext)

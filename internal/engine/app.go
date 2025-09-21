@@ -91,6 +91,11 @@ func (ec *EngineContext) consumePipelineEvents(msg jetstream.Msg) {
 		return
 	}
 
+	if event.Resource.Pipeline == "" {
+		// No pipeline associated, ignore
+		return
+	}
+
 	// Get pipeline details
 	pipeline, err := ec.PipelineModel.GetPipeline(event.Resource.Pipeline)
 	if err != nil {
@@ -101,10 +106,7 @@ func (ec *EngineContext) consumePipelineEvents(msg jetstream.Msg) {
 	mID, _ := utils.GenerateRandomID()
 
 	if subject == "pipelines.driver.result" {
-		if event.Resource.Pipeline == "" {
-			// No pipeline associated, ignore
-			return
-		}
+
 		// Process driver result and move to next step
 		ec.handleProcessDriverResult(event, pipeline)
 
