@@ -3,54 +3,42 @@ package streaming
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/gofiber/websocket/v2"
 	"github.com/nats-io/nats.go"
-	utils "github.com/open-ug/conveyor/internal/utils"
-	"github.com/spf13/viper"
+	"github.com/open-ug/conveyor/internal/models"
 )
 
 type DriverLogsStreamer struct {
-	NatsCon *nats.Conn
-	Logger  *utils.LokiClient
+	NatsCon  *nats.Conn
+	LogModel *models.LogModel
 }
 
-func NewDriverLogsStreamer(NatsCon *nats.Conn) *DriverLogsStreamer {
-	lokiClient := utils.NewLokiClient(
-		viper.GetString("loki.host"),
-	)
+func NewDriverLogsStreamer(NatsCon *nats.Conn, LogModel *models.LogModel) *DriverLogsStreamer {
+
 	return &DriverLogsStreamer{
-		NatsCon: NatsCon,
-		Logger:  lokiClient,
+		NatsCon:  NatsCon,
+		LogModel: LogModel,
 	}
 }
 
 func (s *DriverLogsStreamer) StreamLogs(ws *websocket.Conn) {
-	fmt.Println("Streaming driver logs")
 	driverName := ws.Params("name")
 	runID := ws.Params("runid")
 
-	lokiQuery := map[string]string{
-		"driver": driverName,
-		"run_id": runID,
-	}
-
-	// First fetch previous logs in loki. time is zero
-	logs, err := s.Logger.QueryLoki(lokiQuery, time.Time{}, time.Time{})
+	// Get the logs from the database
+	logs, err := s.LogModel.Query("", driverName, runID)
 	if err != nil {
-		fmt.Println("Error fetching logs from Loki:", err)
+		fmt.Println("Error getting logs:", err)
 		ws.Close()
 		return
 	}
-	for _, log := range logs {
-		for _, line := range log.Values {
-			// Send the log line to the WebSocket
-			err = ws.WriteJSON(line)
-			if err != nil {
-				ws.Close()
-				return
-			}
+	// Send the existing logs to the client
+	for _, logEntry := range logs {
+		err = ws.WriteJSON([]string{logEntry.Timestamp, logEntry.Message})
+		if err != nil {
+			ws.Close()
+			return
 		}
 	}
 
@@ -73,7 +61,7 @@ func (s *DriverLogsStreamer) StreamLogs(ws *websocket.Conn) {
 		}
 	})
 	if errf != nil {
-		fmt.Println("Error subscribing to NATS channel:", err)
+		fmt.Println("Error subscribing to NATS channel:", errf)
 		ws.Close()
 		return
 	}

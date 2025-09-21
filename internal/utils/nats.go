@@ -96,6 +96,17 @@ func (n *NatsContext) InitiateStreams() error {
 		return err
 	}
 
+	// Create a stream for logging
+	_, err = n.JetStream.CreateOrUpdateStream(context.Background(),
+		jetstream.StreamConfig{
+			Name:      "logs-engine",
+			Subjects:  []string{"logs.>"},
+			Retention: jetstream.WorkQueuePolicy,
+		})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

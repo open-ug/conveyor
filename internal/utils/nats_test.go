@@ -61,7 +61,5 @@ func sharedConsumerConfig(name string, subjects []string) jetstream.ConsumerConf
 	return jetstream.ConsumerConfig{
 		Name:           name,
 		FilterSubjects: subjects,
-		AckPolicy:      jetstream.AckExplicitPolicy,
-		MaxAckPending:  1,
 	}
 }

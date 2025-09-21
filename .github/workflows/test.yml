@@ -9,19 +9,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      loki:
-        image: grafana/loki:latest
-        ports:
-          - 3100:3100
-        options: >-
-          --health-cmd "wget --quiet --tries=1 --spider http://127.0.0.1:3100/ready || exit 1"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-        # Mounting a config file isn't trivial in GitHub Actions, so use default config
-        # If your tests require a custom config, bake it into a custom image
-
     steps:
       # 1. Checkout the PR code
       - name: Checkout code
