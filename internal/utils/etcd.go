@@ -37,6 +37,7 @@ func NewEtcdClient() (*EtcdClient, error) {
 
 	if IsTestMode() {
 		cfg.Dir = filepath.Join(os.TempDir(), cfg.Name)
+		cfg.LogOutputs = []string{"stderr"}
 		cfg.ListenClientUrls = []url.URL{{Scheme: "http", Host: "localhost:0"}}
 		cfg.ListenPeerUrls = []url.URL{{Scheme: "http", Host: "localhost:0"}}
 	}

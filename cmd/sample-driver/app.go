@@ -16,7 +16,7 @@ import (
 func Reconcile(payload string, event string, runID string, logger *logger.DriverLogger) types.DriverResult {
 
 	log.SetFlags(log.Ldate | log.Ltime)
-	log.Printf("Sample Driver Reconciling::: EVENT: %v PAYLOAD: %v", event, payload)
+	log.Printf("Sample Driver Reconciling::: EVENT: %v PAYLOAD: %v", event, runID)
 
 	/// simulate doing some work by looping 5 times
 	for i := 0; i < 5; i++ {

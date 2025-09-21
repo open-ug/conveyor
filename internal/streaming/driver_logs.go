@@ -6,23 +6,41 @@ import (
 
 	"github.com/gofiber/websocket/v2"
 	"github.com/nats-io/nats.go"
+	"github.com/open-ug/conveyor/internal/models"
 )
 
 type DriverLogsStreamer struct {
-	NatsCon *nats.Conn
+	NatsCon  *nats.Conn
+	LogModel *models.LogModel
 }
 
-func NewDriverLogsStreamer(NatsCon *nats.Conn) *DriverLogsStreamer {
+func NewDriverLogsStreamer(NatsCon *nats.Conn, LogModel *models.LogModel) *DriverLogsStreamer {
 
 	return &DriverLogsStreamer{
-		NatsCon: NatsCon,
+		NatsCon:  NatsCon,
+		LogModel: LogModel,
 	}
 }
 
 func (s *DriverLogsStreamer) StreamLogs(ws *websocket.Conn) {
-	fmt.Println("Streaming driver logs")
 	driverName := ws.Params("name")
 	runID := ws.Params("runid")
+
+	// Get the logs from the database
+	logs, err := s.LogModel.Query("", driverName, runID)
+	if err != nil {
+		fmt.Println("Error getting logs:", err)
+		ws.Close()
+		return
+	}
+	// Send the existing logs to the client
+	for _, logEntry := range logs {
+		err = ws.WriteJSON([]string{logEntry.Timestamp, logEntry.Message})
+		if err != nil {
+			ws.Close()
+			return
+		}
+	}
 
 	// Subscribe to the NATS channel for driver logs
 	sub, errf := s.NatsCon.Subscribe(fmt.Sprintf("driver:%s:logs:%s", driverName, runID), func(msg *nats.Msg) {
