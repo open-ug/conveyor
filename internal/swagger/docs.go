@@ -96,6 +96,306 @@ const docTemplate = `{
                 }
             }
         },
+        "/logs": {
+            "get": {
+                "description": "Returns logs filtered by pipeline, driver, and runid",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "logs"
+                ],
+                "summary": "Get log entries",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Pipeline name",
+                        "name": "pipeline",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Driver name",
+                        "name": "driver",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Run ID",
+                        "name": "runid",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of logs",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.Log"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Accepts a JSON log entry and stores it in BadgerDB",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "logs"
+                ],
+                "summary": "Create a log entry",
+                "parameters": [
+                    {
+                        "description": "Log entry object",
+                        "name": "log",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.Log"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Log created",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid payload",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/pipelines": {
+            "post": {
+                "description": "Create a new pipeline with the specified configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pipelines"
+                ],
+                "summary": "Create a new pipeline",
+                "parameters": [
+                    {
+                        "description": "Pipeline object",
+                        "name": "pipeline",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.Pipeline"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Pipeline created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/types.Pipeline"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid payload",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/pipelines/{name}": {
+            "get": {
+                "description": "Retrieve a pipeline by its name",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pipelines"
+                ],
+                "summary": "Get a pipeline by name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Pipeline name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pipeline retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/types.Pipeline"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found - Pipeline does not exist",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an existing pipeline with new configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pipelines"
+                ],
+                "summary": "Update an existing pipeline",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Pipeline name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated pipeline object",
+                        "name": "pipeline",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.Pipeline"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pipeline updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/types.Pipeline"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid payload",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not found - Pipeline does not exist",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a pipeline by its name",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pipelines"
+                ],
+                "summary": "Delete a pipeline by name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Pipeline name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Pipeline deleted successfully"
+                    },
+                    "404": {
+                        "description": "Not found - Pipeline does not exist",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/resource-definitions": {
             "post": {
                 "description": "Create a new resource definition with the specified configuration",
@@ -692,6 +992,55 @@ const docTemplate = `{
                 }
             }
         },
+        "types.Log": {
+            "type": "object",
+            "properties": {
+                "driver": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "pipeline": {
+                    "type": "string"
+                },
+                "runid": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.Pipeline": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "steps": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.Step"
+                    }
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
         "types.Resource": {
             "type": "object",
             "properties": {
@@ -705,6 +1054,9 @@ const docTemplate = `{
                     }
                 },
                 "name": {
+                    "type": "string"
+                },
+                "pipeline": {
                     "type": "string"
                 },
                 "resource": {
@@ -727,6 +1079,20 @@ const docTemplate = `{
                 },
                 "schema": {},
                 "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.Step": {
+            "type": "object",
+            "properties": {
+                "driver": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }
