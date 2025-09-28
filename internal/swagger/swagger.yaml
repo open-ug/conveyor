@@ -13,6 +13,38 @@ definitions:
       run_id:
         type: string
     type: object
+  types.Log:
+    properties:
+      driver:
+        type: string
+      message:
+        type: string
+      pipeline:
+        type: string
+      runid:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  types.Pipeline:
+    properties:
+      description:
+        type: string
+      metadata:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        type: string
+      resource:
+        type: string
+      steps:
+        items:
+          $ref: '#/definitions/types.Step'
+        type: array
+      version:
+        type: string
+    type: object
   types.Resource:
     properties:
       id:
@@ -22,6 +54,8 @@ definitions:
           type: string
         type: object
       name:
+        type: string
+      pipeline:
         type: string
       resource:
         type: string
@@ -37,6 +71,15 @@ definitions:
         type: string
       schema: {}
       version:
+        type: string
+    type: object
+  types.Step:
+    properties:
+      driver:
+        type: string
+      id:
+        type: string
+      name:
         type: string
     type: object
 host: localhost:8080
@@ -102,6 +145,207 @@ paths:
       summary: Health check
       tags:
       - health
+  /logs:
+    get:
+      consumes:
+      - application/json
+      description: Returns logs filtered by pipeline, driver, and runid
+      parameters:
+      - description: Pipeline name
+        in: query
+        name: pipeline
+        type: string
+      - description: Driver name
+        in: query
+        name: driver
+        type: string
+      - description: Run ID
+        in: query
+        name: runid
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of logs
+          schema:
+            items:
+              $ref: '#/definitions/types.Log'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get log entries
+      tags:
+      - logs
+    post:
+      consumes:
+      - application/json
+      description: Accepts a JSON log entry and stores it in BadgerDB
+      parameters:
+      - description: Log entry object
+        in: body
+        name: log
+        required: true
+        schema:
+          $ref: '#/definitions/types.Log'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Log created
+          schema:
+            type: string
+        "400":
+          description: Bad request - Invalid payload
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a log entry
+      tags:
+      - logs
+  /pipelines:
+    post:
+      consumes:
+      - application/json
+      description: Create a new pipeline with the specified configuration
+      parameters:
+      - description: Pipeline object
+        in: body
+        name: pipeline
+        required: true
+        schema:
+          $ref: '#/definitions/types.Pipeline'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Pipeline created successfully
+          schema:
+            $ref: '#/definitions/types.Pipeline'
+        "400":
+          description: Bad request - Invalid payload
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new pipeline
+      tags:
+      - pipelines
+  /pipelines/{name}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a pipeline by its name
+      parameters:
+      - description: Pipeline name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Pipeline deleted successfully
+        "404":
+          description: Not found - Pipeline does not exist
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a pipeline by name
+      tags:
+      - pipelines
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a pipeline by its name
+      parameters:
+      - description: Pipeline name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pipeline retrieved successfully
+          schema:
+            $ref: '#/definitions/types.Pipeline'
+        "404":
+          description: Not found - Pipeline does not exist
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a pipeline by name
+      tags:
+      - pipelines
+    put:
+      consumes:
+      - application/json
+      description: Update an existing pipeline with new configuration
+      parameters:
+      - description: Pipeline name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Updated pipeline object
+        in: body
+        name: pipeline
+        required: true
+        schema:
+          $ref: '#/definitions/types.Pipeline'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pipeline updated successfully
+          schema:
+            $ref: '#/definitions/types.Pipeline'
+        "400":
+          description: Bad request - Invalid payload
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not found - Pipeline does not exist
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update an existing pipeline
+      tags:
+      - pipelines
   /resource-definitions:
     post:
       consumes:
