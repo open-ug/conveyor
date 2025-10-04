@@ -118,6 +118,4 @@ The Admin list is reviewed and updated twice a year and typically contains:
 ## Code of Conduct
 
 [Code of Conduct](https://github.com/open-ug/conveyor/blob/main/CODE_OF_CONDUCT.md) violations by community members will be
-discussed and resolved by the maintainers privately. If a Maintainer is
-directly involved in the report, the Maintainers will instead designate two
-Maintainers to work with the CNCF Code of Conduct Committee in resolving it.
+discussed and resolved by the maintainers privately.
