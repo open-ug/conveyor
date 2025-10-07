@@ -33,6 +33,7 @@ func NewNatsConn() *NatsContext {
 		JetStream: true,
 		StoreDir:  dataDir,
 		NoLog:     true,
+		NoSigs:    true,
 	}
 
 	log.Println("Starting embedded NATS server with JetStream...")
