@@ -51,15 +51,6 @@ Include instructions for reproducing the tests.
 Attach relevant screenshots, terminal output, or logs
 -->
 
----
-
-## Checklist
-
-- [ ] My code follows the project coding guidelines
-- [ ] I have added/updated tests to cover my changes
-- [ ] I have updated the relevant documentation
-- [ ] I have assigned the correct labels and linked issues/milestones
-- [ ] This PR is ready for review
 
 ---
 

@@ -70,7 +70,7 @@ export const ProblemSolution = () => {
     {
       icon: <IoFlash style={{ color: "#10b981" }} />,
       title: "Lightweight Core",
-      metric: "< 50MB",
+      metric: "< 70MB",
       description: "Minimal resource footprint, fast startup times",
     },
     {
