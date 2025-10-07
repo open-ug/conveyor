@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 Conveyor CI Contributors
+Copyright © 2024 - Present Conveyor CI Contributors
 */
 package main
 
