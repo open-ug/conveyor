@@ -32,30 +32,24 @@ stages:
     },
     {
       title: "Execute & Monitor",
-      code: `$ conveyor run --pipeline build-deploy
+      code: `$ conveyor up
+2025/09/28 22:04:15 Starting embedded NATS server with JetStream...
+2025/09/28 22:04:15 NATS server started on nats://0.0.0.0:4222
+2025/09/28 22:04:15 Embedded etcd is ready on
+2025/09/28 22:04:15 Starting the engine...
 
-✓ Pipeline started successfully
-⚡ Real-time logs streaming...
-📊 Observability dashboard: localhost:8080
+ ┌───────────────────────────────────────────────────┐ 
+ │                Conveyor API Server                │ 
+ │                   Fiber v2.52.9                   │ 
+ │               http://127.0.0.1:8080               │ 
+ │       (bound on host 0.0.0.0 and port 8080)       │ 
+ │                                                   │ 
+ │ Handlers ............ 32  Processes ........... 1 │ 
+ │ Prefork ....... Disabled  PID ............ 281038 │ 
+ └───────────────────────────────────────────────────┘ 
 
-Stage [test] ████████████ 100% Complete
-Stage [deploy] ██████░░░░░░ 60% Running
-
-🚀 Deployment successful in 2m 34s`,
-    },
-    {
-      title: "Scale Horizontally",
-      code: `$ conveyor scale --workers 5
-
-✓ Scaling to 5 workers...
-✓ Load balancer configured
-✓ Event system synchronized
-
-Current capacity: 50 concurrent pipelines
-Average execution time: 1m 12s
-System health: 🟢 Optimal
-
-Ready to handle enterprise workloads!`,
+2025/09/28 22:04:15 Engine started and listening for pipeline events...
+2025/09/28 22:04:15 Log consumer started...`,
     },
   ];
 
