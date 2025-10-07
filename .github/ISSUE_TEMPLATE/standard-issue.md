@@ -25,26 +25,6 @@ assignees: ''
 
 ---
 
-## Steps to Reproduce (for bugs)
-
-1. 
-2. 
-3. 
-
----
-
-## Expected Behavior
-
-<!-- Describe what you expected to happen -->
-
----
-
-## Actual Behavior (for bugs)
-
-<!-- Describe what actually happened -->
-
----
-
 ## Screenshots / Logs
 
 <!-- If applicable, add screenshots or logs to help explain the problem -->
