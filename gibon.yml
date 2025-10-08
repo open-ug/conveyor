@@ -1,4 +1,4 @@
 # Commands used by the gibon autonomous coding agent to validate work during coding sessions
 dependencies: go mod download # Download Go module dependencies
 unit: APP_ENV=test go test ./... -v # Run unit tests with test environment
-build: go build . # Build the main conveyor binary
+build: go build -o build/conveyor . # Build the main conveyor binary
