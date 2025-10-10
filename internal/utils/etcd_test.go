@@ -2,6 +2,7 @@ package utils_test
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 )
 
 func TestNewEtcdClient_Integration(t *testing.T) {
-
+	os.Setenv("APP_ENV", "test")
 	client, err := utils.NewEtcdClient()
 	assert.NoError(t, err, "Expected to connect to etcd without error")
 	assert.NotNil(t, client)
@@ -44,4 +45,7 @@ func TestNewEtcdClient_Integration(t *testing.T) {
 	client.Cancel()
 	client.Client.Close()
 	client.ServerStop()
+	t.Cleanup(func() {
+		assert.NoError(t, os.Unsetenv("APP_ENV"), "error removing test app_env")
+	})
 }

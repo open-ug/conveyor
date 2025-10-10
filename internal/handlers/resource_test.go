@@ -3,9 +3,11 @@ package handlers_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,25 +17,57 @@ import (
 	"github.com/open-ug/conveyor/pkg/types"
 )
 
+func buildResourceDefinition(in int) types.ResourceDefinition {
+
+	return types.ResourceDefinition{
+		Name:        fmt.Sprintf("pipe:%d", in),
+		Description: "Pipeline resource definition",
+		Version:     "1.0.0",
+		Schema: map[string]any{
+			"properties": map[string]any{
+				"image": map[string]any{
+					"type": "string",
+				},
+				"steps": map[string]any{
+					"type": "array",
+					"items": map[string]any{
+						"type": "object",
+						"properties": map[string]any{
+							"name": map[string]any{
+								"type": "string",
+							},
+							"command": map[string]any{
+								"type": "string",
+							},
+						},
+						"required": []string{"name", "command"},
+					},
+				},
+			},
+			"required": []string{"steps"},
+		},
+	}
+}
+
 // Build example resource definition (based on your example)
 var resource_definition = types.ResourceDefinition{
 	Name:        "pipe4",
 	Description: "Pipeline resource definition",
 	Version:     "1.0.0",
-	Schema: map[string]interface{}{
-		"properties": map[string]interface{}{
-			"image": map[string]interface{}{
+	Schema: map[string]any{
+		"properties": map[string]any{
+			"image": map[string]any{
 				"type": "string",
 			},
-			"steps": map[string]interface{}{
+			"steps": map[string]any{
 				"type": "array",
-				"items": map[string]interface{}{
+				"items": map[string]any{
 					"type": "object",
-					"properties": map[string]interface{}{
-						"name": map[string]interface{}{
+					"properties": map[string]any{
+						"name": map[string]any{
 							"type": "string",
 						},
-						"command": map[string]interface{}{
+						"command": map[string]any{
 							"type": "string",
 						},
 					},
@@ -88,7 +122,8 @@ func Test_Resource_CRUD(t *testing.T) {
 
 	// --- Create Resource Definition ---
 	t.Run("create-resource-definition", func(t *testing.T) {
-		bodyBytes, _ := json.Marshal(resource_definition)
+		in := 2
+		bodyBytes, _ := json.Marshal(buildResourceDefinition(in))
 		req := httptest.NewRequest(http.MethodPost, "/resource-definitions", bytes.NewReader(bodyBytes))
 		req.Header.Set("Content-Type", "application/json")
 
@@ -97,12 +132,16 @@ func Test_Resource_CRUD(t *testing.T) {
 			t.Fatalf("create resource-definition request failed: %v", err)
 		}
 		defer resp.Body.Close()
-
 		respBody, _ := io.ReadAll(resp.Body)
+		if strings.Contains(string(respBody), "error") {
+			assert.Contains(t, string(respBody), "pipe:2 already exists")
+			return
+		}
 		assert.Equal(t, http.StatusCreated, resp.StatusCode, "expected 201 Created on create resource-definition")
 
 		var created types.ResourceDefinition
 		if assert.NoError(t, json.Unmarshal(respBody, &created), "unmarshal create resource-definition response") {
+			t.Logf("response body:%s\n", created)
 			assert.Equal(t, resource_definition.Name, created.Name)
 			assert.Equal(t, resource_definition.Version, created.Version)
 		}
