@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Contributing
 
-Conveyor CI is an open-source project licenced under the [Apache License 2.0](https://github.com/open-ug/conveyor/blob/main/LICENSE). We welcome anyone who would be interested in contributing to urunc. As a first step, please take a look at the following document. The current document provides a high level overview of Conveyor CI's code structure, along with a few guidelines regarding contributions to the project.
+Conveyor CI is an open-source project licenced under the [Apache License 2.0](https://github.com/open-ug/conveyor/blob/main/LICENSE). We welcome anyone who would be interested in contributing to Conveyor CI. As a first step, please take a look at the following document. The current document provides a high level overview of Conveyor CI's code structure, along with a few guidelines regarding contributions to the project.
 
 
 ## Code Organisation
@@ -12,20 +12,24 @@ Conveyor CI is an open-source project licenced under the [Apache License 2.0](ht
 Conveyor CI is written in Go and it exposes an Application Programming Interface whose client libraries can be written in any language. We structure the codebase and other files as follows:
 
 - `/`: The root directory contains the non-code files, such as the licence, readme and conveyor's entry point `main.go`.
-- `/documentation`: This directory contains a [Docusaurous Site](https://docusaurus.io/) for all the documentation related to Conveyor CI.
+- `/docs`: This directory contains a [Docusaurus Site](https://docusaurus.io/) for all the documentation related to Conveyor CI.
 - `/cmd/cli`: Contains the entrypoint for the command line and definitions for all CLI commands.
 - `/cmd/api`: Contains the entrypoint for the API Server.
+- `/cmd/sample-driver`: Contains a sample driver implementation for reference.
 - `/internal/`: Contains majority of the Conveyor CI codebase.
   - `/internal/config/`: This directory contains code responsible for loading and handling Conveyor CI configuration.
-  - `/internal/handlers`: Contains code .
+  - `/internal/engine`: Contains the core engine logic for Conveyor CI.
+  - `/internal/handlers`: Contains HTTP request handlers for the API Server.
+  - `/internal/init`: Contains initialization logic for the system.
   - `/internal/routes`: Contains code defining API Server routes.
   - `/internal/models`: Contains code defining `etcd` data models.
-  - `/internal/streaming`: Contains handling websocket streaming.
   - `/internal/metrics`: Contains code for collecting metrics for the API Server.
+  - `/internal/swagger`: Contains Swagger/OpenAPI documentation generation.
+  - `/internal/streaming`: Contains handling for websocket streaming.
   - `/internal/utils`: This directory contains utility functions.
-- `/pkg`: This contains the Publicaly available Conveyor CI SDK library
+- `/pkg`: This contains the publicly available Conveyor CI SDK library
   - `/pkg/client`: Contains the Go API Client
-  - `/pkg/driver-runtime/`: Contains Driver runtime and its utility finctions
+  - `/pkg/driver-runtime/`: Contains Driver runtime and its utility functions
 - `/sdk`: This directory is meant to contain any Conveyor SDK implementations in other languages
 - `/helm`: This contains the Conveyor Helm Chart for deploying to Kubernetes.
 
@@ -33,11 +37,11 @@ Conveyor CI is written in Go and it exposes an Application Programming Interface
 
 There are plenty of ways to contribute to an open source project, even without changing or touching the code. Therefore, anyone who is interested in this project is very welcome to contribute in one of the following ways:
 
-- Using Coveyor CI. Try it out yourself and let us know your experience. Did everything work well? Were the instructions clear?
+- Using Conveyor CI. Try it out yourself and let us know your experience. Did everything work well? Were the instructions clear?
 - Improve or suggest changes to the documentation of the project. Documentation is very important for every project, hence any ideas on how to improve the documentation to make it more clear are more than welcome.
 - Request new features. Any proposals for improving or adding new features are very welcome.
 - Find a bug and report it. Bugs are everywhere and some are hidden very well. As a result, we would really appreciate it if someone found a bug and reported it to the maintainers.
-- Make changes to the code. Improve the code, add new functionalities and make urunc even more useful.
+- Make changes to the code. Improve the code, add new functionalities and make Conveyor CI even more useful.
 
 ## Opening an issue
 
@@ -51,7 +55,7 @@ If you find a bug, you can help fix it by submiting and issue to the appropriate
 - Steps to reproduce the issue
 - What you expected to happen
 - What actually happened
-- If the repository has an issue tempate. you should follow it.
+- If the repository has an issue template, you should follow it.
 
 Before submitting, check if the issue already exists in the repository issue list.
 
@@ -84,7 +88,7 @@ Once you have identified and issue or an enhancement you would like to work on. 
    
    # OR 
 
-   git checkout -b fix/your-fixture-name 
+   git checkout -b fix/your-fix-name 
    ```
 
 4. **Make your changes**
@@ -121,6 +125,6 @@ Improving test coverage and documentation is highly valuable. You can:
 
 No contribution is too small!
 
-### Golang code styde
+### Golang code style
 
 We follow gofmt's rules on formatting GO code. Therefore, we ask all contributors to do the same. Go provides the gofmt tool, which can be used for formatting your code.
