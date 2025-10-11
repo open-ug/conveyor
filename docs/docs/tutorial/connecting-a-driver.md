@@ -35,4 +35,4 @@ You should get output like this
 Driver Manager is running for driver:  command-runner
 ```
 
-You can move to the next page about triggering a workflow or if you want to dive deep ito driver development head over to the Driver Development Page
+You can move to the next page about triggering a workflow or if you want to dive deep into driver development head over to the Driver Development Page

@@ -49,7 +49,7 @@ We use Github issues to track bugs and requests for new features. Anyone is welc
 
 ### Reporting Bugs
 
-If you find a bug, you can help fix it by submiting and issue to the appropriate repository. within your issue Include:
+If you find a bug, you can help fix it by submitting an issue to the appropriate repository. Within your issue include:
 
 - A clear and descriptive title
 - Steps to reproduce the issue
@@ -71,7 +71,7 @@ We also welcome feature suggestions and ideas for improvement. When submitting a
 
 ### Submitting Code Changes
 
-Once you have identified and issue or an enhancement you would like to work on. you can folloe this workflow to submit your code changes.
+Once you have identified an issue or an enhancement you would like to work on, you can follow this workflow to submit your code changes.
 
 1. **Fork** the repository
 2. **Clone** your fork:

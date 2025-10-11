@@ -18,16 +18,24 @@ curl -s https://api.github.com/repos/open-ug/conveyor/releases/latest | grep bro
 curl -s https://api.github.com/repos/open-ug/conveyor/releases/latest | grep browser_download_url | grep loki.yml | cut -d '"' -f 4 | xargs curl -L -o loki.yml
 ```
 
-Once you have all the files, you can then start they system using Docker Compose
+Once you have all the files, you can then start the system using Docker Compose
 
 ```sh
 docker compose up -d
 ```
 
-And *Viola!!*, Conveyor  is up and running
+And *Voila!!*, Conveyor is up and running
 
-:::info
+## Install using Helm (Kubernetes)
 
-The Official team is working on Helm Charts to enable installation on Kubernetes and also a bare metal installation workflow.
+Helm charts are available for deploying Conveyor CI to Kubernetes. The Helm chart can be found in the `/helm` directory of the repository.
 
-:::
+Ensure you have Helm installed on your system and access to a Kubernetes cluster.
+
+```bash
+# Add the Conveyor Helm repository (once charts are published)
+# Or install directly from the repository
+helm install conveyor ./helm
+```
+
+For more details on Helm installation and configuration options, refer to the Helm chart documentation in the `/helm` directory.
