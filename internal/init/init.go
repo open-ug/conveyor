@@ -80,7 +80,7 @@ func getSystemDirectories() (configDir, certDir string, err error) {
 }
 
 func printSuccessMessage(configDir, certDir string) {
-	fmt.Println("\n✅ Conveyor CI initialization completed successfully!")
+	fmt.Println("\n✔ Conveyor CI initialization completed successfully!")
 	fmt.Println("\nGenerated files:")
 	fmt.Printf("  • Configuration: %s/conveyor.yml\n", configDir)
 	fmt.Printf("  • CA Certificate: %s/ca.pem\n", certDir)
