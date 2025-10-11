@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # Using the SDKs
 
-Conveyor CI provides a number of SDKs, that help you interact with the Conveyor CI API within your desired language. The liat of available SDKs include:
+Conveyor CI provides a number of SDKs, that help you interact with the Conveyor CI API within your desired language. The list of available SDKs include:
 
 | Language   | Status   | Source Code                                                        | Documentation                                                |
 | ---------- | -------- | ------------------------------------------------------------------ | ------------------------------------------------------------ |

@@ -38,8 +38,6 @@ Instead of building your own CI/CD system from scratch, Conveyor CI gives you a 
 
 Conveyor CI is distributed as an OCI container and available on Docker Hub. It depends on `etcd`, `loki`, and `nats`, so a standard Docker Compose configuration is provided.
 
-> **Helm charts coming soon**
-
 To Install it on docker compose you can head over to the Releases page and download `compose.yml` and `loki.yml` or on a linux system you can download them using `curl`.
 
 ```sh

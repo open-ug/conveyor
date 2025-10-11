@@ -15,7 +15,7 @@ Before you begin development, ensure you have the following software on your dev
 
 ## Starting Dependency Services
 
-First you need to start the Loki container. Within the `config` directory, there is a `compose.dev.yml` file. Start is using Docker Compose.
+First you need to start the Loki container. Within the `config` directory, there is a `compose.dev.yml` file. Start it using Docker Compose.
 
 ```sh
 docker compose -f config/compose.dev.yml up -d
