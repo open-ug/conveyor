@@ -9,6 +9,12 @@ A detailed guide to contributing to the Conveyor CI Driver runtime.
 
 <!-- truncate -->
 
+:::danger
+
+THIS ARTICLE IS OUTDATED AND DEPRECIATED, MAJORITY OF THE CONTENT AND IMPLEMENTATIONS DESCRIBED HERE WHERE REMOVED ENTIRELY FROM CONVEYOR CI AND ARE NOLONGER SUPPORTED
+
+:::
+
 ## Introduction
 
 A brief introduction on the Conveyor CI Driver runtime.
