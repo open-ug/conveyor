@@ -36,14 +36,14 @@ func TestNatsContext_Integration(t *testing.T) {
 	subject := "resources.test"
 	msgData := []byte("hello-nats")
 
-	_, err = nc.JetStream.Publish(context.Background(), subject, msgData)
-	assert.NoError(t, err, "Expected to publish message without error")
-
 	// 4. Subscribe and consume message
 	consumer, err := nc.JetStream.CreateOrUpdateConsumer(context.Background(), "messages",
 		sharedConsumerConfig("test-consumer", []string{subject}),
 	)
 	assert.NoError(t, err)
+
+	_, err = nc.JetStream.Publish(context.Background(), subject, msgData)
+	assert.NoError(t, err, "Expected to publish message without error")
 
 	// Use a channel to receive the message
 	msgCh := make(chan string, 1)
