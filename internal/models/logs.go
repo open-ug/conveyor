@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/dgraph-io/badger/v4"
+	"github.com/google/uuid"
 
 	"github.com/open-ug/conveyor/pkg/types"
 )
@@ -15,7 +16,7 @@ type LogModel struct {
 
 // Generate composite key
 func makeKey(pipeline, driver, runid, timestamp string) string {
-	return fmt.Sprintf("%s|%s|%s|%s", pipeline, driver, runid, timestamp)
+	return fmt.Sprintf("%s|%s|%s|%s|%s", pipeline, driver, runid, timestamp, uuid.New().String())
 }
 
 // Insert log entry
