@@ -44,7 +44,7 @@ func copyCertificates(opts *Options, certDir string) error {
 		}
 	}
 
-	fmt.Println("📋 Copied existing certificates to cert directory")
+	fmt.Println("✔ Copied existing certificates to cert directory")
 	return nil
 }
 
@@ -62,7 +62,7 @@ func generateCertificates(certDir string, force bool) error {
 		}
 	}
 
-	fmt.Println("🔐 Generating CA certificate...")
+	fmt.Println("🛡 Generating CA certificate...")
 
 	// Generate CA private key
 	caKey, err := rsa.GenerateKey(rand.Reader, 4096)
@@ -100,7 +100,7 @@ func generateCertificates(certDir string, force bool) error {
 		return fmt.Errorf("failed to save CA certificate: %w", err)
 	}
 
-	fmt.Println("🔐 Generating server certificate...")
+	fmt.Println("🛡 Generating server certificate...")
 
 	// Generate server private key
 	serverKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -149,7 +149,7 @@ func generateCertificates(certDir string, force bool) error {
 		return fmt.Errorf("failed to save server certificate: %w", err)
 	}
 
-	fmt.Println("✅ Successfully generated TLS certificates")
+	fmt.Println("✔ Successfully generated TLS certificates")
 	return nil
 }
 

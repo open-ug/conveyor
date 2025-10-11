@@ -67,6 +67,6 @@ tls:
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
 
-	fmt.Printf("📝 Generated configuration file: %s\n", configPath)
+	fmt.Printf("✔ Generated configuration file: %s\n", configPath)
 	return nil
 }

@@ -31,11 +31,11 @@ func createDirectoryIfNotExists(path string, perm os.FileMode, desc string) erro
 		if err := os.MkdirAll(path, perm); err != nil {
 			return fmt.Errorf("failed to create %s at %s: %w", desc, path, err)
 		}
-		fmt.Printf("📁 Created %s: %s\n", desc, path)
+		fmt.Printf("✔ Created %s: %s\n", desc, path)
 	} else if err != nil {
 		return fmt.Errorf("failed to check %s at %s: %w", desc, path, err)
 	} else {
-		fmt.Printf("📁 Using existing %s: %s\n", desc, path)
+		fmt.Printf("✔ Using existing %s: %s\n", desc, path)
 	}
 
 	return nil
