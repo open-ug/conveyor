@@ -14,8 +14,9 @@ import (
 
 func TestNatsContext_Integration(t *testing.T) {
 	// Set test environment to enable random port allocation
-	origEnv := os.Getenv("APP_ENV")
+	originalEnv := os.Getenv("APP_ENV")
 	os.Setenv("APP_ENV", "test")
+	defer os.Setenv("APP_ENV", originalEnv) // Restore original value after test
 
 	config.InitConfig()
 
@@ -59,10 +60,6 @@ func TestNatsContext_Integration(t *testing.T) {
 	case <-time.After(3 * time.Second):
 		t.Fatal("Timed out waiting for NATS message")
 	}
-	t.Cleanup(func() {
-		assert.NoError(t, os.Unsetenv("APP_ENV"), "error unsetting app_env")
-		assert.NoError(t, os.Setenv("APP_ENV", origEnv), "error restoring app_env")
-	})
 }
 
 // helper to build consumer config
