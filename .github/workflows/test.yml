@@ -1,9 +1,13 @@
 name: Go Test
 
 on:
+  push:
+    branches:
+      - "**" # run on pushes to any branch in this repository
   pull_request:
     branches:
-      - "**" # Run on PRs to any branch
+      - "**" # still run on PRs
+  workflow_dispatch: {} # allow manual runs from the Actions UI
 
 jobs:
   test:
@@ -26,8 +30,3 @@ jobs:
       # Run tests
       - name: Run tests
         run: make test
-
-      - uses: qltysh/qlty-action/coverage@v1
-        with:
-          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-          files: cover.out
