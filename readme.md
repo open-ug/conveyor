@@ -142,5 +142,3 @@ Apache License 2.0, see [LICENSE](./LICENSE).
 Copyright © 2024 - Present, Conveyor CI Contributors.
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fopen-ug%2Fconveyor.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fopen-ug%2Fconveyor?ref=badge_large)
-
-
