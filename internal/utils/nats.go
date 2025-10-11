@@ -2,7 +2,9 @@ package utils
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/nats-io/nats-server/v2/server"
@@ -20,6 +22,13 @@ type NatsContext struct {
 func NewNatsConn() *NatsContext {
 
 	conveyorDataDir := viper.GetString("api.data")
+	if conveyorDataDir == "" {
+		cwd, err := os.Getwd()
+		if err != nil {
+			fmt.Printf("error getting cwd:%v\n", err)
+		}
+		conveyorDataDir = cwd
+	}
 	dataDir := conveyorDataDir + "/nats"
 
 	var port int
