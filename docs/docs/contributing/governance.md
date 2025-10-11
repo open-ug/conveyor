@@ -6,15 +6,14 @@ sidebar_position: 5
 
 **Conveyor CI** is dedicated to simplify development of CI/CD platforms in cloud-native environments. This governance document explains how the project is run.
 
-- [Governance](#governance)
-  - [Values](#values)
-  - [Roles](#roles)
-    - [Contributor](#contributor)
-    - [Maintainer](#maintainer)
-      - [Becoming a Maintainer](#becoming-a-maintainer)
-      - [Removing a Maintainer](#removing-a-maintainer)
-    - [Admin](#admin)
-  - [Code of Conduct](#code-of-conduct)
+- [Values](#values)
+- [Roles](#roles)
+  - [Contributor](#contributor)
+  - [Maintainer](#maintainer)
+    - [Becoming a Maintainer](#becoming-a-maintainer)
+    - [Removing a Maintainer](#removing-a-maintainer)
+  - [Admin](#admin)
+- [Code of Conduct](#code-of-conduct)
 
 ## Values
 
