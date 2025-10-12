@@ -21,9 +21,11 @@ package api
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -33,6 +35,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/open-ug/conveyor/internal/auth"
 	"github.com/open-ug/conveyor/internal/engine"
 	"github.com/open-ug/conveyor/internal/handlers"
 	"github.com/spf13/viper"
@@ -68,9 +71,40 @@ func StartServer(port string) {
 		return
 	}
 
+	// Check if TLS is enabled
+	tlsEnabled := viper.GetBool("auth.tls.enabled")
+	
 	// Run server in a goroutine
 	go func() {
-		if err := appCtx.App.Listen(":" + port); err != nil {
+		var err error
+		if tlsEnabled {
+			// Create TLS configuration
+			conveyorDataDir := viper.GetString("api.data")
+			certDir := filepath.Join(conveyorDataDir, "certs")
+			
+			certManager := auth.NewCertificateManager(certDir)
+			tlsConfig := auth.NewTLSConfig(certManager)
+			serverTLSConfig, err := tlsConfig.CreateServerTLSConfig()
+			if err != nil {
+				color.Red("Error creating TLS configuration: %v", err)
+				return
+			}
+			
+			// Create TLS listener
+			ln, err := tls.Listen("tcp", ":"+port, serverTLSConfig)
+			if err != nil {
+				color.Red("Error creating TLS listener: %v", err)
+				return
+			}
+			
+			color.Green("Starting HTTPS server on port %s with TLS authentication", port)
+			err = appCtx.App.Listener(ln)
+		} else {
+			color.Yellow("Warning: Starting HTTP server without TLS (auth.tls.enabled=false)")
+			err = appCtx.App.Listen(":" + port)
+		}
+		
+		if err != nil {
 			fmt.Printf("Server stopped: %v\n", err)
 		}
 	}()
@@ -114,6 +148,14 @@ type APIServerContext struct {
 	ETCD        *utils.EtcdClient
 	LogModel    *models.LogModel
 	BadgerDB    *badger.DB
+	AuthManager *AuthManager // Add authentication manager
+}
+
+// AuthManager holds authentication components
+type AuthManager struct {
+	CertificateManager *auth.CertificateManager
+	JWTManager         *auth.JWTManager
+	TLSConfig          *auth.TLSConfig
 }
 
 func (c *APIServerContext) ShutDown() {
@@ -141,6 +183,40 @@ func Setup() (APIServerContext, error) {
 
 	// Add Prometheus middleware
 	app.Use(metrics.PrometheusMiddleware())
+
+	// Initialize authentication if enabled
+	var authManager *AuthManager
+	authEnabled := viper.GetBool("auth.enabled")
+	if authEnabled {
+		conveyorDataDir := viper.GetString("api.data")
+		certDir := filepath.Join(conveyorDataDir, "certs")
+		
+		certManager := auth.NewCertificateManager(certDir)
+		jwtManager := auth.NewJWTManager(certManager)
+		tlsConfig := auth.NewTLSConfig(certManager)
+		
+		authManager = &AuthManager{
+			CertificateManager: certManager,
+			JWTManager:         jwtManager,
+			TLSConfig:          tlsConfig,
+		}
+		
+		// Add authentication middleware to protected routes
+		jwtRequired := viper.GetBool("auth.jwt.required")
+		if jwtRequired {
+			// Apply authentication middleware to all routes except public ones
+			authMiddleware := auth.NewAuthMiddleware(jwtManager, certManager)
+			authMiddleware.SetSkipAuthRoutes([]string{"/health", "/metrics", "/swagger", "/docs", "/"})
+			app.Use(authMiddleware.Handler())
+		} else {
+			// Use optional authentication
+			app.Use(auth.OptionalAuth(jwtManager, certManager))
+		}
+		
+		color.Green("Authentication enabled with TLS certificates and JWT tokens")
+	} else {
+		color.Yellow("Warning: Authentication is disabled (auth.enabled=false)")
+	}
 
 	// Swagger documentation
 	app.Get("/swagger/*", fiberSwagger.WrapHandler)
@@ -186,5 +262,6 @@ func Setup() (APIServerContext, error) {
 		ETCD:        etcd,
 		LogModel:    logModel,
 		BadgerDB:    badgerDB,
+		AuthManager: authManager,
 	}, nil
 }
