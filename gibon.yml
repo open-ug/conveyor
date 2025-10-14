@@ -3,4 +3,4 @@ dependencies: go mod download # Download Go module dependencies
 generate: make swagger-init # Generate Swagger API documentation from code comments  
 lint: go vet ./... # Run Go static analysis and lint checks
 unit: make test # Run unit tests with verbose output in test environment
-build: go build -o conveyor . # Build the Conveyor binary executable
+build: go build -o build/conveyor . # Build the main conveyor binary
