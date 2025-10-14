@@ -28,6 +28,11 @@ Instead of building your own CI/CD system from scratch, Conveyor CI gives you a 
 ## Key features
 
 - **Built-in Observability**: Metrics, tracing, and logging integrated out-of-the-box.
+- **Authentication & Security**: TLS certificates and JWT token-based authentication for secure API access.
+- **Lightweight & Modular**: Core engine with extensible driver architecture.
+- **Event-Driven**: Real-time pipeline execution with comprehensive event streaming.
+- **Scalable**: Distributed architecture designed for cloud-native environments.
+- **Developer-Friendly**: Rich APIs, SDKs, and documentation for easy integration.
 - **Declarative CI/CD Workflows**: Define pipelines using a flexible, extensible API.
 - **Real-time Event System**: Event-driven architecture powers responsive, dynamic execution.
 - **Effortless Horizontal Scaling**: Built-in runtime scales drivers across distributed systems with zero extra code.
@@ -59,6 +64,20 @@ docker compose up -d
 ```
 
 The Conveyor API Server will be reachable on [http://localhost:8080](http://localhost:8080)
+
+**Note**: For production deployments, configure authentication using TLS certificates and JWT tokens. See the [Authentication Documentation](docs/authentication.md) for detailed setup instructions.
+
+## Authentication
+
+Conveyor CI supports secure authentication using TLS certificates and JWT tokens. This ensures that only trusted clients can connect and interact with the API server.
+
+**Key features**:
+- TLS mutual authentication with client certificates
+- JWT token-based authorization  
+- Certificate Authority (CA) based trust model
+- Configurable authentication levels (required, optional, or disabled)
+
+For detailed setup instructions, see [docs/authentication.md](docs/authentication.md).
 
 ## More information
 

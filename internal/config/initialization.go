@@ -23,10 +23,16 @@ func InitConfig() {
 	viper.BindEnv("api.host", "CONVEYOR_SERVER_HOST")
 	viper.BindEnv("api.data", "CONVEYOR_DATA_DIR")
 	viper.BindEnv("loki.host", "LOKI_ENDPOINT")
+	viper.BindEnv("auth.enabled", "CONVEYOR_AUTH_ENABLED")
+	viper.BindEnv("auth.tls.enabled", "CONVEYOR_TLS_ENABLED")
+	viper.BindEnv("auth.jwt.required", "CONVEYOR_JWT_REQUIRED")
 
 	// Set defaults
 	viper.SetDefault("api.host", "http://localhost:8080")
 	viper.SetDefault("loki.host", "http://localhost:3100")
+	viper.SetDefault("auth.enabled", true)
+	viper.SetDefault("auth.tls.enabled", true)
+	viper.SetDefault("auth.jwt.required", true)
 
 	// Determine proper data directory based on user context
 	dataDir := "/data" // fallback
