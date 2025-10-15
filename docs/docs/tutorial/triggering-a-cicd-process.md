@@ -60,4 +60,4 @@ The progress will be in the format of a timestamp and a log message.
 
 ---
 
-Having completed this tutorial, you have a highlevel understanding of Conveyor CI usage workflow. You can now continue to the [Concepts Documentation](/docs/category/concepts) to gain a Deep understanding of how Conveyor CI works.
+Having completed this tutorial, you have a high-level understanding of Conveyor CI usage workflow. You can now continue to the [Concepts Documentation](/docs/category/concepts) to gain a deep understanding of how Conveyor CI works.

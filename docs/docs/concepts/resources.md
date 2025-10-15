@@ -14,7 +14,7 @@ Resource objects contain specific fields that are required when creating them. T
 
 - **Name**: The name field is used to specify the name of the Resource. It is meant to be unique across different Resources. It is an alpha-numerical string field that does not include spaces or any special characters except “-”
 - **Resource**: The resource field is used to specify what Resource Definition schema to use. It corresponds and has to be equal to the name of an existing Resource Definition.
-- **Spec**: The spec field contains the resource data. The data must follow the convection defined in the Resource Definition.
+- **Spec**: The spec field contains the resource data. The data must follow the convention defined in the Resource Definition.
 
 ## Resources workflow
 
