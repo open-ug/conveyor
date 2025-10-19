@@ -27,6 +27,7 @@ func NewNatsConn() *NatsContext {
 	var port int
 	if IsTestMode() {
 		port = -1
+		dataDir = "" // Use in-memory store for tests
 	} else {
 		port = viper.GetInt("nats.port")
 	}
