@@ -39,6 +39,22 @@ func NewNatsConn() *NatsContext {
 		//NoSigs:    true,
 	}
 
+	authEnabled := viper.GetBool("api.auth_enabled")
+	if authEnabled {
+		// enable TLS Authentication
+		caFile := viper.GetString("tls.ca")
+		certFile := viper.GetString("tls.cert")
+		keyFile := viper.GetString("tls.key")
+
+		opts.TLS = true
+		opts.TLSCert = certFile
+		opts.TLSKey = keyFile
+		opts.TLSCaCert = caFile
+		opts.TLSVerify = true
+
+		log.Println("NATS server TLS authentication enabled.")
+	}
+
 	log.Println("Starting embedded NATS server with JetStream...")
 	natsServer, err := server.NewServer(opts)
 	if err != nil {
