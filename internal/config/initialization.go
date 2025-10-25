@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/user"
@@ -35,9 +36,30 @@ func InitConfig() {
 	viper.AddConfigPath(dataDir)
 	viper.SetConfigType("yaml")
 
-	if err := viper.ReadInConfig(); err != nil {
-		log.Printf("Error reading config file: %v", err)
-	}
-	log.Printf("Using config file: %s", viper.ConfigFileUsed())
+}
 
+// LoadConfig reads in config file and ENV variables if set.
+// This should be called in PreRunE of commands that need config.
+func LoadConfig() error {
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			// Config file not found; provide a helpful error
+			return fmt.Errorf("config file not found. Please run 'conveyor init' first")
+		}
+		// Config file was found but another error was produced
+		return fmt.Errorf("error reading config file: %w", err)
+	}
+
+	log.Printf("Using config file: %s", viper.ConfigFileUsed())
+	return nil
+}
+
+func LoadTestEnvConfig(testConfigPath string) error {
+	viper.SetConfigFile(testConfigPath)
+	if err := viper.ReadInConfig(); err != nil {
+		return fmt.Errorf("error reading test config file: %w", err)
+	}
+
+	log.Printf("Using test config file: %s", viper.ConfigFileUsed())
+	return nil
 }

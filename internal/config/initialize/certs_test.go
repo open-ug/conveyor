@@ -1,4 +1,4 @@
-package init
+package initialize
 
 import (
 	"crypto/x509"
@@ -10,7 +10,7 @@ import (
 
 func TestGenerateCertificates(t *testing.T) {
 	tempDir := t.TempDir()
-	
+
 	err := generateCertificates(tempDir, false)
 	if err != nil {
 		t.Fatalf("Failed to generate certificates: %v", err)
@@ -19,7 +19,7 @@ func TestGenerateCertificates(t *testing.T) {
 	// Check if all certificate files were created
 	expectedFiles := []string{
 		"ca.key",
-		"ca.pem", 
+		"ca.pem",
 		"server.key",
 		"server.crt",
 	}
@@ -98,7 +98,7 @@ func TestGenerateCertificates(t *testing.T) {
 
 func TestGenerateCertificatesExistingFiles(t *testing.T) {
 	tempDir := t.TempDir()
-	
+
 	// Create a dummy certificate file
 	dummyCertPath := filepath.Join(tempDir, "server.crt")
 	err := os.WriteFile(dummyCertPath, []byte("dummy cert"), 0644)
@@ -123,13 +123,13 @@ func TestCopyCertificates(t *testing.T) {
 	tempDir := t.TempDir()
 	srcDir := filepath.Join(tempDir, "src")
 	destDir := filepath.Join(tempDir, "dest")
-	
+
 	// Create source and destination directories
 	err := os.MkdirAll(srcDir, 0755)
 	if err != nil {
 		t.Fatalf("Failed to create source directory: %v", err)
 	}
-	
+
 	err = os.MkdirAll(destDir, 0755)
 	if err != nil {
 		t.Fatalf("Failed to create destination directory: %v", err)
@@ -192,8 +192,8 @@ func TestCopyCertificates(t *testing.T) {
 		}
 
 		if string(actualContent) != expectedContent {
-			t.Errorf("Content mismatch for %s. Expected: %s, Got: %s", 
-				     destPath, expectedContent, string(actualContent))
+			t.Errorf("Content mismatch for %s. Expected: %s, Got: %s",
+				destPath, expectedContent, string(actualContent))
 		}
 	}
 
@@ -210,7 +210,7 @@ func testFilePermissions(t *testing.T, path string, expectedPerm os.FileMode) {
 
 	actualPerm := info.Mode().Perm()
 	if actualPerm != expectedPerm {
-		t.Errorf("File %s has wrong permissions. Expected: %o, Got: %o", 
-		         path, expectedPerm, actualPerm)
+		t.Errorf("File %s has wrong permissions. Expected: %o, Got: %o",
+			path, expectedPerm, actualPerm)
 	}
 }

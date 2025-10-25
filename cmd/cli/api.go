@@ -5,12 +5,11 @@ package cli
 
 import (
 	"fmt"
-	"log"
 
 	apiServer "github.com/open-ug/conveyor/cmd/api"
 	sampledriver "github.com/open-ug/conveyor/cmd/sample-driver"
+	config "github.com/open-ug/conveyor/internal/config"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var APIServerCmd = &cobra.Command{
@@ -19,10 +18,14 @@ var APIServerCmd = &cobra.Command{
 	Long: `Start the Conveyor Service
 
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		if !viper.IsSet("api.data") {
-			log.Fatal("ERROR: API data directory is not set in configuration")
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		// Attempt to load the config
+		if err := config.LoadConfig(); err != nil {
+			return err
 		}
+		return nil
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 		port := cmd.Flag("port").Value.String()
 		if port == "" {
 			port = "8080"
