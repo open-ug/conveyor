@@ -17,15 +17,17 @@ type Client struct {
 	APIURL     string
 
 	authEnabled bool
-	cert        *x509.Certificate
-	privateKey  crypto.PrivateKey
-	tokenTTL    time.Duration
+	// FIX: Store the entire certificate chain
+	certs      []*x509.Certificate
+	privateKey crypto.PrivateKey
+	tokenTTL   time.Duration
 }
 
 // NewClient initializes the API client.
 // - apiURL: base API URL
 // - authEnabled: true if client should use certificate-bound JWT auth
-// - certPath, keyPath: paths to PEM files (required if authEnabled is true)
+// - certPath: path to the client's certificate chain PEM file (leaf first)
+// - keyPath: path to the client's private key PEM file
 // - tokenTTL: duration of short-lived JWTs (optional, pass 0 for default 2m)
 func NewClient(apiURL string, authEnabled bool, certPath, keyPath string, tokenTTL time.Duration) (*Client, error) {
 	client := resty.New()
@@ -46,18 +48,20 @@ func NewClient(apiURL string, authEnabled bool, certPath, keyPath string, tokenT
 		}
 		certPEM, err := os.ReadFile(certPath)
 		if err != nil {
-			return nil, fmt.Errorf("read cert: %w", err)
+			return nil, fmt.Errorf("read cert file %s: %w", certPath, err)
 		}
 		keyPEM, err := os.ReadFile(keyPath)
 		if err != nil {
-			return nil, fmt.Errorf("read key: %w", err)
+			return nil, fmt.Errorf("read key file %s: %w", keyPath, err)
 		}
 
-		cert, key, err := parseCertAndKey(certPEM, keyPEM)
+		// FIX: Use the corrected parse function
+		certs, key, err := parseCertAndKey(certPEM, keyPEM)
 		if err != nil {
 			return nil, fmt.Errorf("parse cert/key: %w", err)
 		}
-		c.cert = cert
+		// FIX: Store the entire chain
+		c.certs = certs
 		c.privateKey = key
 
 		// default token TTL if not provided

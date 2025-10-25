@@ -19,7 +19,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// doRequest performs an HTTP request. If auth is enabled, it signs a JWT and sets Authorization header.
+// Performs an HTTP request. If auth is enabled, it signs a JWT and sets Authorization header.
 func (c *Client) doRequest(ctx context.Context, method, path string, body, dest any) error {
 	if (method == http.MethodPost || method == http.MethodPut) && body == nil {
 		return fmt.Errorf("doRequest: body cannot be nil for POST/PUT requests")
@@ -43,6 +43,7 @@ func (c *Client) doRequest(ctx context.Context, method, path string, body, dest 
 		if err != nil {
 			return fmt.Errorf("doRequest: failed to create signed jwt: %w", err)
 		}
+		// fmt.Printf("Generated JWT: %s\n", tokenString) // Optional: for debugging
 		req.SetHeader("Authorization", "Bearer "+tokenString)
 	}
 
@@ -64,34 +65,17 @@ func (c *Client) doRequest(ctx context.Context, method, path string, body, dest 
 
 // ------------------ certificate & JWT helpers ------------------
 
-func parseCertAndKey(certPEM, keyPEM []byte) (*x509.Certificate, crypto.PrivateKey, error) {
-	// parse certificate
-	var certBlock *pem.Block
-	rest := certPEM
-	for {
-		certBlock, rest = pem.Decode(rest)
-		if certBlock == nil {
-			break
-		}
-		if certBlock.Type == "CERTIFICATE" {
-			break
-		}
-	}
-	if certBlock == nil || certBlock.Type != "CERTIFICATE" {
-		return nil, nil, errors.New("no certificate PEM block found")
-	}
-	cert, err := x509.ParseCertificate(certBlock.Bytes)
-	if err != nil {
-		return nil, nil, fmt.Errorf("parse certificate: %w", err)
-	}
-
-	// parse private key
+// parseCertAndKey parses the full certificate chain and the private key.
+// It validates that the private key matches the *first* certificate in the certPEM.
+func parseCertAndKey(certPEM, keyPEM []byte) ([]*x509.Certificate, crypto.PrivateKey, error) {
+	// --- 1. Parse Private Key ---
 	keyBlock, _ := pem.Decode(keyPEM)
 	if keyBlock == nil {
 		return nil, nil, errors.New("no private key PEM block found")
 	}
 
 	var parsedKey any
+	var err error
 	switch keyBlock.Type {
 	case "RSA PRIVATE KEY":
 		parsedKey, err = x509.ParsePKCS1PrivateKey(keyBlock.Bytes)
@@ -100,35 +84,85 @@ func parseCertAndKey(certPEM, keyPEM []byte) (*x509.Certificate, crypto.PrivateK
 	case "PRIVATE KEY":
 		parsedKey, err = x509.ParsePKCS8PrivateKey(keyBlock.Bytes)
 	default:
-		parsedKey, err = x509.ParsePKCS8PrivateKey(keyBlock.Bytes)
+		parsedKey, err = x509.ParsePKCS8PrivateKey(keyBlock.Bytes) // Assume PKCS8
 	}
 	if err != nil {
 		return nil, nil, fmt.Errorf("parse private key: %w", err)
 	}
 
+	var privKey crypto.PrivateKey
+	var pubKey crypto.PublicKey
+
 	switch k := parsedKey.(type) {
 	case *rsa.PrivateKey:
-		return cert, k, nil
+		privKey = k
+		pubKey = &k.PublicKey
 	case *ecdsa.PrivateKey:
-		return cert, k, nil
+		privKey = k
+		pubKey = &k.PublicKey
 	default:
 		return nil, nil, errors.New("unsupported private key type")
 	}
+
+	// --- 2. Parse ALL Certificates ---
+	var certs []*x509.Certificate
+	rest := certPEM
+	for {
+		var certBlock *pem.Block
+		certBlock, rest = pem.Decode(rest)
+		if certBlock == nil {
+			break
+		}
+		if certBlock.Type == "CERTIFICATE" {
+			cert, err := x509.ParseCertificate(certBlock.Bytes)
+			if err != nil {
+				return nil, nil, fmt.Errorf("parse certificate in chain: %w", err)
+			}
+			certs = append(certs, cert)
+		}
+	}
+	if len(certs) == 0 {
+		return nil, nil, errors.New("no certificate PEM block found in cert file")
+	}
+
+	// --- 3. Validate Leaf Cert (first cert) matches Private Key ---
+	leaf := certs[0]
+	match := false
+	switch pub := pubKey.(type) {
+	case *rsa.PublicKey:
+		if certPub, ok := leaf.PublicKey.(*rsa.PublicKey); ok {
+			match = pub.N.Cmp(certPub.N) == 0 && pub.E == certPub.E
+		}
+	case *ecdsa.PublicKey:
+		if certPub, ok := leaf.PublicKey.(*ecdsa.PublicKey); ok {
+			match = pub.X.Cmp(certPub.X) == 0 && pub.Y.Cmp(certPub.Y) == 0 && pub.Curve == certPub.Curve
+		}
+	}
+
+	if !match {
+		return nil, nil, errors.New("private key does not match first certificate in PEM chain")
+	}
+
+	// Return the full chain and the private key
+	return certs, privKey, nil
 }
 
-// createSignedJWT builds and signs a short-lived JWT bound to the client's certificate
+// builds and signs a short-lived JWT
 func (c *Client) createSignedJWT() (string, error) {
 	if !c.authEnabled {
 		return "", errors.New("auth not enabled")
 	}
-	if c.cert == nil || c.privateKey == nil {
-		return "", errors.New("certificate or private key not configured")
+	// FIX: Check the certs slice
+	if len(c.certs) == 0 || c.privateKey == nil {
+		return "", errors.New("certificate chain or private key not configured")
 	}
+	// The leaf is the first certificate in our chain
+	leaf := c.certs[0]
 
 	now := time.Now().UTC()
 	ttl := c.tokenTTL
 	if ttl <= 0 {
-		ttl = 2 * time.Minute
+		ttl = 2 * time.Minute // Should match default in NewClient
 	}
 
 	claims := jwt.MapClaims{
@@ -136,7 +170,8 @@ func (c *Client) createSignedJWT() (string, error) {
 		"exp": now.Add(ttl).Unix(),
 	}
 
-	sum := sha256.Sum256(c.cert.Raw)
+	// FIX: Use the leaf (c.certs[0]) for the thumbprint
+	sum := sha256.Sum256(leaf.Raw)
 	thumb := base64.RawURLEncoding.EncodeToString(sum[:])
 	claims["cnf"] = map[string]string{"x5t#S256": thumb}
 
@@ -160,9 +195,16 @@ func (c *Client) createSignedJWT() (string, error) {
 	}
 
 	token := jwt.NewWithClaims(signingMethod, claims)
-	leafB64 := base64.StdEncoding.EncodeToString(c.cert.Raw)
-	token.Header["x5c"] = []string{leafB64}
 
+	// FIX: Include the *entire* certificate chain in x5c
+	x5cChain := make([]string, len(c.certs))
+	for i, cert := range c.certs {
+		// x5c uses standard base64, not URL encoding
+		x5cChain[i] = base64.StdEncoding.EncodeToString(cert.Raw)
+	}
+	token.Header["x5c"] = x5cChain
+
+	// Sign the token
 	var signed string
 	var err error
 	switch k := c.privateKey.(type) {
