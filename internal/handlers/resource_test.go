@@ -18,7 +18,7 @@ import (
 
 // Build example resource definition (based on your example)
 var resource_definition = types.ResourceDefinition{
-	Name:        "pipe",
+	Name:        "pipe4",
 	Description: "Pipeline resource definition",
 	Version:     "1.0.0",
 	Schema: map[string]interface{}{
