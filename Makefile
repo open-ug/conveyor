@@ -15,7 +15,7 @@ help: ## Show this help message
 swagger-init: ## Generate Swagger documentation
 	@echo "Generating Swagger documentation..."
 	swag init -g cmd/api/app.go -o internal/swagger
-	@echo "Swagger documentation generated in docs/swagger/"
+	@echo "Swagger documentation generated in internal/swagger/"
 
 install-swag: ## Install swag CLI tool
 	@echo "Installing swag CLI tool version $(SWAG_VERSION)..."

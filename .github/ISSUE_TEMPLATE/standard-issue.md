@@ -8,7 +8,7 @@ assignees: ''
 
 ## Issue Type
 
-<!-- Please select one by placing an `x` in the brackets -->
+<!-- Please select one by placing an `x` in the brackets e.g [x] -->
 - [ ] Bug
 - [ ] Feature request
 - [ ] Enhancement
