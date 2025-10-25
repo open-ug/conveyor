@@ -4,7 +4,7 @@ Copyright © 2024 Conveyor CI Contributors
 package cli
 
 import (
-	initpkg "github.com/open-ug/conveyor/internal/init"
+	initpkg "github.com/open-ug/conveyor/internal/config/init"
 	"github.com/spf13/cobra"
 )
 

@@ -2,47 +2,11 @@ package client
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/open-ug/conveyor/pkg/types"
 )
-
-// doRequest is a helper function to make HTTP requests to the Conveyor API.
-func (c *Client) doRequest(ctx context.Context, method, path string, body, dest any) error {
-	if (method == http.MethodPost || method == http.MethodPut) && body == nil {
-		return fmt.Errorf("doRequest: body cannot be nil for POST/PUT requests")
-	}
-	if dest == nil {
-		return fmt.Errorf("doRequest: destination cannot be nil")
-	}
-
-	req := c.HTTPClient.R().SetContext(ctx)
-
-	if body != nil {
-		jsonMessage, err := json.Marshal(body)
-		if err != nil {
-			return fmt.Errorf("doRequest: failed to marshal request body: %w", err)
-		}
-		req.SetBody(jsonMessage)
-	}
-
-	resp, err := req.Execute(method, c.HTTPClient.BaseURL+path)
-	if err != nil {
-		return fmt.Errorf("doRequest: failed to execute %s request: %w", method, err)
-	}
-
-	if resp.IsError() {
-		return fmt.Errorf("doRequest: server returned %d: %s", resp.StatusCode(), string(resp.Body()))
-	}
-
-	if err := json.Unmarshal(resp.Body(), dest); err != nil {
-		return fmt.Errorf("doRequest: failed to unmarshal response body: %w", err)
-	}
-
-	return nil
-}
 
 /*
 Creates a new resource in the Conveyor API.
