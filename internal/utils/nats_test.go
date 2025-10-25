@@ -2,22 +2,27 @@ package utils_test
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/nats-io/nats.go/jetstream"
 	"github.com/open-ug/conveyor/internal/config"
+	"github.com/open-ug/conveyor/internal/config/initialize"
 	"github.com/open-ug/conveyor/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNatsContext_Integration(t *testing.T) {
-	// Set test environment to enable random port allocation
-	originalEnv := os.Getenv("APP_ENV")
-	os.Setenv("APP_ENV", "test")
-	defer os.Setenv("APP_ENV", originalEnv) // Restore original value after test
+	configFile, err := initialize.Run(&initialize.Options{
+		Force: true,
+	})
+	if err != nil {
+		t.Fatalf("failed to initialize config: %v", err)
+	}
+	config.LoadTestEnvConfig(configFile)
 
+	// Initialize configuration with test options
+	initialize.Run(&initialize.Options{})
 	config.InitConfig()
 
 	// 1. Connect to NATS
@@ -29,7 +34,7 @@ func TestNatsContext_Integration(t *testing.T) {
 	defer nc.Shutdown()
 
 	// 2. Initiate streams
-	err := nc.InitiateStreams()
+	err = nc.InitiateStreams()
 	assert.NoError(t, err, "Expected to create or update stream without error")
 
 	// 3. Publish a test message to resources stream

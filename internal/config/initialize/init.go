@@ -1,10 +1,12 @@
-package init
+package initialize
 
 import (
 	"fmt"
 	"os"
 	"os/user"
 	"path/filepath"
+
+	"github.com/open-ug/conveyor/internal/utils"
 )
 
 // Options holds configuration for the init command
@@ -25,33 +27,33 @@ type Options struct {
 }
 
 // Run executes the init command with the given options
-func Run(opts *Options) error {
+func Run(opts *Options) (string, error) {
 	fmt.Println("Initializing Conveyor CI...")
 
 	// Determine base directories
 	configDir, certDir, err := getSystemDirectories()
 	if err != nil {
-		return fmt.Errorf("failed to determine system directories: %w", err)
+		return "", fmt.Errorf("failed to determine system directories: %w", err)
 	}
 
 	// Create directories with proper permissions
 	if err := createDirectories(configDir, certDir); err != nil {
-		return fmt.Errorf("failed to create directories: %w", err)
+		return "", fmt.Errorf("failed to create directories: %w", err)
 	}
 
 	// Handle certificate generation or copying
 	if err := handleCertificates(opts, certDir); err != nil {
-		return fmt.Errorf("failed to handle certificates: %w", err)
+		return "", fmt.Errorf("failed to handle certificates: %w", err)
 	}
 
 	// Generate configuration file
 	configPath := filepath.Join(configDir, "conveyor.yml")
 	if err := generateConfig(opts, configDir, configPath, certDir); err != nil {
-		return fmt.Errorf("failed to generate configuration: %w", err)
+		return "", fmt.Errorf("failed to generate configuration: %w", err)
 	}
 
 	printSuccessMessage(configDir, certDir)
-	return nil
+	return configPath, nil
 }
 
 // getSystemDirectories determines the appropriate config and cert directories
@@ -73,6 +75,13 @@ func getSystemDirectories() (configDir, certDir string, err error) {
 			xdgConfig = filepath.Join(currentUser.HomeDir, ".local", "share")
 		}
 		configDir = filepath.Join(xdgConfig, "conveyor")
+		certDir = filepath.Join(configDir, "certs")
+	}
+
+	if utils.IsTestMode() {
+		// In test mode, use temporary directories
+		tempDir := os.TempDir()
+		configDir = filepath.Join(tempDir, "conveyor_test_config")
 		certDir = filepath.Join(configDir, "certs")
 	}
 

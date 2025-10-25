@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/open-ug/conveyor/internal/config"
+	"github.com/open-ug/conveyor/internal/config/initialize"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/open-ug/conveyor/cmd/api"
@@ -47,15 +48,18 @@ var payload = types.ResourceDefinition{
 }
 
 func Test_ResourceDefinition_CRUD(t *testing.T) {
-	config.InitConfig()
-
-	fmt.Println("============================= Setting up app...")
+	configFile, err := initialize.Run(&initialize.Options{
+		Force: true,
+	})
+	if err != nil {
+		t.Fatalf("failed to initialize config: %v", err)
+	}
+	config.LoadTestEnvConfig(configFile)
 
 	appctx, err := api.Setup()
 	if err != nil {
 		t.Fatalf("failed to setup api: %v", err)
 	}
-	fmt.Println("============================= App setup complete")
 
 	app := appctx.App
 
