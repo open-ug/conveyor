@@ -33,6 +33,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/open-ug/conveyor/internal/config/auth"
 	"github.com/open-ug/conveyor/internal/engine"
 	"github.com/open-ug/conveyor/internal/handlers"
 	"github.com/spf13/viper"
@@ -141,6 +142,16 @@ func Setup() (APIServerContext, error) {
 
 	// Add Prometheus middleware
 	app.Use(metrics.PrometheusMiddleware())
+
+	if viper.GetBool("api.auth_enabled") {
+		// Auth middleware
+		rootPool, err := auth.LoadRootCAs()
+		if err != nil {
+			color.Red("Error loading root CAs: %v", err)
+			return APIServerContext{}, err
+		}
+		app.Use(auth.JWTCertMiddleware(rootPool))
+	}
 
 	// Swagger documentation
 	app.Get("/swagger/*", fiberSwagger.WrapHandler)
