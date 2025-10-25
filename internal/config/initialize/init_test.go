@@ -86,7 +86,9 @@ func TestCreateDirectories(t *testing.T) {
 }
 
 func TestGetSystemDirectories(t *testing.T) {
-	configDir, certDir, err := getSystemDirectories()
+	configDir, certDir, err := getSystemDirectories(&Options{
+		TempDir: t.TempDir(),
+	})
 	if err != nil {
 		t.Fatalf("Failed to get system directories: %v", err)
 	}

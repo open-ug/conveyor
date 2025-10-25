@@ -49,7 +49,8 @@ var payload = types.ResourceDefinition{
 
 func Test_ResourceDefinition_CRUD(t *testing.T) {
 	configFile, err := initialize.Run(&initialize.Options{
-		Force: true,
+		Force:   true,
+		TempDir: t.TempDir(),
 	})
 	if err != nil {
 		t.Fatalf("failed to initialize config: %v", err)

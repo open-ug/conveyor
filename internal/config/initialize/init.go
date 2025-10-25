@@ -24,6 +24,9 @@ type Options struct {
 	CAFile         string
 	PrivateKeyFile string
 	CertFile       string
+
+	// Temp directory for testing
+	TempDir string
 }
 
 // Run executes the init command with the given options
@@ -31,7 +34,7 @@ func Run(opts *Options) (string, error) {
 	fmt.Println("Initializing Conveyor CI...")
 
 	// Determine base directories
-	configDir, certDir, err := getSystemDirectories()
+	configDir, certDir, err := getSystemDirectories(opts)
 	if err != nil {
 		return "", fmt.Errorf("failed to determine system directories: %w", err)
 	}
@@ -58,7 +61,7 @@ func Run(opts *Options) (string, error) {
 
 // getSystemDirectories determines the appropriate config and cert directories
 // based on whether we're running as root or regular user
-func getSystemDirectories() (configDir, certDir string, err error) {
+func getSystemDirectories(opts *Options) (configDir, certDir string, err error) {
 	currentUser, err := user.Current()
 	if err != nil {
 		return "", "", err
@@ -79,9 +82,7 @@ func getSystemDirectories() (configDir, certDir string, err error) {
 	}
 
 	if utils.IsTestMode() {
-		// In test mode, use temporary directories
-		tempDir := os.TempDir()
-		configDir = filepath.Join(tempDir, "conveyor_test_config")
+		configDir = filepath.Join(opts.TempDir, "conveyor_test_config")
 		certDir = filepath.Join(configDir, "certs")
 	}
 

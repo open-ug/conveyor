@@ -14,16 +14,13 @@ import (
 
 func TestNatsContext_Integration(t *testing.T) {
 	configFile, err := initialize.Run(&initialize.Options{
-		Force: true,
+		Force:   true,
+		TempDir: t.TempDir(),
 	})
 	if err != nil {
 		t.Fatalf("failed to initialize config: %v", err)
 	}
 	config.LoadTestEnvConfig(configFile)
-
-	// Initialize configuration with test options
-	initialize.Run(&initialize.Options{})
-	config.InitConfig()
 
 	// 1. Connect to NATS
 	nc := utils.NewNatsConn()

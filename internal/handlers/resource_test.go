@@ -18,7 +18,7 @@ import (
 
 // Build example resource definition (based on your example)
 var resource_definition = types.ResourceDefinition{
-	Name:        "pipe4",
+	Name:        "pipe",
 	Description: "Pipeline resource definition",
 	Version:     "1.0.0",
 	Schema: map[string]interface{}{
@@ -78,7 +78,8 @@ var resource = PipelineResource{
 
 func Test_Resource_CRUD(t *testing.T) {
 	configFile, err := initialize.Run(&initialize.Options{
-		Force: true,
+		Force:   true,
+		TempDir: t.TempDir(),
 	})
 	if err != nil {
 		t.Fatalf("failed to initialize config: %v", err)
