@@ -36,26 +36,10 @@ Instead of building your own CI/CD system from scratch, Conveyor CI gives you a 
 
 ## Installation
 
-Conveyor CI is distributed as an OCI container and available on Docker Hub. It depends on `etcd`, `loki`, and `nats`, so a standard Docker Compose configuration is provided.
-
-> **Helm charts coming soon**
-
-To Install it on docker compose you can head over to the Releases page and download `compose.yml` and `loki.yml` or on a linux system you can download them using `curl`.
+Conveyor CI is distributed as an OCI container and available on [Docker Hub](https://hub.docker.com/r/openug/conveyor). and also available as a binary. You can install it by running this command.
 
 ```sh
-curl -s https://api.github.com/repos/open-ug/conveyor/releases/latest | grep browser_download_url | grep compose.yml | cut -d '"' -f 4 | xargs curl -L -o compose.yml
-
-curl -s https://api.github.com/repos/open-ug/conveyor/releases/latest | grep browser_download_url | grep loki.yml | cut -d '"' -f 4 | xargs curl -L -o loki.yml
-```
-
-Next start the containers using docker compose.
-
-```sh
-docker compose up
-
-# OR
-
-docker compose up -d
+curl -fsSL conveyor.open.ug/install | sh
 ```
 
 The Conveyor API Server will be reachable on [http://localhost:8080](http://localhost:8080)
