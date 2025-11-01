@@ -1,17 +1,5 @@
 # Edit this file to configure your Docker Compose setup
 services:
-  loki:
-    image: grafana/loki:latest
-    container_name: loki
-    volumes:
-      - loki-data:/loki
-      - ./loki.yml:/mnt/config/loki.yml # Edit this line to point to your config file
-    command: -config.file=/mnt/config/loki.yml
-    ports:
-      - "3100:3100"
-    networks:
-      - conveyor-network
-
   app:
     image: openug/conveyor:latest
     container_name: app
@@ -24,15 +12,11 @@ services:
       - "2379:2379"
       - "2380:2380"
       - "4222:4222"
-    environment:
-      - LOKI_ENDPOINT=http://loki:3100
     networks:
       - conveyor-network
 
 volumes:
-  etcd-data:
-  loki-data:
-  nats-jsdata:
+  app-data:
 
 networks:
   conveyor-network:

@@ -1,4 +1,4 @@
-package init
+package initialize
 
 import (
 	"os"
@@ -20,7 +20,7 @@ func TestGenerateDefaultConfig(t *testing.T) {
 	}
 
 	// Generate config
-	err := generateDefaultConfig(opts, configPath, certDir)
+	err := generateDefaultConfig(opts, tempDir, configPath, certDir)
 	if err != nil {
 		t.Fatalf("Failed to generate config: %v", err)
 	}
@@ -37,7 +37,7 @@ func TestGenerateDefaultConfig(t *testing.T) {
 	}
 
 	configStr := string(content)
-	
+
 	// Check for expected values
 	expectedContents := []string{
 		"port: 9090",
@@ -86,7 +86,9 @@ func TestCreateDirectories(t *testing.T) {
 }
 
 func TestGetSystemDirectories(t *testing.T) {
-	configDir, certDir, err := getSystemDirectories()
+	configDir, certDir, err := getSystemDirectories(&Options{
+		TempDir: t.TempDir(),
+	})
 	if err != nil {
 		t.Fatalf("Failed to get system directories: %v", err)
 	}
@@ -107,7 +109,7 @@ func TestGetSystemDirectories(t *testing.T) {
 
 func TestFileExists(t *testing.T) {
 	tempDir := t.TempDir()
-	
+
 	// Test non-existent file
 	nonExistentFile := filepath.Join(tempDir, "nonexistent.txt")
 	if fileExists(nonExistentFile) {
@@ -128,11 +130,11 @@ func TestFileExists(t *testing.T) {
 
 // Helper functions
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && 
-		   (s == substr || len(s) > len(substr) && 
-		    (s[:len(substr)] == substr || s[len(s)-len(substr):] == substr || 
-		     len(s) > len(substr) && s[1:len(substr)+1] == substr ||
-		     findSubstring(s, substr)))
+	return len(s) >= len(substr) &&
+		(s == substr || len(s) > len(substr) &&
+			(s[:len(substr)] == substr || s[len(s)-len(substr):] == substr ||
+				len(s) > len(substr) && s[1:len(substr)+1] == substr ||
+				findSubstring(s, substr)))
 }
 
 func findSubstring(s, substr string) bool {

@@ -4,7 +4,7 @@ Copyright © 2024 Conveyor CI Contributors
 package cli
 
 import (
-	initpkg "github.com/open-ug/conveyor/internal/init"
+	initpkg "github.com/open-ug/conveyor/internal/config/initialize"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +29,8 @@ Examples:
   conveyor init --ca /path/ca.pem --private-key /path/key.pem --crt /path/cert.pem
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return initpkg.Run(initOptions)
+		_, err := initpkg.Run(initOptions)
+		return err
 	},
 }
 

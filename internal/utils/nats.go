@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -21,19 +22,37 @@ func NewNatsConn() *NatsContext {
 
 	conveyorDataDir := viper.GetString("api.data")
 	dataDir := conveyorDataDir + "/nats"
+	fmt.Println("Using NATS data directory:", dataDir)
 
 	var port int
 	if IsTestMode() {
 		port = -1
+		dataDir = "" // Use in-memory store for tests
 	} else {
-		port = 4222
+		port = viper.GetInt("nats.port")
 	}
 	opts := &server.Options{
 		Port:      port,
 		JetStream: true,
 		StoreDir:  dataDir,
 		NoLog:     true,
-		NoSigs:    true,
+		//NoSigs:    true,
+	}
+
+	authEnabled := viper.GetBool("api.auth_enabled")
+	if authEnabled {
+		// enable TLS Authentication
+		caFile := viper.GetString("tls.ca")
+		certFile := viper.GetString("tls.cert")
+		keyFile := viper.GetString("tls.key")
+
+		opts.TLS = true
+		opts.TLSCert = certFile
+		opts.TLSKey = keyFile
+		opts.TLSCaCert = caFile
+		opts.TLSVerify = true
+
+		log.Println("NATS server TLS authentication enabled.")
 	}
 
 	log.Println("Starting embedded NATS server with JetStream...")
@@ -49,7 +68,7 @@ func NewNatsConn() *NatsContext {
 	// Wait for the server to be ready.
 	if !natsServer.ReadyForConnections(5 * time.Second) {
 		log.Println("NATS server failed to start within timeout. retrying...")
-		if !natsServer.ReadyForConnections(20 * time.Second) {
+		if !natsServer.ReadyForConnections(50 * time.Second) {
 			log.Fatal("NATS server failed to start within timeout.")
 		}
 	}

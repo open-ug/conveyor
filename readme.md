@@ -62,31 +62,10 @@ It provides a modular toolkit of **APIs, SDKs, drivers, and a Go-based runtime**
 
 ## Installation
 
-Conveyor CI can be installed as a **binary** or as an **OCI container**:
+Conveyor CI is distributed as an OCI container and available on [Docker Hub](https://hub.docker.com/r/openug/conveyor). and also available as a binary. You can install it by running this command.
 
 ```sh
-# Install via script
 curl -fsSL conveyor.open.ug/install | sh
-
-# Or run using Docker
-docker run openug/conveyor
-```
-
-The Conveyor API server will be reachable at [http://localhost:8080](http://localhost:8080).
-
----
-
-## Quickstart
-
-```sh
-
-conveyor init
-
-
-conveyor up
-
-# View available commands
-conveyor --help
 ```
 
 ---

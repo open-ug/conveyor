@@ -8,6 +8,7 @@ import (
 
 	apiServer "github.com/open-ug/conveyor/cmd/api"
 	sampledriver "github.com/open-ug/conveyor/cmd/sample-driver"
+	config "github.com/open-ug/conveyor/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -17,6 +18,13 @@ var APIServerCmd = &cobra.Command{
 	Long: `Start the Conveyor Service
 
 `,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		// Attempt to load the config
+		if err := config.LoadConfig(); err != nil {
+			return err
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		port := cmd.Flag("port").Value.String()
 		if port == "" {

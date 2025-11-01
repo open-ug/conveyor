@@ -12,6 +12,7 @@ import (
 
 	"github.com/open-ug/conveyor/cmd/api"
 	"github.com/open-ug/conveyor/internal/config"
+	"github.com/open-ug/conveyor/internal/config/initialize"
 	"github.com/open-ug/conveyor/pkg/types"
 )
 
@@ -76,7 +77,14 @@ var resource = PipelineResource{
 }
 
 func Test_Resource_CRUD(t *testing.T) {
-	config.InitConfig()
+	configFile, err := initialize.Run(&initialize.Options{
+		Force:   true,
+		TempDir: t.TempDir(),
+	})
+	if err != nil {
+		t.Fatalf("failed to initialize config: %v", err)
+	}
+	config.LoadTestEnvConfig(configFile)
 
 	// setup app (assumes api.Setup configures routes and dependencies for tests)
 	appctx, err := api.Setup()

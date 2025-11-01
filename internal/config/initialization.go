@@ -1,32 +1,17 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/user"
 	"path/filepath"
 
-	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 )
 
-var CfgFile string
-
 // initConfig reads in config file and ENV variables if set.
 func InitConfig() {
-
-	// Load .env if present
-	_ = godotenv.Load() // silently ignore if not found
-
-	// Bind environment variables
-	viper.AutomaticEnv()
-	viper.BindEnv("api.host", "CONVEYOR_SERVER_HOST")
-	viper.BindEnv("api.data", "CONVEYOR_DATA_DIR")
-	viper.BindEnv("loki.host", "LOKI_ENDPOINT")
-
-	// Set defaults
-	viper.SetDefault("api.host", "http://localhost:8080")
-	viper.SetDefault("loki.host", "http://localhost:3100")
 
 	// Determine proper data directory based on user context
 	dataDir := "/data" // fallback
@@ -46,6 +31,35 @@ func InitConfig() {
 		dataDir = filepath.Join(xdgData, "conveyor")
 	}
 
-	viper.SetDefault("api.data", dataDir)
+	// Load configuration from file
+	viper.SetConfigName("conveyor")
+	viper.AddConfigPath(dataDir)
+	viper.SetConfigType("yaml")
 
+}
+
+// LoadConfig reads in config file and ENV variables if set.
+// This should be called in PreRunE of commands that need config.
+func LoadConfig() error {
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			// Config file not found; provide a helpful error
+			return fmt.Errorf("config file not found. Please run 'conveyor init' first")
+		}
+		// Config file was found but another error was produced
+		return fmt.Errorf("error reading config file: %w", err)
+	}
+
+	log.Printf("Using config file: %s", viper.ConfigFileUsed())
+	return nil
+}
+
+func LoadTestEnvConfig(testConfigPath string) error {
+	viper.SetConfigFile(testConfigPath)
+	if err := viper.ReadInConfig(); err != nil {
+		return fmt.Errorf("error reading test config file: %w", err)
+	}
+
+	log.Printf("Using test config file: %s", viper.ConfigFileUsed())
+	return nil
 }
