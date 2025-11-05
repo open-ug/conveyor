@@ -7,9 +7,9 @@
 
 ![Docker Pulls](https://img.shields.io/docker/pulls/openug/conveyor.svg?maxAge=604800)
 [![Go Report Card](https://goreportcard.com/badge/github.com/open-ug/conveyor)](https://goreportcard.com/report/github.com/open-ug/conveyor)
-![License](https://img.shields.io/github/license/open-ug/conveyor.svg)
-![GitHub release](https://img.shields.io/github/v/release/open-ug/conveyor)
-![GitHub issues](https://img.shields.io/github/issues/open-ug/conveyor)
+[![License](https://img.shields.io/github/license/open-ug/conveyor.svg)](https://github.com/open-ug/conveyor/blob/main/LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/open-ug/conveyor)](https://github.com/open-ug/conveyor/releases)
+[![GitHub issues](https://img.shields.io/github/issues/open-ug/conveyor)](https://github.com/open-ug/conveyor/issues)
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/open-ug/conveyor)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fopen-ug%2Fconveyor.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fopen-ug%2Fconveyor?ref=badge_shield)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fopen-ug%2Fconveyor.svg?type=shield&issueType=security)](https://app.fossa.com/projects/git%2Bgithub.com%2Fopen-ug%2Fconveyor?ref=badge_shield&issueType=security)
