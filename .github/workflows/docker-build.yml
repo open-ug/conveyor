@@ -7,9 +7,14 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        variant: [ubuntu, alpine]
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -26,20 +31,59 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=sha
+
+      # Prepare variant-specific tag lists by appending "-ubuntu" and "-alpine"
+      - name: Prepare variant tags
+        id: variants
+        run: |
+          # Grab generated tags (could be comma or newline separated)
+          raw='${{ steps.meta.outputs.tags }}'
+          # Normalize commas to newlines and iterate
+          tags=$(printf '%s' "$raw" | tr ',' '\n')
+
+          ubuntu_tags=""
+          alpine_tags=""
+
+          for t in $tags; do
+            # skip empty tokens
+            if [ -z "$t" ]; then
+              continue
+            fi
+            # Trim whitespace (safe-guard)
+            t=$(echo "$t" | xargs)
+            # Append suffixes
+            ubuntu_tags="${ubuntu_tags}${t}-ubuntu,"
+            alpine_tags="${alpine_tags}${t}-alpine,"
+          done
+
+          # remove trailing commas
+          ubuntu_tags="${ubuntu_tags%,}"
+          alpine_tags="${alpine_tags%,}"
+
+          echo "ubuntu_tags=$ubuntu_tags" >> "$GITHUB_OUTPUT"
+          echo "alpine_tags=$alpine_tags" >> "$GITHUB_OUTPUT"
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
+          context: .
+          # pick the Dockerfile per variant
+          file: packaging/docker/Dockerfile.${{ matrix.variant }}
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          # choose the corresponding tag list depending on variant
+          tags: ${{ matrix.variant == 'ubuntu' && steps.variants.outputs.ubuntu_tags || steps.variants.outputs.alpine_tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             VERSION=${{ github.event.release.tag_name }}
