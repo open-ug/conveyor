@@ -13,22 +13,27 @@ const CodeBlock = () => {
   const codeSteps = [
     {
       title: "Define Pipeline",
-      code: `# conveyor.yml
-pipeline:
-  name: "build-deploy"
-  triggers: [push, pr]
-  
-stages:
-  - name: test
-    image: node:18
-    commands:
-      - npm test
-      
-  - name: deploy
-    depends: [test]
-    image: alpine/kubectl
-    commands:
-      - kubectl apply -f k8s/`,
+      code: `$ conveyor init
+Initializing Conveyor CI...
+✔ Using existing configuration directory: /home/user/.config/conveyor
+✔ Using existing certificate directory: /home/user/.config/conveyor/certs
+🛡 Generating CA certificate...
+🛡 Generating server certificate...
+✔ Successfully generated TLS certificates
+✔ Generated configuration file: /home/user/.config/conveyor/conveyor.yml
+
+✔ Conveyor CI initialization completed successfully!
+
+Generated files:
+  • Configuration: /home/user/.config/conveyor/conveyor.yml
+  • CA Certificate: /home/user/.config/conveyor/certs/ca.pem
+  • Server Certificate: /home/user/.config/conveyor/certs/server.crt
+  • Server Private Key: /home/user/.config/conveyor/certs/server.key
+
+Next steps:
+  1. Review and customize the configuration in conveyor.yml
+  2. Start the Conveyor API server: conveyor api
+  3. Visit the documentation: https://conveyor.open.ug`,
     },
     {
       title: "Execute & Monitor",
