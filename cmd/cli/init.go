@@ -40,7 +40,7 @@ func init() {
 	initCmd.Flags().BoolVar(&initOptions.Force, "force", false, "Overwrite existing files")
 
 	// API configuration flags
-	initCmd.Flags().BoolVar(&initOptions.AuthEnabled, "auth-enabled", true, "Enable authentication")
+	initCmd.Flags().BoolVar(&initOptions.AuthEnabled, "auth-enabled", false, "Enable authentication")
 	initCmd.Flags().IntVar(&initOptions.APIPort, "api-port", 8080, "API server port")
 	initCmd.Flags().IntVar(&initOptions.NatsPort, "nats-port", 4222, "NATS server port")
 

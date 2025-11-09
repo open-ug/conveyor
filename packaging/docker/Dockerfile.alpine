@@ -1,0 +1,33 @@
+# BUILD STAGE
+FROM golang:1.23.0 AS build
+
+WORKDIR /go/src/conveyor
+
+COPY . .
+
+RUN go mod tidy
+
+ARG VERSION=dev
+
+# static binary for musl (CGO disabled)
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+  -ldflags "-X 'github.com/open-ug/conveyor/cmd/cli.Version=${VERSION}'" \
+  -a -installsuffix cgo -o app .
+
+# FINAL IMAGE (Alpine variant)
+FROM alpine:latest AS release
+
+WORKDIR /app
+
+COPY --from=build /go/src/conveyor/app .
+
+# Install CA certs (alpine package)
+RUN apk add --no-cache ca-certificates
+
+# Ensure the default config directory exists and put default conveyor.yml
+RUN /app/app init
+
+EXPOSE 8080
+
+ENTRYPOINT ["/app/app"]
+CMD ["up"]
