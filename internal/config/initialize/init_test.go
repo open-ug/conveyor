@@ -59,8 +59,9 @@ func TestCreateDirectories(t *testing.T) {
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, "config")
 	certDir := filepath.Join(tempDir, "certs")
+	dataDir := filepath.Join(tempDir, "data")
 
-	err := createDirectories(configDir, certDir)
+	err := createDirectories(configDir, certDir, dataDir)
 	if err != nil {
 		t.Fatalf("Failed to create directories: %v", err)
 	}
@@ -86,7 +87,7 @@ func TestCreateDirectories(t *testing.T) {
 }
 
 func TestGetSystemDirectories(t *testing.T) {
-	configDir, certDir, err := getSystemDirectories(&Options{
+	configDir, certDir, dataDir, err := getSystemDirectories(&Options{
 		TempDir: t.TempDir(),
 	})
 	if err != nil {
@@ -99,6 +100,10 @@ func TestGetSystemDirectories(t *testing.T) {
 
 	if certDir == "" {
 		t.Error("Cert directory should not be empty")
+	}
+
+	if dataDir == "" {
+		t.Error("Data directory should not be empty")
 	}
 
 	// Cert directory should be a subdirectory of config directory
