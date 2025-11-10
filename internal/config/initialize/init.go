@@ -2,8 +2,6 @@ package initialize
 
 import (
 	"fmt"
-	"os"
-	"os/user"
 	"path/filepath"
 
 	"github.com/open-ug/conveyor/internal/utils"
@@ -34,13 +32,13 @@ func Run(opts *Options) (string, error) {
 	fmt.Println("Initializing Conveyor CI...")
 
 	// Determine base directories
-	configDir, certDir, err := getSystemDirectories(opts)
+	configDir, certDir, dataDir, err := getSystemDirectories(opts)
 	if err != nil {
 		return "", fmt.Errorf("failed to determine system directories: %w", err)
 	}
 
 	// Create directories with proper permissions
-	if err := createDirectories(configDir, certDir); err != nil {
+	if err := createDirectories(configDir, certDir, dataDir); err != nil {
 		return "", fmt.Errorf("failed to create directories: %w", err)
 	}
 
@@ -55,47 +53,34 @@ func Run(opts *Options) (string, error) {
 		return "", fmt.Errorf("failed to generate configuration: %w", err)
 	}
 
-	printSuccessMessage(configDir, certDir)
+	printSuccessMessage(configDir, certDir, dataDir)
 	return configPath, nil
 }
 
 // getSystemDirectories determines the appropriate config and cert directories
 // based on whether we're running as root or regular user
-func getSystemDirectories(opts *Options) (configDir, certDir string, err error) {
-	currentUser, err := user.Current()
-	if err != nil {
-		return "", "", err
-	}
-
-	if currentUser.Uid == "0" {
-		// Running as root - use system directories
-		configDir = "/var/lib/conveyor"
-		certDir = "/var/lib/conveyor/certs"
-	} else {
-		// Running as regular user - use XDG directories
-		xdgConfig := os.Getenv("XDG_CONFIG_HOME")
-		if xdgConfig == "" {
-			xdgConfig = filepath.Join(currentUser.HomeDir, ".local", "share")
-		}
-		configDir = filepath.Join(xdgConfig, "conveyor")
-		certDir = filepath.Join(configDir, "certs")
-	}
+func getSystemDirectories(opts *Options) (configDir, certDir, dataDir string, err error) {
+	configDir = "/etc/conveyor"
+	certDir = "/etc/conveyor/certs"
+	dataDir = "/var/lib/conveyor"
 
 	if utils.IsTestMode() {
 		configDir = filepath.Join(opts.TempDir, "conveyor_test_config")
+		dataDir = filepath.Join(opts.TempDir, "conveyor_test_data")
 		certDir = filepath.Join(configDir, "certs")
 	}
 
-	return configDir, certDir, nil
+	return configDir, certDir, dataDir, nil
 }
 
-func printSuccessMessage(configDir, certDir string) {
+func printSuccessMessage(configDir, certDir, dataDir string) {
 	fmt.Println("\n✔ Conveyor CI initialization completed successfully!")
 	fmt.Println("\nGenerated files:")
 	fmt.Printf("  • Configuration: %s/conveyor.yml\n", configDir)
 	fmt.Printf("  • CA Certificate: %s/ca.pem\n", certDir)
 	fmt.Printf("  • Server Certificate: %s/server.crt\n", certDir)
 	fmt.Printf("  • Server Private Key: %s/server.key\n", certDir)
+	fmt.Printf("  • Data Directory: %s\n", dataDir)
 	fmt.Println("\nNext steps:")
 	fmt.Println("  1. Review and customize the configuration in conveyor.yml")
 	fmt.Println("  2. Start the Conveyor API server: conveyor up")
