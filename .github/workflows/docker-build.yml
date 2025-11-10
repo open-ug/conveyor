@@ -52,7 +52,7 @@ jobs:
             # Trim whitespace (safe-guard)
             t=$(echo "$t" | xargs)
             # Append suffixes
-            ubuntu_tags="${ubuntu_tags}${t}-ubuntu,"
+            ubuntu_tags="${ubuntu_tags}${t},"
             alpine_tags="${alpine_tags}${t}-alpine,"
           done
 

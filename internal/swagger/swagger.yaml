@@ -94,7 +94,7 @@ info:
     name: Apache 2.0
     url: https://opensource.org/license/apache-2-0
   title: Conveyor CI API
-  version: 0.3.0
+  version: 0.3.2
 paths:
   /drivers/broadcast-message:
     post:
