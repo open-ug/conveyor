@@ -6,7 +6,7 @@ import (
 )
 
 // createDirectories creates the necessary directories with proper permissions
-func createDirectories(configDir, certDir string) error {
+func createDirectories(configDir, certDir, dataDir string) error {
 	directories := []struct {
 		path string
 		perm os.FileMode
@@ -14,6 +14,7 @@ func createDirectories(configDir, certDir string) error {
 	}{
 		{configDir, 0755, "configuration directory"},
 		{certDir, 0700, "certificate directory"},
+		{dataDir, 0755, "data directory"},
 	}
 
 	for _, dir := range directories {
