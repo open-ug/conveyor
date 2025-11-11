@@ -51,5 +51,5 @@ deb: ## Build Debian package
 	dpkg-buildpackage -us -uc -b
 	@echo "Debian package built."
 	@# Clean up the temporary directory used for the build.
-	rm -rf debian
+	sudo rm -rf debian
 
