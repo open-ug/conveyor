@@ -1,4 +1,4 @@
-name: Release Conveyor
+name: Release Conveyor (Debian Package)
 
 on:
   release:
