@@ -31,8 +31,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            config/loki.yml
-            config/compose.yml
+            packaging/docker/compose/compose.yml
+            packaging/systemd/conveyor.service
             build/conveyor-${{ github.event.release.tag_name }}-linux-${{ matrix.goarch }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
