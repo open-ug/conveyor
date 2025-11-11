@@ -4,10 +4,6 @@
 	dh $@
 
 override_dh_auto_build:
-	# Determine version: prefer $VERSION (CI), else fallback to changelog.
-	VERSION=$${VERSION:-$$(dpkg-parsechangelog --show-field Version)}
-	# strip Debian revision suffix (e.g. 1.2.3-1 -> 1.2.3)
-	VERSION=$${VERSION%%-*}
 	echo "Building conveyor with Version=$$VERSION (GOARCH=$$GOARCH)"
 
 	# ensure package temp bin dir exists
