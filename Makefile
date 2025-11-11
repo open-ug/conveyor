@@ -45,19 +45,16 @@ swagger-init: ## Generate Swagger documentation
 
 deb: ## Build Debian package
 	@echo "Building Debian package (VERSION=$(VERSION))..."
-	@# Copy packaging files to the required 'debian' directory at the root.
-	cp -R packaging/debian debian
-	@chmod 0755 debian/rules
-	@# Generate changelog entry from VERSION and optional release notes (RELEASE_NOTES)
+	@# Strip leading 'v' if present
 	@VERSION_NO_V=$${VERSION#v}; \
-	@if [ -n "$(RELEASE_NOTES)" ]; then \
-		dch --newversion "$(VERSION_NO_V)-1" "Automated release from GitHub tag $(VERSION_NO_V)\n\n$(RELEASE_NOTES)" --force-bad-version -D UNRELEASED; \
+	cp -R packaging/debian debian; \
+	chmod 0755 debian/rules; \
+	if [ -n "$$RELEASE_NOTES" ]; then \
+		dch --newversion "$${VERSION_NO_V}-1" "Automated release from GitHub tag $${VERSION_NO_V}\n\n$$RELEASE_NOTES" --force-bad-version -D UNRELEASED; \
 	else \
-		dch --newversion "$(VERSION_NO_V)-1" "Automated release from GitHub tag $(VERSION_NO_V)" --force-bad-version -D UNRELEASED; \
-	fi
-	@# Build the binary-only, unsigned package. The exported VERSION var is used by debian/rules.
-	dpkg-buildpackage -us -uc -b
-	@echo "Debian package built."
-	@# Clean up the temporary directory used for the build.
+		dch --newversion "$${VERSION_NO_V}-1" "Automated release from GitHub tag $${VERSION_NO_V}" --force-bad-version -D UNRELEASED; \
+	fi; \
+	dpkg-buildpackage -us -uc -b; \
+	echo "Debian package built."; \
 	sudo rm -rf debian
 
