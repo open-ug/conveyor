@@ -1,0 +1,25 @@
+
+# Default values for Conveyor Helm Chart
+namespace: ""
+
+# etcd configuration
+storageClass: "standard"
+
+# Ingress configuration
+ingress:
+  enabled: false
+
+
+config:
+  api:
+    port: 8080
+    auth_enabled: false
+    data: /var/lib/conveyor
+
+  nats:
+    port: 4222
+
+  tls:
+    ca: /var/lib/conveyor/certs/ca.pem
+    key: /var/lib/conveyor/certs/server.key
+    cert: /var/lib/conveyor/certs/server.crt
