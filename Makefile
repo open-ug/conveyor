@@ -49,10 +49,11 @@ deb: ## Build Debian package
 	cp -R packaging/debian debian
 	@chmod 0755 debian/rules
 	@# Generate changelog entry from VERSION and optional release notes (RELEASE_NOTES)
+	@VERSION_NO_V=$${VERSION#v}; \
 	@if [ -n "$(RELEASE_NOTES)" ]; then \
-		dch --newversion "$(VERSION)-1" "Automated release from GitHub tag $(VERSION)\n\n$(RELEASE_NOTES)" --force-bad-version -D UNRELEASED; \
+		dch --newversion "$(VERSION_NO_V)-1" "Automated release from GitHub tag $(VERSION_NO_V)\n\n$(RELEASE_NOTES)" --force-bad-version -D UNRELEASED; \
 	else \
-		dch --newversion "$(VERSION)-1" "Automated release from GitHub tag $(VERSION)" --force-bad-version -D UNRELEASED; \
+		dch --newversion "$(VERSION_NO_V)-1" "Automated release from GitHub tag $(VERSION_NO_V)" --force-bad-version -D UNRELEASED; \
 	fi
 	@# Build the binary-only, unsigned package. The exported VERSION var is used by debian/rules.
 	dpkg-buildpackage -us -uc -b
