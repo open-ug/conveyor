@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+
+%:
+    dh $@ --with systemd
+
+override_dh_auto_build:
+    # build the Go binary in the repository root; adjust path if your main package is elsewhere
+    GO111MODULE=on CGO_ENABLED=0 go build -ldflags "-s -w" -o conveyor ./cmd/conveyor
+
+override_dh_auto_install:
+    # ensure dh_auto_install does the normal install steps
+    dh_auto_install
