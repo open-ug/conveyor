@@ -1,0 +1,13 @@
+Source: conveyor
+Section: utils
+Priority: optional
+Maintainer: Your Name <you@example.com>
+Build-Depends: debhelper-compat (= 13), golang-any
+Standards-Version: 4.5.1
+Homepage: https://example.com/conveyor
+
+Package: conveyor
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Conveyor CI - lightweight CI server
+  A compact continuous-integration server written in Go.

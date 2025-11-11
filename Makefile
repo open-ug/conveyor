@@ -7,7 +7,7 @@ SWAG_VERSION := v1.16.6
 export VERSION ?= snapshot
 
 # Ensure that targets which are not files are always executed.
-.PHONY: help install-swag swagger-init start test docs deb clean-deb clean
+.PHONY: help install-swag swagger-init start test docs deb
 
 # Default target
 help: ## Show this help message
@@ -43,28 +43,18 @@ swagger-init: ## Generate Swagger documentation
 
 # --- Packaging Targets ---
 
-deb: clean-deb ## Build Debian package
+deb: ## Build Debian package
 	@echo "Building Debian package (VERSION=$(VERSION))..."
-	@# Copy packaging files to the required 'debian' directory at the root.
-	cp -R packaging/debian debian
-	@# Build the binary-only, unsigned package. The exported VERSION var is used by debian/rules.
-	dpkg-buildpackage -us -uc -b
-	@echo "Debian package built."
-	@# Clean up the temporary directory used for the build.
-	rm -rf debian
+	@# Strip leading 'v' if present
+	@VERSION_NO_V=$${VERSION#v}; \
+	cp -R packaging/debian debian; \
+	chmod 0755 debian/rules; \
+	if [ -n "$$RELEASE_NOTES" ]; then \
+		dch --newversion "$${VERSION_NO_V}-1" "Automated release from GitHub tag $${VERSION_NO_V}\n\n$$RELEASE_NOTES" --force-bad-version -D UNRELEASED; \
+	else \
+		dch --newversion "$${VERSION_NO_V}-1" "Automated release from GitHub tag $${VERSION_NO_V}" --force-bad-version -D UNRELEASED; \
+	fi; \
+	dpkg-buildpackage -us -uc -b; \
+	echo "Debian package built."; \
+	sudo rm -rf debian
 
-# --- Clean Targets ---
-
-clean-deb: ## Clean Debian build artifacts
-	@echo "Cleaning Debian build artifacts..."
-	@# Remove the temporary 'debian' directory.
-	rm -rf debian
-	@# dpkg-buildpackage places artifacts in the parent directory of the source tree.
-	@# We remove them explicitly. Using a package-specific name is safer than a generic glob.
-	@# The '|| true' prevents errors if no files are found.
-	rm -f ../conveyor_*.deb ../conveyor_*.ddeb ../conveyor_*.changes ../conveyor_*.buildinfo ../conveyor_*.dsc || true
-	@echo "Debian build artifacts cleaned."
-
-clean: clean-deb ## Clean all project build artifacts
-	@echo "Cleaning all build artifacts..."
-	@# Add other project-specific clean rules here if they exist.

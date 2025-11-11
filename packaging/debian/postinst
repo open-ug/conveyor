@@ -1,0 +1,24 @@
+#!/bin/sh
+set -e
+
+#DEBHELPER#
+
+case "$1" in
+  configure)
+    if ! getent passwd conveyor >/dev/null; then
+      adduser --system --no-create-home --group --quiet conveyor || true
+    fi
+
+    mkdir -p /var/lib/conveyor /etc/conveyor
+    chown -R conveyor:conveyor /var/lib/conveyor || true
+    chmod 0755 /var/lib/conveyor || true
+
+    # Reload systemd and enable/start the service
+    if command -v systemctl >/dev/null 2>&1; then
+      systemctl daemon-reload || true
+      systemctl enable --now conveyor.service || true
+    fi
+  ;;
+esac
+
+exit 0
