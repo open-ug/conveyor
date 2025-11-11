@@ -1,0 +1,83 @@
+name: Release Conveyor (Debian packages)
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-deb:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goarch: [amd64, arm64]
+
+    env:
+      VERSION: ${{ github.event.release.tag_name }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.5"
+
+      - name: Ensure Go modules
+        run: go mod tidy
+
+      - name: Install build tools & deb build helpers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential devscripts fakeroot dpkg-dev ca-certificates \
+            dh-make equivs
+          # create & install a package that pulls build-deps declared in debian/control
+          # mk-build-deps is provided by devscripts; it will read debian/control
+          sudo mk-build-deps -i -r -t "apt-get -y" debian/control
+
+      - name: Prepare changelog for dpkg-buildpackage
+        run: |
+          # Add a changelog entry for the CI-built package so dpkg-buildpackage picks up the right version.
+          # If you already maintain changelog entries you can skip or modify this.
+          if command -v dch >/dev/null 2>&1; then
+            dch --create -v "${VERSION}" --package conveyor "Automated build for ${VERSION} (CI)"
+          else
+            echo "dch not found; ensure debian/changelog includes the desired version."
+          fi
+
+      - name: Build Debian binary package
+        env:
+          GOOS: linux
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          # dpkg-buildpackage will invoke debian/rules (and so your debhelper hooks, dh_apparmor, systemd wiring, etc.)
+          # -b : binary-only build
+          # -us -uc : do not sign
+          dpkg-buildpackage -us -uc -b -a${{ matrix.goarch }}
+
+      - name: Find produced .deb
+        id: find_deb
+        run: |
+          set -e
+          echo "Looking for .deb matching conveyor and ${VERSION} and arch ${{ matrix.goarch }}..."
+          DEB=$(ls ../conveyor_*_${{ matrix.goarch }}.deb 2>/dev/null || true)
+          if [ -z "$DEB" ]; then
+            # fallback to any conveyor .deb produced
+            DEB=$(ls ../conveyor_*.deb | grep -E "_${{ matrix.goarch }}.deb$" || true)
+          fi
+          if [ -z "$DEB" ]; then
+            echo "No .deb found in parent dir - failing"
+            ls -la ..
+            exit 1
+          fi
+          echo "deb=$DEB" >> $GITHUB_OUTPUT
+
+      - name: Upload .deb to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.find_deb.outputs.deb }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
