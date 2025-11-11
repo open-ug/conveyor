@@ -31,6 +31,10 @@ jobs:
           make deb
         working-directory: ${{ github.workspace }}
 
+      - name: List generated files
+        run: |
+          ls -la ${{ github.workspace }}/..
+
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
         with:
