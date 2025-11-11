@@ -29,6 +29,8 @@ jobs:
         run: |
           export VERSION=${{ github.event.release.tag_name }}
           export RELEASE_NOTES="${{ github.event.release.body }}"
+          export DEBEMAIL="jimjunior854@gmail.com"
+          export DEBFULLNAME="Beingana Jim Junior"
           make deb
         working-directory: ${{ github.workspace }}
 
