@@ -16,7 +16,7 @@ override_dh_auto_build:
 	# build and place binary into debian/tmp so dh_install picks it up
 	GO111MODULE=on CGO_ENABLED=0 \
 	  go build -ldflags "-X github.com/open-ug/conveyor/cmd/cli.Version=$$VERSION -s -w" \
-	  -o debian/tmp/usr/bin/conveyor ./cmd/conveyor
+	  -o debian/tmp/usr/bin/conveyor .
 
 override_dh_auto_install:
 	# dh_auto_install will install files from debian/tmp into package
