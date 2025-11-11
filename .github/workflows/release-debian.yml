@@ -31,6 +31,7 @@ jobs:
           export RELEASE_NOTES="${{ github.event.release.body }}"
           export DEBEMAIL="jimjunior854@gmail.com"
           export DEBFULLNAME="Beingana Jim Junior"
+          echo "VERSION_NO_V=$(echo ${{ github.event.release.tag_name }} | cut -c 2-)" >> $GITHUB_ENV
           make deb
         working-directory: ${{ github.workspace }}
 
@@ -42,6 +43,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ../conveyor_${{ github.event.release.tag_name }}-1_${{ matrix.goarch }}.deb
+            ../conveyor_${{ env.VERSION_NO_V }}-1_${{ matrix.goarch }}.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
