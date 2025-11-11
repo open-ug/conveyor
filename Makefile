@@ -57,4 +57,5 @@ deb: ## Build Debian package
 	dpkg-buildpackage -us -uc -b; \
 	echo "Debian package built."; \
 	sudo rm -rf debian
+	sudo rm conveyor
 
