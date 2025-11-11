@@ -9,8 +9,6 @@ services:
       - nats
     ports:
       - "8080:8080"
-      - "2379:2379"
-      - "2380:2380"
       - "4222:4222"
     networks:
       - conveyor-network
