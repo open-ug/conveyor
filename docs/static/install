@@ -1,31 +1,18 @@
 #!/bin/sh
-# ==============================================================================
-# Conveyor CLI Installer Script
-#
-# This script automates the download and installation of the Conveyor CLI binary
-# from the official GitHub repository. It is designed to be POSIX 'sh' compliant
-# for maximum compatibility on minimal systems.
-#
-# Repository: https://github.com/open-ug/conveyor
-# Usage: curl -fsSL https://conveyor.open.ug/install | sh
-# ==============================================================================
+
+# Conveyor Installation Script
+# POSIX-compliant shell script for installing Conveyor from GitHub releases
 
 set -e
 
-# --- ANSI Color Codes for colored output ---
+# Color codes
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
+YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# --- Variables ---
-REPO="open-ug/conveyor"
-BINARY_NAME="conveyor"
-TEMP_FILE_DOWNLOADED=""
-
-# --- Functions for logging and help messages ---
+# Helper functions
 log_info() {
     printf "${BLUE}[INFO]${NC} %s\n" "$1"
 }
@@ -34,342 +21,132 @@ log_success() {
     printf "${GREEN}[SUCCESS]${NC} %s\n" "$1"
 }
 
+log_warning() {
+    printf "${YELLOW}[WARNING]${NC} %s\n" "$1"
+}
+
 log_error() {
-    printf "${RED}[ERROR]${NC} %s\n" "$1" >&2
+    printf "${RED}[ERROR]${NC} %s\n" "$1"
+}
+
+# Check if running as root for installation
+if [ "$(id -u)" -ne 0 ]; then
+    log_error "This script must be run as root or with sudo"
     exit 1
-}
+fi
 
-log_warn() {
-    printf "${YELLOW}[WARN]${NC} %s\n" "$1"
-}
+log_info "Starting Conveyor installation..."
 
-log_step() {
-    printf "${CYAN}[STEP]${NC} %s\n" "$1"
-}
-
-print_help() {
-    cat << 'EOF'
-Conveyor CLI Installer Script
-
-USAGE:
-    sh install [OPTIONS]
-    curl -fsSL https://conveyor.open.ug/install | sh
-
-OPTIONS:
-    --version vX.Y.Z    Install specific version (format: vX.Y.Z)
-    --root              Force installation to /usr/local/bin (uses sudo if needed)
-    --help              Show this help message
-
-EXAMPLES:
-    sh install                        # Install latest version to user directory
-    sh install --root                 # Install latest version system-wide
-    sh install --version v1.2.3       # Install specific version to user directory
-    curl -fsSL https://conveyor.open.ug/install | sh -s -- --version v1.2.3
-
-INSTALLATION PATHS:
-    User install:    $XDG_BIN_HOME or $HOME/.local/bin or $HOME/bin
-    System install:  /usr/local/bin
-
-The installer will automatically backup any existing conveyor binary with a timestamp.
-
-EOF
-}
-
-# --- Cleanup function to remove temporary files ---
-cleanup() {
-    if [ -n "$TEMP_FILE_DOWNLOADED" ] && [ -f "$TEMP_FILE_DOWNLOADED" ]; then
-        rm -f "$TEMP_FILE_DOWNLOADED"
-        log_step "Cleaned up temporary files"
-    fi
-}
-
-trap cleanup EXIT INT TERM
-
-# --- Check for required tools (curl or wget) ---
-check_dependencies() {
-    log_step "Checking dependencies..."
-    
-    if command -v curl >/dev/null 2>&1; then
-        DOWNLOADER="curl"
-        DOWNLOAD_CMD="curl -fsSL"
-        log_info "Using 'curl' for downloads"
-    elif command -v wget >/dev/null 2>&1; then
-        DOWNLOADER="wget"
-        DOWNLOAD_CMD="wget -qO-"
-        log_info "Using 'wget' for downloads"
-    else
-        log_error "Neither 'curl' nor 'wget' found. Please install one to continue."
-    fi
-    
-    # Check other required tools
-    for tool in uname chmod mkdir rm grep sed; do
-        if ! command -v "$tool" >/dev/null 2>&1; then
-            log_error "Required tool '$tool' not found"
-        fi
-    done
-    
-    log_success "All dependencies available"
-}
-
-# --- Download helper function ---
-download_content() {
-    url="$1"
-    if [ "$DOWNLOADER" = "curl" ]; then
-        curl -fsSL "$url"
-    else
-        wget -qO- "$url"
-    fi
-}
-
-download_file() {
-    url="$1"
-    output="$2"
-    if [ "$DOWNLOADER" = "curl" ]; then
-        curl -fsSL -o "$output" "$url"
-    else
-        wget -qO "$output" "$url"
-    fi
-}
-
-# --- Validate version format ---
-validate_version() {
-    version="$1"
-    if ! echo "$version" | grep -q "^v[0-9]\+\.[0-9]\+\.[0-9]\+"; then
-        log_error "Invalid version format: '$version'. Use vX.Y.Z paradigm (e.g., v1.2.3)"
-    fi
-}
-
-# --- Main script logic ---
-main() {
-    # --- Argument parsing ---
-    TARGET_VERSION=""
-    FORCE_ROOT=0
-    
-    while [ "$#" -gt 0 ]; do
-        case "$1" in
-            --version)
-                if [ -n "$2" ]; then
-                    TARGET_VERSION="$2"
-                    validate_version "$TARGET_VERSION"
-                    shift
-                else
-                    log_error "--version requires a version argument (format: vX.Y.Z)"
-                fi
-                ;;
-            --root)
-                FORCE_ROOT=1
-                ;;
-            --help)
-                print_help
-                exit 0
-                ;;
-            -*)
-                log_error "Unknown option: $1. Use --help for usage information."
-                ;;
-            *)
-                log_error "Unknown argument: $1. Use --help for usage information."
-                ;;
-        esac
-        shift
-    done
-    
-    log_info "Starting Conveyor CLI installation..."
-    
-    # Check dependencies first
-    check_dependencies
-    
-    # --- Determine host architecture ---
-    log_step "Detecting system architecture..."
-    OS_NAME=$(uname -s)
-    ARCH_NAME=$(uname -m)
-    INSTALL_ARCH=""
-    
-    if [ "$OS_NAME" = "Linux" ]; then
-        case "$ARCH_NAME" in
-            "x86_64"|"amd64")
-                INSTALL_ARCH="linux-amd64"
-                ;;
-            "aarch64"|"arm64")
-                INSTALL_ARCH="linux-arm64"
-                ;;
-            *)
-                log_error "Unsupported architecture: '$OS_NAME/$ARCH_NAME'. Supported: linux-amd64, linux-arm64"
-                ;;
-        esac
-    else
-        log_error "Unsupported OS: '$OS_NAME'. This installer only supports Linux."
-    fi
-    
-    log_success "Detected architecture: '$INSTALL_ARCH'"
-    
-    # --- Determine installation directory ---
-    log_step "Determining installation directory..."
-    
-    if [ "$(id -u)" -eq 0 ] || [ "$FORCE_ROOT" -eq 1 ]; then
-        INSTALL_DIR="/usr/local/bin"
-        if [ "$(id -u)" -ne 0 ] && [ "$FORCE_ROOT" -eq 1 ]; then
-            if command -v sudo >/dev/null 2>&1; then
-                log_info "Using 'sudo' for root installation to '$INSTALL_DIR'"
-                exec sudo sh "$0" "$@"
-            else
-                log_error "Root installation requested but not running as root and 'sudo' not available"
-            fi
-        else
-            log_info "Installing to system path: '$INSTALL_DIR'"
-        fi
-    else
-        # User installation - follow XDG_BIN_HOME, ~/.local/bin, ~/bin priority
-        if [ -n "${XDG_BIN_HOME}" ]; then
-            INSTALL_DIR="$XDG_BIN_HOME"
-        elif [ -d "$HOME/.local/bin" ] || mkdir -p "$HOME/.local/bin" 2>/dev/null; then
-            INSTALL_DIR="$HOME/.local/bin"
-        elif [ -d "$HOME/bin" ] || mkdir -p "$HOME/bin" 2>/dev/null; then
-            INSTALL_DIR="$HOME/bin"
-        else
-            log_error "Failed to create user bin directory"
-        fi
-        
-        log_info "Installing to user path: '$INSTALL_DIR'"
-        
-        # Create directory if it doesn't exist
-        if [ ! -d "$INSTALL_DIR" ]; then
-            log_step "Creating directory: '$INSTALL_DIR'"
-            mkdir -p "$INSTALL_DIR" || log_error "Failed to create directory '$INSTALL_DIR'"
-        fi
-        
-        # Check if directory is in PATH
-        case ":$PATH:" in
-            *":$INSTALL_DIR:"*)
-                log_success "Installation directory is in PATH"
-                ;;
-            *)
-                log_warn "Installation directory '$INSTALL_DIR' is not in PATH"
-                log_info "Add this to your shell profile (~/.bashrc, ~/.zshrc, etc.):"
-                log_info "export PATH=\"\$PATH:$INSTALL_DIR\""
-                ;;
-        esac
-    fi
-    
-    # --- Find the release version ---
-    log_step "Fetching release information..."
-    
-    API_URL=""
-    if [ -z "$TARGET_VERSION" ]; then
-        log_info "Finding latest release from '$REPO'..."
-        API_URL="https://api.github.com/repos/$REPO/releases/latest"
-    else
-        log_info "Fetching specified version '$TARGET_VERSION' from '$REPO'..."
-        API_URL="https://api.github.com/repos/$REPO/releases/tags/$TARGET_VERSION"
-    fi
-    
-    API_RESPONSE=$(download_content "$API_URL" 2>/dev/null) || {
-        log_error "Failed to fetch release information. Check network connectivity and repository access."
-    }
-    
-    # Check for API error responses
-    if echo "$API_RESPONSE" | grep -q '"message".*"Not Found"'; then
-        if [ -n "$TARGET_VERSION" ]; then
-            log_error "Version '$TARGET_VERSION' not found. Check available versions at: https://github.com/$REPO/releases"
-        else
-            log_error "Repository not found or no releases available"
-        fi
-    fi
-    
-    # --- Parse for tag and asset URL ---
-    if [ -z "$TARGET_VERSION" ]; then
-        TARGET_VERSION=$(echo "$API_RESPONSE" | grep '"tag_name":' | head -n 1 | sed -e 's/.*"tag_name": *"\([^"]*\)".*/\1/')
-    fi
-    
-    if [ -z "$TARGET_VERSION" ]; then
-        log_error "Could not determine release version"
-    fi
-    
-    log_success "Target version: '$TARGET_VERSION'"
-    
-    # --- Find suitable asset ---
-    log_step "Looking for compatible binary asset..."
-    
-    ASSET_SEARCH_TERM="$BINARY_NAME-$TARGET_VERSION-$INSTALL_ARCH"
-    ASSET_NAME=""
-    ASSET_URL=""
-    
-    # Try exact match first
-    ASSET_NAME=$(echo "$API_RESPONSE" | grep '"name":' | grep "$ASSET_SEARCH_TERM" | head -n 1 | sed -e 's/.*"name": *"\([^"]*\)".*/\1/')
-    
-    if [ -n "$ASSET_NAME" ]; then
-        log_success "Found exact asset match: '$ASSET_NAME'"
-        ASSET_URL=$(echo "$API_RESPONSE" | grep '"browser_download_url":' | grep "$ASSET_NAME" | head -n 1 | sed -e 's/.*"browser_download_url": *"\([^"]*\)".*/\1/')
-    else
-        # Fallback to fuzzy match
-        log_warn "Exact asset match not found, trying fallback matching..."
-        
-        # Look for assets containing both "conveyor" and the architecture
-        arch_only=$(echo "$INSTALL_ARCH" | sed 's/.*-//')
-        ASSET_NAME=$(echo "$API_RESPONSE" | grep '"name":' | grep -i "$BINARY_NAME" | grep -i "$arch_only" | head -n 1 | sed -e 's/.*"name": *"\([^"]*\)".*/\1/')
-        
-        if [ -n "$ASSET_NAME" ]; then
-            log_warn "Using fallback asset match: '$ASSET_NAME'"
-            ASSET_URL=$(echo "$API_RESPONSE" | grep '"browser_download_url":' | grep "$ASSET_NAME" | head -n 1 | sed -e 's/.*"browser_download_url": *"\([^"]*\)".*/\1/')
-        fi
-    fi
-    
-    if [ -z "$ASSET_URL" ]; then
-        log_error "Could not find suitable asset for '$INSTALL_ARCH'. Available assets:"
-        echo "$API_RESPONSE" | grep '"name":' | sed -e 's/.*"name": *"\([^"]*\)".*/  - \1/' >&2
-        echo "" >&2
-        echo "Check releases at: https://github.com/$REPO/releases/tag/$TARGET_VERSION" >&2
+# Detect system architecture
+log_info "Detecting system architecture..."
+ARCH=$(uname -m)
+case "$ARCH" in
+    x86_64)
+        ARCH="amd64"
+        ;;
+    aarch64|arm64)
+        ARCH="arm64"
+        ;;
+    *)
+        log_error "Unsupported architecture: $ARCH"
+        log_error "Supported architectures: amd64, arm64"
         exit 1
-    fi
-    
-    # --- Download the binary ---
-    log_step "Downloading binary from GitHub releases..."
-    log_info "Download URL: $ASSET_URL"
-    
-    TEMP_FILE_DOWNLOADED="$(mktemp)"
-    if ! download_file "$ASSET_URL" "$TEMP_FILE_DOWNLOADED"; then
-        log_error "Failed to download binary. Check URL and network connectivity."
-    fi
-    
-    # Verify download
-    if [ ! -f "$TEMP_FILE_DOWNLOADED" ] || [ ! -s "$TEMP_FILE_DOWNLOADED" ]; then
-        log_error "Downloaded file is missing or empty"
-    fi
-    
-    log_success "Binary downloaded successfully"
-    
-    # --- Install the binary ---
-    FINAL_PATH="$INSTALL_DIR/$BINARY_NAME"
-    
-    # Backup existing binary if it exists
-    if [ -f "$FINAL_PATH" ]; then
-        BACKUP_PATH="$FINAL_PATH.$(date +%Y%m%d_%H%M%S).bak"
-        log_step "Backing up existing binary to '$(basename "$BACKUP_PATH")'"
-        mv "$FINAL_PATH" "$BACKUP_PATH" || log_error "Failed to backup existing binary"
-        log_success "Backup created: $BACKUP_PATH"
-    fi
-    
-    log_step "Installing to '$FINAL_PATH'..."
-    mv "$TEMP_FILE_DOWNLOADED" "$FINAL_PATH" || log_error "Failed to install binary. Check permissions."
-    
-    # Make the file executable
-    chmod +x "$FINAL_PATH" || log_error "Failed to make binary executable"
-    
-    # Verify installation
-    log_step "Verifying installation..."
-    if command -v "$BINARY_NAME" >/dev/null 2>&1; then
-        # Try to get version info
-        version_output=$("$BINARY_NAME" --version 2>/dev/null | head -n1) || version_output="(version check not available)"
-        log_success "Installation verified: $version_output"
-    else
-        log_warn "Binary installed but not found in PATH"
-        log_info "You can run it directly: $FINAL_PATH"
-    fi
-    
-    log_success "Conveyor CLI installation completed successfully!"
-    log_success "Installed: $BINARY_NAME version $TARGET_VERSION"
-    log_info "Location: $FINAL_PATH"
-    log_info "Run '$BINARY_NAME --help' to get started"
-}
+        ;;
+esac
+log_success "Detected architecture: $ARCH"
 
-# Run main function with all arguments
-main "$@"
+# Get latest release tag from GitHub
+log_info "Fetching latest release information from GitHub..."
+REPO="open-ug/conveyor"
+API_URL="https://api.github.com/repos/$REPO/releases/latest"
+
+LATEST_RELEASE=$(curl -s "$API_URL")
+if [ $? -ne 0 ]; then
+    log_error "Failed to fetch release information from GitHub"
+    exit 1
+fi
+
+LATEST_TAG=$(printf '%s' "$LATEST_RELEASE" | grep -o '"tag_name": *"[^"]*"' | head -1 | sed 's/.*: *"\([^"]*\)".*/\1/')
+
+if [ -z "$LATEST_TAG" ]; then
+    log_error "Failed to parse latest release tag"
+    exit 1
+fi
+
+log_success "Latest release: $LATEST_TAG"
+
+# Construct binary and service file names
+BINARY_NAME="conveyor-${LATEST_TAG}-linux-${ARCH}"
+SERVICE_NAME="conveyor.service"
+
+# Download binary
+log_info "Downloading Conveyor binary: $BINARY_NAME..."
+BINARY_URL="https://github.com/$REPO/releases/download/$LATEST_TAG/$BINARY_NAME"
+TEMP_BINARY="/tmp/$BINARY_NAME"
+
+curl -L -o "$TEMP_BINARY" "$BINARY_URL"
+if [ $? -ne 0 ]; then
+    log_error "Failed to download binary from $BINARY_URL"
+    exit 1
+fi
+log_success "Binary downloaded successfully"
+
+# Install binary
+log_info "Installing binary to /usr/local/bin/conveyor..."
+chmod +x "$TEMP_BINARY"
+mv "$TEMP_BINARY" /usr/local/bin/conveyor
+log_success "Binary installed to /usr/local/bin/conveyor"
+
+# Download service file
+log_info "Downloading systemd service file: $SERVICE_NAME..."
+SERVICE_URL="https://github.com/$REPO/releases/download/$LATEST_TAG/$SERVICE_NAME"
+TEMP_SERVICE="/tmp/$SERVICE_NAME"
+
+curl -L -o "$TEMP_SERVICE" "$SERVICE_URL"
+if [ $? -ne 0 ]; then
+    log_error "Failed to download service file from $SERVICE_URL"
+    exit 1
+fi
+log_success "Service file downloaded successfully"
+
+# Install service file
+log_info "Installing service file to /etc/systemd/system/conveyor.service..."
+mv "$TEMP_SERVICE" /etc/systemd/system/conveyor.service
+log_success "Service file installed"
+
+# Reload systemd daemon
+log_info "Reloading systemd daemon..."
+systemctl daemon-reload
+if [ $? -ne 0 ]; then
+    log_error "Failed to reload systemd daemon"
+    exit 1
+fi
+log_success "Systemd daemon reloaded"
+
+# Enable service
+log_info "Enabling conveyor service..."
+systemctl enable conveyor
+if [ $? -ne 0 ]; then
+    log_error "Failed to enable conveyor service"
+    exit 1
+fi
+log_success "Conveyor service enabled"
+
+# Print success message and next steps
+echo ""
+log_success "Conveyor installation completed successfully!"
+echo ""
+printf "${GREEN}═══════════════════════════════════════════════════════════${NC}\n"
+printf "${YELLOW}                    NEXT STEPS${NC}\n"
+printf "${GREEN}═══════════════════════════════════════════════════════════${NC}\n"
+echo ""
+printf "  ${BLUE}1.${NC} Initialize Conveyor configuration:\n"
+printf "     ${GREEN}conveyor init${NC}\n"
+echo ""
+printf "  ${BLUE}2.${NC} Start the Conveyor service:\n"
+printf "     ${GREEN}sudo systemctl start conveyor${NC}\n"
+echo ""
+printf "${GREEN}═══════════════════════════════════════════════════════════${NC}\n"
+echo ""
+log_info "You can check the service status with: ${GREEN}sudo systemctl status conveyor${NC}"
+echo ""
