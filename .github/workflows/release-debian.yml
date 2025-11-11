@@ -28,6 +28,7 @@ jobs:
       - name: Build .deb package
         run: |
           export VERSION=${{ github.event.release.tag_name }}
+          export RELEASE_NOTES="${{ github.event.release.body }}"
           make deb
         working-directory: ${{ github.workspace }}
 
