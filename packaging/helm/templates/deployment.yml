@@ -1,0 +1,31 @@
+# Conveyor CI Deployment Configuration
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conveyor
+  namespace: {{ include "conveyor.namespace" . }}
+  labels:
+    app.kubernetes.io/name: conveyor-ci
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: conveyor
+  template:
+    metadata:
+      labels:
+        app: conveyor
+    spec:
+      containers:
+        - name: conveyor
+          image: openug/conveyor:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: api
+              containerPort: {{ .Values.config.api.port | default 8080 }}
+            - name: nats
+              containerPort: {{ .Values.config.nats.port | default 4222 }}
+
+          volumeMounts:
+            - name: conveyor-data
+              mountPath: {{ .Values.config.api.data | default "/var/lib/conveyor" }}
