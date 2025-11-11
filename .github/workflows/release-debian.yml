@@ -1,0 +1,48 @@
+name: Release Conveyor (Debian Package)
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goarch: [amd64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.5"
+
+      - name: Install build dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential fakeroot devscripts debhelper golang-any dh-apparmor equivs
+
+      - name: Build .deb package
+        run: |
+          export VERSION=${{ github.event.release.tag_name }}
+          export RELEASE_NOTES="${{ github.event.release.body }}"
+          export DEBEMAIL="jimjunior854@gmail.com"
+          export DEBFULLNAME="Beingana Jim Junior"
+          echo "VERSION_NO_V=$(echo ${{ github.event.release.tag_name }} | cut -c 2-)" >> $GITHUB_ENV
+          make deb
+        working-directory: ${{ github.workspace }}
+
+      - name: List generated files
+        run: |
+          ls -la ${{ github.workspace }}/..
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ../conveyor_${{ env.VERSION_NO_V }}-1_${{ matrix.goarch }}.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
