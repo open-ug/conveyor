@@ -46,3 +46,45 @@ jobs:
             ../conveyor_${{ env.VERSION_NO_V }}-1_${{ matrix.goarch }}.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+      - name: Publish .deb to open-ug/apt (GitHub Pages APT repo)
+        env:
+          APT_REPO: open-ug/apt
+          DEB_FILENAME: "../conveyor_${{ env.VERSION_NO_V }}-1_${{ matrix.goarch }}.deb"
+          GIT_AUTHOR_NAME: "github-actions[bot]"
+          GIT_AUTHOR_EMAIL: "actions@github.com"
+        run: |
+          set -e
+          echo "Deb file: $DEB_FILENAME"
+          if [ ! -f "$DEB_FILENAME" ]; then
+            echo "ERROR: deb file not found: $DEB_FILENAME"
+            ls -la ..
+            exit 1
+          fi
+
+          # Clone the apt repo with token so we can push
+          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${APT_REPO}.git apt-repo
+          cd apt-repo
+          git checkout main || git checkout -b main
+
+          # Ensure pool/dists structure exists
+          mkdir -p pool/main/conveyor
+          mkdir -p dists/stable/main/binary-amd64
+
+          # Copy package into pool
+          cp "$GITHUB_WORKSPACE/../conveyor_${{ env.VERSION_NO_V }}-1_${{ matrix.goarch }}.deb" pool/main/conveyor/
+          ls -la pool/main/conveyor
+
+          # Generate Packages and compressed gd files (amd64 only for now)
+          dpkg-scanpackages pool /dev/null | tee dists/stable/main/binary-amd64/Packages | gzip -9c > dists/stable/main/binary-amd64/Packages.gz
+
+          # Optionally generate a Release file (unsigned)
+          apt-ftparchive release dists/stable > dists/stable/Release || true
+
+          # Commit & push
+          git config user.name "${GIT_AUTHOR_NAME}"
+          git config user.email "${GIT_AUTHOR_EMAIL}"
+          git add -A
+          git commit -m "Add conveyor ${VERSION_NO_V} (${matrix.goarch})" || echo "No changes to commit"
+          git push origin HEAD:main
