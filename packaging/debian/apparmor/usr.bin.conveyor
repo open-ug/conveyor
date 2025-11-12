@@ -1,0 +1,35 @@
+# /etc/apparmor.d/usr.bin.conveyor
+#include <tunables/global>
+#include <abstractions/base>
+#include <abstractions/nameservice>
+#include <abstractions/user-tmp>
+
+# Path-based profile name for /usr/bin/conveyor
+/usr/bin/conveyor {
+  # basic file read
+  /etc/conveyor/** rw,
+  /etc/** r,
+  /usr/bin/conveyor mr,
+  /usr/lib/** r,
+
+  # certs and CA bundles
+  /etc/ssl/** rw,
+  /usr/local/share/ca-certificates/** rw,
+
+  # state and runtime directories
+  /var/lib/conveyor/** rw,
+  /var/run/conveyor/** rw,
+  /run/conveyor/** rw,
+
+  # networking
+  network inet stream,
+  network inet6 stream,
+
+  # journald socket
+  /dev/log w,
+
+  # remove debugging allowances before hardening
+  # deny capability sys_ptrace,
+
+  # include common abstractions last
+}

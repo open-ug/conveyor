@@ -1,13 +1,16 @@
 Source: conveyor
 Section: utils
 Priority: optional
-Maintainer: Your Name <you@example.com>
-Build-Depends: debhelper-compat (= 13), golang-any
+Maintainer: Beingana Jim Junior <jimjunior854@gmail.com>
+Build-Depends: debhelper-compat (= 13), golang-any, dh-apparmor
+Suggests: apparmor
 Standards-Version: 4.5.1
-Homepage: https://example.com/conveyor
+Homepage: https://conveyor.open.ug
 
 Package: conveyor
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Conveyor CI - lightweight CI server
-  A compact continuous-integration server written in Go.
+Description: Lightweight CI/CD engine for custom distributed workflows
+  Conveyor is a lightweight engine for developing custom distributed
+  CI/CD platforms. It simplifies development, deployment, and orchestration
+  of container-based build systems.
