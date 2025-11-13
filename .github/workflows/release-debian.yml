@@ -47,7 +47,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-
       - name: Publish .deb to open-ug/apt (GitHub Pages APT repo)
         env:
           APT_REPO: open-ug/apt
@@ -95,8 +94,8 @@ jobs:
           apt-ftparchive release dists/stable > dists/stable/Release || true
 
           # Commit & push to gh-pages
-          git config user.name "${GIT_AUTHOR_NAME}"
-          git config user.email "${GIT_AUTHOR_EMAIL}"
+          git config --local user.name "${GIT_AUTHOR_NAME}"
+          git config --local user.email "${GIT_AUTHOR_EMAIL}"
           git add -A
           git commit -m "Publish conveyor ${VERSION_NO_V} (${matrix.goarch})" || echo "No changes to commit"
-          git push origin gh-pages
+          git push origin HEAD:gh-pages
