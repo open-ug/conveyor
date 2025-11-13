@@ -75,15 +75,18 @@ jobs:
           git config --local user.name "$AUTHOR_NAME"
           git config --local user.email "$AUTHOR_EMAIL"
 
-          # Checkout the gh-pages branch (create if it doesn't exist)
-          if git show-ref --quiet refs/heads/gh-pages; then
+          # Fetch and checkout the gh-pages branch (create if it doesn't exist)
+          git fetch origin
+          if git ls-remote --heads origin gh-pages | grep -q gh-pages; then
+            # Branch exists on remote, check it out
             git checkout gh-pages
+            git pull origin gh-pages
           else
-            # create orphan branch and make an initial empty commit so branch exists
+            # Branch doesn't exist, create orphan branch
             git checkout --orphan gh-pages
             git rm -rf . >/dev/null 2>&1 || true
             git commit --allow-empty -m "Initialize gh-pages branch"
-            git push origin gh-pages || true
+            git push origin gh-pages
           fi
 
           # Ensure pool/dists structure exists and clean the package folder
