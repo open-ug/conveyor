@@ -55,7 +55,7 @@ jobs:
           GIT_AUTHOR_NAME: "github-actions[bot]"
           GIT_AUTHOR_EMAIL: "actions@github.com"
         run: |
-          set -e
+          set -euo pipefail
           echo "Deb file: $DEB_FILENAME"
           if [ ! -f "$DEB_FILENAME" ]; then
             echo "ERROR: deb file not found: $DEB_FILENAME"
@@ -66,25 +66,37 @@ jobs:
           # Clone the apt repo with token so we can push
           git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${APT_REPO}.git apt-repo
           cd apt-repo
-          git checkout main || git checkout -b main
 
-          # Ensure pool/dists structure exists
+          # Checkout the gh-pages branch (create if it doesn't exist)
+          if git show-ref --quiet refs/heads/gh-pages; then
+            git checkout gh-pages
+          else
+            git checkout --orphan gh-pages
+            # clean working tree for orphan branch
+            git rm -rf . >/dev/null 2>&1 || true
+            mkdir -p .  # ensure root exists
+            git commit --allow-empty -m "Initialize gh-pages branch"
+          fi
+
+          # Ensure pool/dists structure exists and clean the package folder
           mkdir -p pool/main/conveyor
+          rm -f pool/main/conveyor/*.deb
+
           mkdir -p dists/stable/main/binary-amd64
 
           # Copy package into pool
           cp "$GITHUB_WORKSPACE/../conveyor_${{ env.VERSION_NO_V }}-1_${{ matrix.goarch }}.deb" pool/main/conveyor/
           ls -la pool/main/conveyor
 
-          # Generate Packages and compressed gd files (amd64 only for now)
+          # Generate Packages and compressed files (amd64)
           dpkg-scanpackages pool /dev/null | tee dists/stable/main/binary-amd64/Packages | gzip -9c > dists/stable/main/binary-amd64/Packages.gz
 
-          # Optionally generate a Release file (unsigned)
+          # Generate a Release file (unsigned)
           apt-ftparchive release dists/stable > dists/stable/Release || true
 
-          # Commit & push
+          # Commit & push to gh-pages
           git config user.name "${GIT_AUTHOR_NAME}"
           git config user.email "${GIT_AUTHOR_EMAIL}"
           git add -A
-          git commit -m "Add conveyor ${VERSION_NO_V} (${matrix.goarch})" || echo "No changes to commit"
-          git push origin HEAD:main
+          git commit -m "Publish conveyor ${VERSION_NO_V} (${matrix.goarch})" || echo "No changes to commit"
+          git push origin gh-pages
