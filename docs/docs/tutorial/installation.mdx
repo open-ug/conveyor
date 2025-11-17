@@ -1,0 +1,72 @@
+---
+sidebar_position: 1
+---
+
+# Installation & Setup
+
+
+Conveyor CI is a Linux application and is distributed via three main channels:
+
+- Docker Image
+- Installation Script
+- Debian Package
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs>
+  <TabItem value="docker" label="Docker Image" default>
+    ```sh
+    docker run -d --name conveyor-ci openug/conveyor:latest
+    ```
+  </TabItem>
+  <TabItem value="script" label="Installation Script">
+    ```sh
+    curl -fsSL conveyor.open.ug/install | sh
+    ```
+  </TabItem>
+  <TabItem value="debian" label="Debian Package">
+    1. Add the Conveyor CI APT repository:
+
+      ```sh
+      echo "deb [trusted=yes] https://apt.open.ug stable main" | sudo tee /etc/apt/sources.list.d/openug.list
+      ```
+
+    2. Update your package list and install Conveyor CI:
+
+      ```sh
+      sudo apt update
+      sudo apt install conveyor
+      ```
+  </TabItem>
+</Tabs>
+
+## Initial Setup
+
+The Docker image comes pre-configured with sensible defaults. However, the other installation methods require some initial setup.
+
+Once installed, run the following command to complete the setup:
+
+```sh
+conveyor init
+```
+
+This will generate a default configuration file at `/etc/conveyor/conveyor.yml`, TLS certificates, and create the necessary directories.
+
+You can then start the Conveyor CI service with:
+
+```sh
+systemctl enable conveyor
+systemctl start conveyor
+```
+
+or run it directly with:
+
+```sh
+conveyor up
+```
+
+## Using Client SDKs
+
+Conveyor CI provides client SDKs you can use:
+- [Go SDK](https://pkg.go.dev/github.com/open-ug/conveyor/pkg)
