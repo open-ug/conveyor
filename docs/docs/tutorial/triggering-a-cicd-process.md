@@ -2,7 +2,7 @@
 sidebar_position: 3
 ---
 
-# Triggering a CI/CD Process
+# Triggering a Workflow
 
 Once you have the Driver installed and running. You can trigger a CI/CD process.
 
