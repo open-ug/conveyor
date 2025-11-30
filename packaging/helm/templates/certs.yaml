@@ -1,0 +1,12 @@
+{{- if .Values.certificates.override.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.certificates.override.existingSecret }}
+  namespace: {{ include "conveyor.namespace" . }}
+type: Opaque
+data:
+  ca.pem: {{ .Files.Get .Values.certificates.override.ca | b64enc | quote }}
+  server.crt: {{ .Files.Get .Values.certificates.override.cert | b64enc | quote }}
+  server.key: {{ .Files.Get .Values.certificates.override.key | b64enc | quote }}
+{{- end }}

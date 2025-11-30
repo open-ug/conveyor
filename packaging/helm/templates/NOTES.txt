@@ -1,2 +1,2 @@
-The Conveyor CI API Server can be accessed via port {{ .Values.api.service.servicePort }} on the following DNS name from within your cluster:
-conveyor-app.{{ .Release.Namespace }}.svc.cluster.local
+The Conveyor CI API Server can be accessed via port {{ .Values.service.ports.http }} on the following DNS name from within your cluster:
+{{ include "conveyor.fullname" . }}.{{ include "conveyor.namespace" . }}.svc.cluster.local

@@ -1,25 +1,55 @@
 
 # Default values for Conveyor Helm Chart
 namespace: ""
+nameOverride: ""
 
 # etcd configuration
 storageClass: "standard"
+pvc: 
+  size: "16Gi"
 
 # Ingress configuration
 ingress:
   enabled: false
 
+# the docker image 
+image: 
+  repository: openug/conveyor 
+  tag: latest
+  pullPolicy: IfNotPresent 
 
+# service configuration
+service: 
+  type: NodePort 
+  nodePort: 30080
+  ports: 
+    http: 8080
+    nats: 4222
+
+# config override
 config:
-  api:
-    port: 8080
-    auth_enabled: false
-    data: /var/lib/conveyor
+  override:
+    enabled: false
+    existingSecret: ""
+    file: "conveyor.yml" 
 
-  nats:
-    port: 4222
+# certificates override
+certificates:
+  override:
+    enabled: false
+    existingSecret: ""
+    ca: "ca.pem"
+    cert: "server.crt"
+    key: "server.key"
 
-  tls:
-    ca: /var/lib/conveyor/certs/ca.pem
-    key: /var/lib/conveyor/certs/server.key
-    cert: /var/lib/conveyor/certs/server.crt
+# runs as root (as required)
+securityContext:
+  runAsUser: 0
+  runAsGroup: 0
+  fsGroup: 0
+
+# placeholders for scheduling (a good practice)
+resources: {}
+nodeSelector: {}
+affinity: {}
+tolerations: []
