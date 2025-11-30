@@ -2,30 +2,63 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: conveyor
+  name: {{ include "conveyor.fullname . "}}
   namespace: {{ include "conveyor.namespace" . }}
   labels:
-    app.kubernetes.io/name: conveyor-ci
+    app.kubernetes.io/name: {{ include "conveyor.fullname . "}}
+    app.kubernetes.io/instance: {{ .Release.Name }} 
+    app.kubernetes.io/version: {{ .Chart.AppVersion }} 
+    app.kubernetes.io/managed-by: Helm 
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: conveyor
+      app.kubernetes.io/name: {{ include "conveyor.fullname . "}}
+
   template:
     metadata:
       labels:
-        app: conveyor
+      app.kubernetes.io/name: {{ include "conveyor.fullname . "}}
+
     spec:
+      securityContext: 
+        runAsUser: 0 
+
       containers:
         - name: conveyor
-          image: openug/conveyor:latest
-          imagePullPolicy: IfNotPresent
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
           ports:
             - name: api
-              containerPort: {{ .Values.config.api.port | default 8080 }}
+              containerPort: {{ .Values.service.ports.http | default 8080 }}
             - name: nats
-              containerPort: {{ .Values.config.nats.port | default 4222 }}
+              containerPort: {{ .Values.service.ports.nats | default 4222 }}
 
           volumeMounts:
             - name: conveyor-data
-              mountPath: {{ .Values.config.api.data | default "/var/lib/conveyor" }}
+              mountPath: /var/lib/conveyor
+
+            {{- if .Values.config.override.enabled }}
+            - name: config
+              mountPath: /etc/conveyor/conveyor.yml
+              subPath: conveyor.yml
+            {{- end }}
+
+            {{- if .Values.certificates.override.enabled }}
+            - name: certs
+              mountPath: /etc/conveyor/certs
+            {{- end }}
+
+      volumes:
+        - name: conveyor-data
+          persistentVolumeClaim:
+            claimName: {{ include "conveyor.fullname" . }}
+        - name: config
+          configMap:
+            name: {{ include "conveyor.fullname" . }}-config
+        {{- if .Values.certificates.override.enabled }}
+        - name: certs
+          secret:
+            secretName: {{ .Values.certificates.override.existingSecret }}
+        {{- end }}

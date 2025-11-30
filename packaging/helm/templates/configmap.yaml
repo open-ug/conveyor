@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "conveyor.fullname" . }}-config
+  namespace: {{ include "conveyor.namespace" . }}
+data:
+  conveyor.yml: |-
+    api:
+      auth_enabled: false
