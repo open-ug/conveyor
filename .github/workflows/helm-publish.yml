@@ -23,7 +23,7 @@ jobs:
       - name: Package Helm chart
         run: |
           mkdir -p charts
-          helm package helm -d charts
+          helm package packaging/helm/conveyor -d charts 
 
       - name: Create index.yaml
         run: |
