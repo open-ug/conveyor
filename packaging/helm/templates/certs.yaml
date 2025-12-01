@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: {{ .Values.certificates.override.existingSecret }}
-  namespace: {{ include "conveyor.namespace" . }}
+  namespace: "{{ include "conveyor.namespace" . | default "default" | trim }}"
 type: Opaque
 data:
   ca.pem: {{ .Files.Get .Values.certificates.override.ca | b64enc | quote }}
