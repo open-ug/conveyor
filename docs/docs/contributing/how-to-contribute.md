@@ -12,12 +12,14 @@ Conveyor CI is an open-source project licenced under the [Apache License 2.0](ht
 Conveyor CI is written in Go and it exposes an Application Programming Interface whose client libraries can be written in any language. We structure the codebase and other files as follows:
 
 - `/`: The root directory contains the non-code files, such as the licence, readme and conveyor's entry point `main.go`.
-- `/documentation`: This directory contains a [Docusaurous Site](https://docusaurus.io/) for all the documentation related to Conveyor CI.
+- `/docs`: This directory contains a [Docusaurous Site](https://docusaurus.io/) for all the documentation related to Conveyor CI.
 - `/cmd/cli`: Contains the entrypoint for the command line and definitions for all CLI commands.
 - `/cmd/api`: Contains the entrypoint for the API Server.
 - `/internal/`: Contains majority of the Conveyor CI codebase.
   - `/internal/config/`: This directory contains code responsible for loading and handling Conveyor CI configuration.
-  - `/internal/handlers`: Contains code .
+  - `/internal/handlers`: Contains API handler code.
+  - `/internal/engine`: Contains Pipeline and logs event routing code.
+  - `/internal/handlers`: Contains API handler code.
   - `/internal/routes`: Contains code defining API Server routes.
   - `/internal/models`: Contains code defining `etcd` data models.
   - `/internal/streaming`: Contains handling websocket streaming.
@@ -27,7 +29,10 @@ Conveyor CI is written in Go and it exposes an Application Programming Interface
   - `/pkg/client`: Contains the Go API Client
   - `/pkg/driver-runtime/`: Contains Driver runtime and its utility finctions
 - `/sdk`: This directory is meant to contain any Conveyor SDK implementations in other languages
-- `/helm`: This contains the Conveyor Helm Chart for deploying to Kubernetes.
+- `/packaging`: This contains packaging and distribution code.
+  - `/helm`: This contains the Conveyor Helm Chart.
+  - `/docker`: This contains the Conveyor CI docker files.
+  - `/debian`: This contains the Conveyor CI Debian packaging code for APT.
 
 ## How to contribute
 
@@ -80,11 +85,11 @@ Once you have identified and issue or an enhancement you would like to work on. 
 3. **Create a new branch**:
 
    ```bash
-   git checkout -b feature/your-feature-name 
+   git checkout -b ft/your-feature-name 
    
    # OR 
 
-   git checkout -b fix/your-fixture-name 
+   git checkout -b fx/your-fixture-name 
    ```
 
 4. **Make your changes**
@@ -92,9 +97,9 @@ Once you have identified and issue or an enhancement you would like to work on. 
 6. **Commit** your changes with clear messages:
 
     ```bash
-    git commit -m "feat: add new feature X"
+    git commit -m "ft: add new feature X"
     # OR
-    git commit -m "fix: solved issue Y"
+    git commit -m "fx: solved issue Y"
     ```
 
 7. **Push** your changes:
