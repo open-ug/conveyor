@@ -10,32 +10,28 @@ This guide helps you set up a development environment for developing Conveyor CI
 
 Before you begin development, ensure you have the following software on your dev machine.
 
-- Docker Engine
-- Golang
+- [Go](https://go.dev/)
+- A Linux environment. This is mainly because Conveyor CI is a Linux only application. If you are contributing to the documentation site or an SDK you can ignore this.
 
-## Starting Dependency Services
 
-First you need to start the Loki container. Within the `config` directory, there is a `compose.dev.yml` file. Start is using Docker Compose.
+## Running the API Server
 
-```sh
-docker compose -f config/compose.dev.yml up -d
-```
-
-## Running the Application
-
-Once you have the containers running. You can run the application.
-
-First, add a `.env` file in the root of your project.
-
-```env
-CONVEYOR_SERVER_HOST=http://localhost:8080
-LOKI_ENDPOINT=http://localhost:3100
-```
-
-You can then start the api server using the `go run` command.
+Start the API Server by running the following commands.
 
 ```sh
+sudo go run main.go init
+
 make start
+```
+
+## Contributing to the documentation site
+
+The documentation site is located in the `docs/` directiory and is a [docusaurus](https://docusaurus.io/) application. so ensure to `cd docs` and `npm install` to install the dependencies.
+
+You can start the docs site by running
+
+```sh
+make docs
 ```
 
 ## API Documentation
