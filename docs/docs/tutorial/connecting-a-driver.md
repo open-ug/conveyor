@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # Connecting a Driver
 
-[Drivers](/docs/concepts/drivers) in Conveyor CI are the components that actually execute the CI/CD process. So once you have the Conveyor CI engine up and running, you have to connect a driver to it.
+[Drivers](/docs/concepts/drivers) in Conveyor CI are the components that actually execute the workflows. So once you have the Conveyor CI engine up and running, you have to connect a driver to it.
 
 If you are building a Driver with the official SDKs, The Driver will connect to the Conveyor CI engine automatically. In this tutorial we use an example driver that runs commands inside a Docker Container. The drivers code base can be found in the [open-ug/simple-runner](https://github.com/open-ug/simple-runner) repository on Github.
 

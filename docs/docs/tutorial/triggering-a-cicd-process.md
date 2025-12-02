@@ -50,10 +50,10 @@ Once the resource is created, it's sent to the API Server using a POST request t
 
 Once you have posted the resource, you can view the progress of the process as it happens in real time by streaming its logs via a websocket.
 
-To stream the progress, use a websocket client to connect to the `ws://localhost:8080/drivers/streams/logs/<driver-name>/<runid>`. In this case the driver name is `command-runner`. As example would be
+To stream the progress, use a websocket client to connect to the `ws://localhost:8080/logs/streams/<driver-name>/<runid>`. In this case the driver name is `command-runner`. An example would be
 
 ```sh
-ws://localhost:8080/drivers/streams/logs/command-runner/fbdf5edf-66d4-46ce-859a-8ee44d6c9463
+ws://localhost:8080/logs/streams/command-runner/fbdf5edf-66d4-46ce-859a-8ee44d6c9463
 ```
 
 The progress will be in the format of a timestamp and a log message.
