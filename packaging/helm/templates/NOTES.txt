@@ -1,2 +1,102 @@
-The Conveyor CI API Server can be accessed via port {{ .Values.service.ports.http }} on the following DNS name from within your cluster:
-{{ include "conveyor.fullname" . }}.{{ include "conveyor.namespace" . }}.svc.cluster.local
+Hey, Thank you for installing Conveyor 
+
+This chart deploys the Conveyor server using the official Docker image:
+  openug/conveyor
+
+---------------------------------------------------------------------
+## Accessing Conveyor
+
+The service is available internally at:
+
+  http://{{ .Release.Name }}-conveyor:{{ .Values.service.ports.http }}
+  nats://{{ .Release.Name }}-conveyor:{{ .Values.service.ports.nats }}
+
+If using NodePort (default), access externally via:
+
+  HTTP:  <NodeIP>:{{ .Values.service.nodePort }}
+  NATS:  <NodeIP>:{{ .Values.service.ports.nats }}
+
+Enable ingress in values.yaml if you want URL-based access.
+
+---------------------------------------------------------------------
+## Configuration (conveyor.yml)
+
+Conveyor expects its configuration at:
+
+  /etc/conveyor/conveyor.yml
+
+By default, the chart mounts the configuration already included inside
+the official Docker image (generated via `conveyor init`).
+
+### Override the configuration
+To provide your own conveyor.yml:
+
+1. Create a Secret containing your configuration file:
+
+     kubectl create secret generic conveyor-config \
+       --from-file=conveyor.yml=/path/to/your/conveyor.yml
+
+2. Enable overrides:
+
+     config:
+       override:
+         enabled: true
+         existingSecret: conveyor-config
+
+---------------------------------------------------------------------
+## Certificates
+
+If your configuration enables API authentication or TLS, Conveyor
+requires three certificate files:
+
+  ca.pem
+  server.crt
+  server.key
+
+These must be mounted into:
+
+  /etc/conveyor/certs/
+
+### Provide your own certificates
+Create a secret:
+
+  kubectl create secret generic conveyor-certs \
+    --from-file=/path/to/ca.pem \
+    --from-file=/path/to/server.crt \
+    --from-file=/path/to/server.key
+
+Enable overrides in values.yaml:
+
+  certificates:
+    override:
+      enabled: true
+      existingSecret: conveyor-certs
+
+If overrides are disabled, Conveyor uses certificates baked into the
+official Docker image.
+
+---------------------------------------------------------------------
+## Persistent Storage
+
+Conveyor stores its runtime data and database files at:
+
+  /var/lib/conveyor
+
+This chart automatically creates a PersistentVolumeClaim:
+
+  Size:          {{ .Values.pvc.size }}
+  StorageClass:  {{ .Values.storageClass }}
+
+To change storage settings, edit the `pvc` or `storageClass` fields.
+
+---------------------------------------------------------------------
+## Uninstalling
+
+Uninstall Conveyor with:
+
+  helm uninstall {{ .Release.Name }}
+
+PVCs remain unless your storage class is configured to delete volumes.
+
+---------------------------------------------------------------------
+For documentation, visit the Conveyor project [github page](https://open-ug.github.io/conveyor/), or the [github repository](https://github.com/open-ug/conveyor) on the github platform.
