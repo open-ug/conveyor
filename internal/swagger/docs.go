@@ -12,7 +12,7 @@ const docTemplate = `{
         "contact": {
             "name": "Conveyor Support",
             "url": "https://conveyor.open.ug/",
-            "email": "conveyor@open.ug"
+            "email": "info@open.ug"
         },
         "license": {
             "name": "Apache 2.0",
@@ -1102,7 +1102,7 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "0.3.2",
+	Version:          "0.4.0",
 	Host:             "localhost:8080",
 	BasePath:         "/",
 	Schemes:          []string{"http", "https"},

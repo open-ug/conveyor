@@ -10,13 +10,13 @@
         "contact": {
             "name": "Conveyor Support",
             "url": "https://conveyor.open.ug/",
-            "email": "conveyor@open.ug"
+            "email": "info@open.ug"
         },
         "license": {
             "name": "Apache 2.0",
             "url": "https://opensource.org/license/apache-2-0"
         },
-        "version": "0.3.2"
+        "version": "0.4.0"
     },
     "host": "localhost:8080",
     "basePath": "/",

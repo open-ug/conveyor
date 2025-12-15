@@ -199,3 +199,43 @@ func (m *ResourceModel) FindByVersion(name string, resourceType string, version 
 
 	return resource, nil
 }
+
+/// A function that saves the driver result. This data is then stored in the metadata.driverresults.[driver] field of the resource and is arbitrary data types
+
+func (m *ResourceModel) SaveDriverResult(name string, resourceType string, driver string, result interface{}) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Retrieve the current resource
+	resource, err := m.FindOne(name, resourceType)
+	if err != nil {
+		return fmt.Errorf("failed to find resource: %v", err)
+	}
+
+	// Marshal the driver result to JSON
+	resultData, err := json.Marshal(result)
+	if err != nil {
+		return fmt.Errorf("failed to marshal driver result: %v", err)
+	}
+
+	// Update the resource's metadata with the driver result
+	if resource.Metadata == nil {
+		resource.Metadata = make(map[string]string)
+	}
+	resource.Metadata["driverresults."+driver] = string(resultData)
+
+	// Marshal the updated resource to JSON
+	resourceData, err := json.Marshal(resource)
+	if err != nil {
+		return fmt.Errorf("failed to marshal updated resource: %v", err)
+	}
+
+	// Save the updated resource back to etcd
+	key := m.key(name, resourceType)
+	_, err = m.Client.Put(ctx, key, string(resourceData))
+	if err != nil {
+		return fmt.Errorf("failed to save updated resource: %v", err)
+	}
+
+	return nil
+}

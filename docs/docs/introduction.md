@@ -35,4 +35,4 @@ To make this possible, Conveyor CI ships the following features:
 - API-first & SDK-ready
 - Modern Distributed Architecture
 
-To install Conveyor CI, checkout the [Installation Page](/docs/tutorial/installation)
+To install Conveyor CI, checkout the [Installation Page](/docs/installation)

@@ -32,7 +32,7 @@ Conveyor CI is a Linux first application and can be installed by simply running 
 curl -fsSL conveyor.open.ug/install | sh
 ```
 
-For other installation options please checkout the [Installation and Setup](https://conveyor.open.ug/docs/tutorial/installation) page on the official documentation
+For other installation options please checkout the [Installation and Setup](https://conveyor.open.ug/docs/installation) page on the official documentation
 
 ## Why use Conveyor CI
 
