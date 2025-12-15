@@ -136,12 +136,12 @@ func (n *NatsContext) Shutdown() {
 	log.Println("Initiating graceful shutdown of NATS resources...")
 
 	// 1. Close the client connection first.
-	if n.NatsCon != nil {
+	if n.NatsCon != nil && !n.NatsCon.IsClosed() {
 		n.NatsCon.Close()
 	}
 
 	// 2. Shutdown the embedded server.
-	if n.natsServer != nil {
+	if n.natsServer != nil && n.natsServer.Running() {
 		n.natsServer.Shutdown()
 	}
 

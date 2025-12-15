@@ -158,6 +158,21 @@ func (ec *EngineContext) publishEvent(subject string, message types.DriverMessag
 
 func (ec *EngineContext) handleProcessDriverResult(event PipelineEvent, pipeline *types.Pipeline) {
 
+	// save driver result to resource metadata
+	err := ec.ResourceModel.SaveDriverResult(event.Resource.Name, event.Resource.Resource, event.DriverResultEvent.Driver, event.DriverResultEvent)
+	if err != nil {
+		log.Println("Error saving driver result: ", err)
+		return
+	}
+
+	// update resource to include latest driver result
+	updatedResource, err := ec.ResourceModel.FindOne(event.Resource.Name, event.Resource.Resource)
+	if err != nil {
+		log.Println("Error retrieving updated resource: ", err)
+		return
+	}
+	event.Resource = updatedResource
+
 	// Find the current step based on the driver name
 	var currentStepIndex int = -1
 	for i, step := range pipeline.Steps {

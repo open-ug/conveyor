@@ -11,9 +11,10 @@ import (
 )
 
 type DriverResultEvent struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	Driver  string `json:"driver"`
+	Success bool        `json:"success"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
+	Driver  string      `json:"driver"`
 }
 
 func (dre *DriverResultEvent) PublishEvent(
