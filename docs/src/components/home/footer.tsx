@@ -28,20 +28,10 @@ const Footer = () => {
     {
       title: "Quick Links",
       links: [
-        { label: "Features", href: "/docs/introduction#key-features" },
-        { label: "Installation", href: "/docs/tutorial/installation" },
+        { label: "Tutorial", href: "/docs/category/quick-start-tutorial" },
+        { label: "Installation", href: "/docs/installation" },
         { label: "Documentation", href: "/docs/introduction" },
         { label: "API Reference", href: "/docs/usage/using-api" },
-      ],
-    },
-    {
-      title: "Resources",
-      links: [
-        { label: "Getting Started", href: "/docs/getting-started" },
-        { label: "Examples", href: "/examples" },
-        { label: "Tutorial", href: "/docs/category/quick-start-tutorial" },
-        { label: "Best Practices", href: "/best-practices" },
-        { label: "Troubleshooting", href: "/docs/troubleshooting" },
       ],
     },
     {
@@ -49,7 +39,7 @@ const Footer = () => {
       links: [
         {
           label: "GitHub",
-          href: "https://github.com/conveyor-ci",
+          href: "https://github.com/open-ug/conveyor",
           external: true,
         },
         { label: "Contributing", href: "/docs/contributing/how-to-contribute" },
@@ -59,20 +49,6 @@ const Footer = () => {
           external: true,
         },
         { label: "Roadmap", href: "/docs/contributing/roadmap" },
-      ],
-    },
-    {
-      title: "More",
-      links: [
-        { label: "Privacy Policy", href: "/privacy" },
-        { label: "Terms of Service", href: "/terms" },
-        { label: "Cookie Policy", href: "/cookies" },
-        {
-          label: "License",
-          href: "https://github.com/open-ug/conveyor/blob/main/LICENSE",
-          external: true,
-        },
-        { label: "Security", href: "/security" },
       ],
     },
   ];
@@ -113,7 +89,7 @@ const Footer = () => {
                 xs: "1fr",
                 sm: "repeat(2, 1fr)",
                 md: "repeat(3, 1fr)",
-                lg: "repeat(5, 1fr)",
+                lg: "repeat(3, 1fr)",
               },
               gap: 4,
               mb: 8,
@@ -265,7 +241,7 @@ const Footer = () => {
                 variant="outlined"
                 size="sm"
               >
-                v0.1.30
+                v0.4.0
               </Chip>
             </Box>
 
