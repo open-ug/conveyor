@@ -1,6 +1,6 @@
 {
   "label": "Usage Guides",
-  "position": 4,
+  "position": 5,
   "link": {
     "type": "generated-index",
     "description": "A quick start guide to get you up and running with the library."
