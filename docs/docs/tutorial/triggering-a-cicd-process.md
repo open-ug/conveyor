@@ -4,59 +4,30 @@ sidebar_position: 5
 
 # Triggering a Workflow
 
-Once you have the Driver installed and running. You can trigger a CI/CD process.
+Lets trigger a sample workflow from the system we have built.
 
-CI/CD processes are triggered using [Resources](/docs/concepts/resources). These are objects that define how the CI/CD process will be run.
+Before we trigger a workflow, you need to ensure you have done the folowing tasks that where explained and demosntrated in the previous sections:
 
-## Creating the Resource
+- Installed and started the Conveyor CI API server
+- Defined the resource definitiaon and posted it to the API Server
+- Defined the Pipeline object and Posted it to the API server
+- Cloned the driver repository and started all 4 driver intances
 
-Drivers are responsible for defining the schema and format of the resources they manage and you have to follow this schema to create your resource. The [open-ug/simple-runner](https://github.com/open-ug/simple-runner) defines a resource that requires an image and a set of commands to be run in the image. Lets define an example resource
+Once you have the above tasks done. You can find a simple flutter application code base that is on a remote Git repository and use it to create a resource object. similar to this:
 
 ```json
 {
-  "name": "ubuntu-pipeline-6",
-  "resource": "pipeline",
+  "name": "build-app",
+  "resource": "flutter-builder",
+  "pipeline": "flutter-pipeline",
   "spec": {
-    "image": "jimjuniorb/hello-node:1.2.3",
-    "steps": [
-      {
-        "name": "print-working-directory",
-        "command": "pwd"
-      },
-      {
-        "name": "list-files",
-        "command": "ls -l"
-      },
-      {
-        "name": "show-os-info",
-        "command": "cat /etc/os-release"
-      }
-    ]
+    "repository": "https://github.com/AmirBayat0/Sneakers-shop-app-Flutter",
+    "env": []
   }
 }
 ```
 
-Once the resource is created, it's sent to the API Server using a POST request to the `/resources/`. The API Server will return a response containing `runid` field that contains a UUID. The response you get is in this format
-
-```json
-{
-  "message": "Resource created successfully",
-  "name": "ubuntu-pipeline-6",
-  "runid": "fbdf5edf-66d4-46ce-859a-8ee44d6c9463"
-}
-```
-
-## Viewing the CI/CD process
-
-Once you have posted the resource, you can view the progress of the process as it happens in real time by streaming its logs via a websocket.
-
-To stream the progress, use a websocket client to connect to the `ws://localhost:8080/logs/streams/<driver-name>/<runid>`. In this case the driver name is `command-runner`. An example would be
-
-```sh
-ws://localhost:8080/logs/streams/command-runner/fbdf5edf-66d4-46ce-859a-8ee44d6c9463
-```
-
-The progress will be in the format of a timestamp and a log message.
+You can then send this JSON to the Conveyor CI API Server using a POST request to `/resources` route. This will save the resource in the database and send an event to the drivers in order depending on the order you defined in the Pipeline.
 
 ---
 
