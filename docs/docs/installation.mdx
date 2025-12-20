@@ -25,6 +25,15 @@ import TabItem from '@theme/TabItem';
     curl -fsSL conveyor.open.ug/install | sh
     ```
   </TabItem>
+  <TabItem value="helm" label="Helm Chart">
+    ```sh
+    helm repo add conveyor https://open-ug.github.io/conveyor
+
+    helm repo update
+
+    helm install conveyor conveyor/conveyor
+    ```
+  </TabItem>
   <TabItem value="debian" label="Debian Package">
     1. Add the Conveyor CI APT repository:
 

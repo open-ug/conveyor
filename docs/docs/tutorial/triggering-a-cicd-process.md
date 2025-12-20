@@ -29,6 +29,10 @@ Once you have the above tasks done. You can find a simple flutter application co
 
 You can then send this JSON to the Conveyor CI API Server using a POST request to `/resources` route. This will save the resource in the database and send an event to the drivers in order depending on the order you defined in the Pipeline.
 
+The logs that are collected from the Driver by the Driver logger from this process can be streamed or collected from the API server in realtime.
+
+To do this, you simply have to open a Websocket connection to the `/logs/streams/{DROVER_NAME}/{RUN_ID}` route i.e `ws://localhost:8080/logs/streams/sample-driver/fbab31f6-a278-4a8f-96be-ac49b007ca65`.
+
 ---
 
 Having completed this tutorial, you have a highlevel understanding of Conveyor CI usage workflow. You can now continue to the [Concepts Documentation](/docs/category/concepts) to gain a Deep understanding of how Conveyor CI works.
