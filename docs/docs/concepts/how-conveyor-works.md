@@ -35,7 +35,7 @@ These components include:
 - **Conveyor API Server**: This acts as the entry point into the system. It carries out certain core functionalities like validating Resources against Resource definitions, Publishing events to event stream in case of resource change.
 - **etcd**: This is a Key Value store in charge of storing all system state. It acts as a data store for Conveyor CI.
 - **Nats**: Nats is a message broker that is in charge of event routing and processing. It enables decoupled and event driven execution.
-- **Grafana Loki**: This is in charge of log storage. It collects and stores important logs from Drives and allows developers to be able to observe CI/CD execution logs.
+- **Badger DB**: This is in charge of log storage. It collects and stores important logs from Drives and allows developers to be able to observe CI/CD execution logs.
 
 ### Execution Workflow
 
@@ -59,9 +59,8 @@ Conveyor CI follows a standard execution workflow that complements its architect
 5. Driver Execution
 
    - The Driver executes the CI/CD process defined by the Resource.
-   - Execution logs are sent to Grafana Loki for storage.
+   - Execution logs are sent back to Conveyor CI for storage.
 
 6. Log Streaming (Optional)
 
    - If a user wants to stream logs, they open a WebSocket to the API Server.
-   - The API Server fetches logs from Loki and streams them to the client in real time.
