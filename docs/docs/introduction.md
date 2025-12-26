@@ -15,7 +15,7 @@ width="200"
 </div>
 
 
-**Conveyor CI** is a lightweight, open-source software engine designed for platform developers to build distributed CI/CD systems with minimal overhead.
+**Conveyor CI** is a lightweight headless, cloud-native CI/CD orchestration engine designed for platform developers to build CI/CD systems with minimal overhead.
 
 Conveyor CI consists of an API Server that serves as the core component and provides you with SDKs and a Programming API to build upon.
 
