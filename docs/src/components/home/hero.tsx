@@ -12,7 +12,7 @@ const CodeBlock = () => {
 
   const codeSteps = [
     {
-      title: "Define Pipeline",
+      title: "Initialize Conveyor CI",
       code: `$ conveyor init
 Initializing Conveyor CI...
 ✔ Using existing configuration directory: /home/user/.config/conveyor
@@ -36,7 +36,7 @@ Next steps:
   3. Visit the documentation: https://conveyor.open.ug`,
     },
     {
-      title: "Execute & Monitor",
+      title: "Start Conveyor API Server",
       code: `$ conveyor up
 2025/09/28 22:04:15 Starting embedded NATS server with JetStream...
 2025/09/28 22:04:15 NATS server started on nats://0.0.0.0:4222
@@ -279,8 +279,8 @@ const Hero = () => {
                       maxWidth: "600px",
                     }}
                   >
-                    The lightweight engine for building distributed CI/CD
-                    systems with ease.
+                    A lightweight headless, cloud-native CI/CD orchestration
+                    engine for building CI/CD systems with ease.
                   </Typography>
                 </Box>
 
@@ -309,7 +309,7 @@ const Hero = () => {
                     size="lg"
                     startDecorator={<SiKubernetes />}
                   >
-                    Kubernetes-Free
+                    Composable & Scalable
                   </Chip>
                   <Chip
                     sx={{
@@ -322,7 +322,7 @@ const Hero = () => {
                     size="lg"
                     startDecorator={<VscGraph />}
                   >
-                    Built-in Observability
+                    Extensible
                   </Chip>
                 </Stack>
 
@@ -335,9 +335,11 @@ const Hero = () => {
                     maxWidth: "540px",
                   }}
                 >
-                  Unlike heavyweight solutions like Jenkins or Kubernetes-bound
-                  tools like Tekton, Conveyor CI delivers enterprise-grade CI/CD
-                  with minimal overhead and maximum flexibility.
+                  Conveyor CI is an API-first, cloud-native engine that
+                  orchestrates CI/CD pipelines without imposing a UI or
+                  opinionated workflows. Define pipelines declaratively, react
+                  to events, and let Conveyor reconcile and execute them through
+                  pluggable drivers and runtimes.
                 </Typography>
 
                 <Stack

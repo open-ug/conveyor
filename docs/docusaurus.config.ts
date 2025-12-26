@@ -7,7 +7,7 @@ import type * as Preset from "@docusaurus/preset-classic";
 const config: Config = {
   title: "Conveyor CI",
   tagline:
-    "The lightweight engine for building distributed CI/CD systems with ease.",
+    "Conveyor CI is a headless, cloud-native CI/CD orchestration engine for building distributed CI/CD systems with ease.",
   favicon: "icons/favicon.ico",
 
   // Set the production url of your site here
