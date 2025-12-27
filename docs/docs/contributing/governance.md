@@ -50,7 +50,7 @@ Conveyor CI repositories on GitHub.
 
 ### Maintainer
 
-**Conveyor CI** Maintainers (as defined by the [Conveyor's Maintainers team](./mantainers.md) ) have write access to the **Conveyor CI** repository on GitHub, which gives the ability to approve / merge / close PRs, trigger the CI and manage / classify project issues. All pull requests require review by a maintainer other than the one submitting it. "Large" changes are encouraged to gather consensus from multiple maintainers and interested community members. Maintainers are active Contributors and participants in the project, collectively managing the project's resources and contributors.
+**Conveyor CI** Maintainers (as defined by the [Conveyor's Maintainers team](./mantainers) ) have write access to the **Conveyor CI** repository on GitHub, which gives the ability to approve / merge / close PRs, trigger the CI and manage / classify project issues. All pull requests require review by a maintainer other than the one submitting it. "Large" changes are encouraged to gather consensus from multiple maintainers and interested community members. Maintainers are active Contributors and participants in the project, collectively managing the project's resources and contributors.
 
 This privilege is granted with some expectation of responsibility: maintainers
 are people who care about **Conveyor CI** and want to help it grow and improve. A
