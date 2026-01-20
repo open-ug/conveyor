@@ -75,6 +75,10 @@ const config: Config = {
       },
     },
   ],
+  markdown: {
+    mermaid: true,
+  },
+  themes: ["@docusaurus/theme-mermaid"],
 
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
