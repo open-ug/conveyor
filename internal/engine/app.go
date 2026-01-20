@@ -57,6 +57,7 @@ func (ec *EngineContext) Start() error {
 	}
 	defer cc.Stop()
 
+	// Create log consumer
 	logconsumer, err := ec.NatsContext.JetStream.CreateOrUpdateConsumer(context.Background(), "logs-engine", jetstream.ConsumerConfig{
 		Name:          "logs-engine",
 		FilterSubject: "logs.>",

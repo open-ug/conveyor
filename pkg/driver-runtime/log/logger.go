@@ -29,7 +29,7 @@ type DriverLogger struct {
 }
 
 type Logger interface {
-	PushLog(labels map[string]string, message string) error
+	PushLog(logEntry types.Log) error
 }
 
 func NewDriverLogger(driverName string, labels map[string]string, natsCon *nats.Conn) *DriverLogger {
@@ -56,21 +56,27 @@ func (d *DriverLogger) Log(labels map[string]string, message string) error {
 		initialLabels[k] = v
 	}
 	runId := d.Labels["run_id"]
+
+	logEntry := types.Log{
+		RunID:     initialLabels["run_id"],
+		Driver:    initialLabels["driver"],
+		Message:   message,
+		Timestamp: strconv.FormatInt(time.Now().Unix(), 10),
+	}
+
 	// Send the log to Loki
-	err := d.Logger.PushLog(initialLabels, message)
+	err := d.Logger.PushLog(logEntry)
 	if err != nil {
 		return err
 	}
-	// an array of the current timestamp and message
-	timestamp := []string{strconv.FormatInt(time.Now().Unix(), 10), message}
 	// Marshal the message to JSON
-	messageBytes, err := json.Marshal(timestamp)
+	messageBytes, err := json.Marshal(logEntry)
 	if err != nil {
 		return err
 	}
 
 	// Send the log to Nats
-	err = d.NatsCon.Publish("driver:"+d.DriverName+":logs:"+runId, messageBytes)
+	err = d.NatsCon.Publish("live.logs."+runId+"."+d.DriverName, messageBytes)
 
 	if err != nil {
 		return err
@@ -105,13 +111,7 @@ func NewDefaultLogger(natsCon *nats.Conn) *DefaultLogger {
 	}
 }
 
-func (d *DefaultLogger) PushLog(labels map[string]string, message string) error {
-	logEntry := types.Log{
-		RunID:     labels["run_id"],
-		Driver:    labels["driver"],
-		Message:   message,
-		Timestamp: strconv.FormatInt(time.Now().Unix(), 10),
-	}
+func (d *DefaultLogger) PushLog(logEntry types.Log) error {
 
 	// Marshal the log entry to JSON
 	logEntryBytes, err := json.Marshal(logEntry)

@@ -13,7 +13,7 @@
       "name": "Apache 2.0",
       "url": "https://opensource.org/license/apache-2-0"
     },
-    "version": "0.4.0"
+    "version": "0.5.0"
   },
   "host": "localhost:8080",
   "basePath": "/",
@@ -153,6 +153,101 @@
           },
           "400": {
             "description": "Bad request - Invalid payload",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/logs/pipeline/{runid}": {
+      "get": {
+        "description": "Streams logs for a specific pipeline run ID using Server-Sent Events (SSE)",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["logs"],
+        "summary": "Stream logs by pipeline run ID",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Run ID",
+            "name": "runid",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stream of log entries",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid run ID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/logs/streams/{drivername}/{runid}": {
+      "get": {
+        "description": "Streams logs for a specific driver and run ID using Server-Sent Events (SSE)",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["logs"],
+        "summary": "Stream logs by driver name and run ID",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Driver Name",
+            "name": "drivername",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Run ID",
+            "name": "runid",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stream of log entries",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid driver name or run ID",
             "schema": {
               "type": "object",
               "additionalProperties": {

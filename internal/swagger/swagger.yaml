@@ -94,7 +94,7 @@ info:
     name: Apache 2.0
     url: https://opensource.org/license/apache-2-0
   title: Conveyor CI API
-  version: 0.4.0
+  version: 0.5.0
 paths:
   /drivers/broadcast-message:
     post:
@@ -212,6 +212,79 @@ paths:
               type: string
             type: object
       summary: Create a log entry
+      tags:
+      - logs
+  /logs/pipeline/{runid}:
+    get:
+      consumes:
+      - application/json
+      description: Streams logs for a specific pipeline run ID using Server-Sent Events
+        (SSE)
+      parameters:
+      - description: Run ID
+        in: path
+        name: runid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Stream of log entries
+          schema:
+            type: string
+        "400":
+          description: Bad request - Invalid run ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Stream logs by pipeline run ID
+      tags:
+      - logs
+  /logs/streams/{drivername}/{runid}:
+    get:
+      consumes:
+      - application/json
+      description: Streams logs for a specific driver and run ID using Server-Sent
+        Events (SSE)
+      parameters:
+      - description: Driver Name
+        in: path
+        name: drivername
+        required: true
+        type: string
+      - description: Run ID
+        in: path
+        name: runid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Stream of log entries
+          schema:
+            type: string
+        "400":
+          description: Bad request - Invalid driver name or run ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Stream logs by driver name and run ID
       tags:
       - logs
   /pipelines:
