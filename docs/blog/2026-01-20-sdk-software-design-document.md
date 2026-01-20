@@ -166,13 +166,14 @@ classDiagram
    1. `resources.{{resource}}`: with `{{resource}}` being a place holder for the resource name the driver defines to listen to.
    2. `drivers.{{driver_name}}.resources.{{resource}}`: with `{{driver_name}}` and `{{resource}}` being placeholders for the drivers name and the resource name the driver defines to listen to respectively.
 3. **AckPolicy** should be set to `AckExplicitPolicy` and **DeliverPolicy** should be set to `DeliverAllPolicy`
-4. Driver Manager consumer receives event. The payload/event data is of JSON format following the [Driver Message](#driver-message) schema
+4. Driver Manager consumer receives event. The payload/event data is of JSON format following the [Driver Message](#352-driver-message) schema
 5. When an event is recieved, a Driver logger is initialized, and this will be provided to the driver's `Reconcile` function as a parameter. It has default set labels that will be appended t each log message and these include:
    1. `run_id`: Which is a UUID string that can be accessed by from the event data
 6. Driver `Reconcile()` invoked with paramenters, `Reconcile(message.Payload, message.Event, message.RunID, logger)` is `message` is considered as the event data recieved.
 7. The Driver logger has a `log()` method that allows the driver to send logs that are to be persisited by conveyor CI, this method takes in the log message and any other custom labels that would like to be attached to the log message.
-8. The driver logger then uses the drive managers, NATs and Jetstream connections to publish this log data to `logs.{{RUN ID}}` subject using JetStream and also send a plain NATs `driver:{{DRIVER_NAME}}:logs:{{RUN ID}}` subject using NATs. Before sending this data it should encode it to JSON aligining with the [Log Entry](#log-entry) schema.
-9. Once the Reconcile function is done running, its expected to return a result of its execution, of schema [Driver Result](#driver-result) and this data will be published over Jetstream to the `pipelines.driver.result` subject as a [Driver Result Event](#driver-result-event)
+8. The driver logger then uses the drive managers, NATs and Jetstream connections to publish this log data to `logs.{{RUN ID}}` subject using JetStream and also send a core NATs Pub/Sub message `live.logs.{{RUN ID}}.{{DRIVER_NAME}}` subject using NATs. Before sending this data it should encode it to JSON aligining with the [Log Entry](#355-log-entry) schema.
+9. Once the Reconcile function is done running, its expected to return a result of its execution, of schema [Driver Result](#353-driver-result) and this data will be published over Jetstream to the `pipelines.driver.result` subject as a [Driver Result Event](#354-driver-result-event)
+10. The API Client makes HTTP requests to the Conveyor CI API Server. The API Referece can be found at [https://conveyor.open.ug/docs/usage/using-api#api-reference](https://conveyor.open.ug/docs/usage/using-api#api-reference). Take note of Security and Authetication, more info about Authentication is documented at [https://conveyor.open.ug/docs/usage/security](https://conveyor.open.ug/docs/usage/security)
 
 Both happy-path and failure-path executions are handled asynchronously.
 

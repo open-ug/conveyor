@@ -9,46 +9,44 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/nats-io/nats.go"
 	"github.com/open-ug/conveyor/internal/models"
+	"github.com/open-ug/conveyor/internal/utils"
 	"github.com/valyala/fasthttp"
 )
 
-type DriverLogsStreamer struct {
-	NatsCon  *nats.Conn
-	LogModel *models.LogModel
+type PipelineLogsStreamer struct {
+	NatsContext *utils.NatsContext
+	LogModal    *models.LogModel
 }
 
-func NewDriverLogsStreamer(NatsCon *nats.Conn, LogModel *models.LogModel) *DriverLogsStreamer {
+func NewPipelineLogsStreamer(natsContext *utils.NatsContext, logModel *models.LogModel) *PipelineLogsStreamer {
 
-	return &DriverLogsStreamer{
-		NatsCon:  NatsCon,
-		LogModel: LogModel,
+	return &PipelineLogsStreamer{
+		NatsContext: natsContext,
+		LogModal:    logModel,
 	}
 }
 
-// StreamDriverLogsByRunID streams logs for a specific driver and run ID using Server-Sent Events (SSE)
-// @Summary Stream logs by driver name and run ID
-// @Description Streams logs for a specific driver and run ID using Server-Sent Events (SSE)
+// StreamLogsByRunID streams logs for a specific pipeline run ID using Server-Sent Events (SSE)
+// @Summary Stream logs by pipeline run ID
+// @Description Streams logs for a specific pipeline run ID using Server-Sent Events (SSE)
 // @Tags logs
 // @Accept json
 // @Produce json
-// @Param drivername path string true "Driver Name"
 // @Param runid path string true "Run ID"
 // @Success 200 {string} string "Stream of log entries"
-// @Failure 400 {object} map[string]string "Bad request - Invalid driver name or run ID"
+// @Failure 400 {object} map[string]string "Bad request - Invalid run ID"
 // @Failure 500 {object} map[string]string "Internal server error"
-// @Router /logs/streams/{drivername}/{runid} [get]
-func (s *DriverLogsStreamer) StreamDriverLogsByRunID(c *fiber.Ctx) error {
+// @Router /logs/pipeline/{runid} [get]
+func (s *PipelineLogsStreamer) StreamLogsByRunID(c *fiber.Ctx) error {
 	// Set headers for SSE
 	c.Set("Content-Type", "text/event-stream")
 	c.Set("Cache-Control", "no-cache")
 	c.Set("Connection", "keep-alive")
 	c.Set("Transfer-Encoding", "chunked")
 
-	driverName := c.Params("drivername")
 	runID := c.Params("runid")
 
-	// Get the logs from the database
-	logs, err := s.LogModel.Query("", driverName, runID)
+	logs, err := s.LogModal.Query("", "", runID)
 	if err != nil {
 		fmt.Println("Error getting logs:", err)
 		return c.Status(fiber.StatusInternalServerError).SendString("Error getting logs")
@@ -56,11 +54,9 @@ func (s *DriverLogsStreamer) StreamDriverLogsByRunID(c *fiber.Ctx) error {
 
 	c.Status(fiber.StatusOK).Context().SetBodyStreamWriter(
 		fasthttp.StreamWriter(func(w *bufio.Writer) {
-			// send dummy data
-			w.Flush()
 
-			// Send existing logs first (replay)
-			fmt.Println(logs)
+			//Send existing logs first (replay)
+
 			for _, logEntry := range logs {
 				jsonData, err := json.Marshal(logEntry)
 				if err != nil {
@@ -78,8 +74,8 @@ func (s *DriverLogsStreamer) StreamDriverLogsByRunID(c *fiber.Ctx) error {
 			msgCh := make(chan *nats.Msg, 256)
 
 			// Async NATS subscription
-			sub, err := s.NatsCon.Subscribe(
-				"live.logs."+runID+"."+driverName,
+			sub, err := s.NatsContext.NatsCon.Subscribe(
+				"live.logs."+runID+".*",
 				func(msg *nats.Msg) {
 					select {
 					case msgCh <- msg:
@@ -93,11 +89,11 @@ func (s *DriverLogsStreamer) StreamDriverLogsByRunID(c *fiber.Ctx) error {
 			}
 			defer sub.Unsubscribe()
 
-			// 4. Heartbeat ticker
+			//Heartbeat ticker
 			heartbeat := time.NewTicker(15 * time.Second)
 			defer heartbeat.Stop()
 
-			// 5. Streaming loop
+			// Streaming loop
 			for {
 				select {
 				case <-heartbeat.C:
@@ -119,4 +115,5 @@ func (s *DriverLogsStreamer) StreamDriverLogsByRunID(c *fiber.Ctx) error {
 	)
 
 	return nil
+
 }

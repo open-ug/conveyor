@@ -3,7 +3,7 @@ Copyright © 2024 - Present Conveyor CI Contributors
 */
 
 // @title Conveyor CI API
-// @version 0.4.0
+// @version 0.5.0
 // @description Conveyor is a lightweight, distributed CI/CD engine built for platform developers who demand simplicity without compromise.
 
 // @contact.name Conveyor Support
@@ -185,7 +185,7 @@ func Setup() (APIServerContext, error) {
 
 	// Register routes
 	logModel := &models.LogModel{DB: badgerDB}
-	routes.LogRoutes(app, &handlers.LogHandler{Model: logModel}, natsContext.NatsCon)
+	routes.LogRoutes(app, &handlers.LogHandler{Model: logModel}, natsContext)
 
 	routes.DriverRoutes(app, etcd.Client, natsContext.NatsCon)
 	routes.ResourceRoutes(app, etcd.Client, natsContext)
