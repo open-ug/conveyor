@@ -140,8 +140,8 @@ Moving on to the `Reconcile` function. We defined it on line 13 and it takes in 
 
 The logs that are collected from the Driver by the Driver logger can be streamed or collected from the API server in realtime or not.
 
-To do this, you simply have to open a Websocket connection to the `/logs/streams/{DROVER_NAME}/{RUN_ID}` route i.e `ws://localhost:8080/logs/streams/sample-driver/fbab31f6-a278-4a8f-96be-ac49b007ca65`.
+To do this, you simply have to open a EventStream connection to the `/logs/pipeline/{RUN_ID}` route i.e `ws://localhost:8080/logs/pipeline/fbab31f6-a278-4a8f-96be-ac49b007ca65` and recieve Server Sent Events.
 
 This connection will then return JSON data containing log lines and there associated labels you might have defined.
 
-Besides opening a websocket connection for realtime logs, You can also fetch these logs using HTTP by quering the the API on the `/logs` route. You can also specify query paramenters like `driver`, `runid`, `pipeline` forexample `GET /logs?driver=...&runid=...`
+Besides opening a SSE connection for realtime logs, You can also fetch these logs using HTTP by quering the the API on the `/logs` route. You can also specify query paramenters like `driver`, `runid`, `pipeline` forexample `GET /logs?driver=...&runid=...`
