@@ -31,7 +31,7 @@ You can then send this JSON to the Conveyor CI API Server using a POST request t
 
 The logs that are collected from the Driver by the Driver logger from this process can be streamed or collected from the API server in realtime.
 
-To do this, you simply have to open a Websocket connection to the `/logs/streams/{DROVER_NAME}/{RUN_ID}` route i.e `ws://localhost:8080/logs/streams/sample-driver/fbab31f6-a278-4a8f-96be-ac49b007ca65`.
+To do this, you simply have to open a EventStream connection to the `/logs/pipeline/{RUN_ID}` route i.e `ws://localhost:8080/logs/pipeline/fbab31f6-a278-4a8f-96be-ac49b007ca65` and recieve Server Sent Events.
 
 ---
 
