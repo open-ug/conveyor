@@ -1,7 +1,7 @@
 apiVersion: v2
 name: conveyor
-appVersion: v3.4.1
-version: 0.1.16
+appVersion: "0.5.0"
+version: 0.5.0
 kubeVersion: ">=1.19.0-0"
 description: Conveyor CI is an Engine/Framwork for building custom CI/CD Platforms.
 home: https://conveyor.open.ug/
