@@ -115,8 +115,10 @@ func main() {
  }
  // highlight-end
 
+ client, err := runtime.NewClient("http://localhost:8080", "nats://localhost:4222", runtime.ConfigOptions{})
+
  // highlight-next-line
- driverManager, err := runtime.NewDriverManager(driver, []string{"*"})
+ driverManager, err := client.NewDriverManager(driver, []string{"*"})
 
  if err != nil {
   fmt.Println("Error creating driver manager: ", err)

@@ -2,8 +2,11 @@ package utils
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/nats-io/nats-server/v2/server"
@@ -40,17 +43,42 @@ func NewNatsConn() *NatsContext {
 	}
 
 	authEnabled := viper.GetBool("api.auth_enabled")
+	connectionOptions := []nats.Option{} // NATS CLIENT CONNNECTION OPTIONS
 	if authEnabled {
 		// enable TLS Authentication
-		caFile := viper.GetString("tls.ca")
-		certFile := viper.GetString("tls.cert")
-		keyFile := viper.GetString("tls.key")
+		caFilePath := viper.GetString("tls.ca")
+		certFilePath := viper.GetString("tls.cert")
+		keyFilePath := viper.GetString("tls.key")
 
-		opts.TLS = true
-		opts.TLSCert = certFile
-		opts.TLSKey = keyFile
-		opts.TLSCaCert = caFile
-		opts.TLSVerify = true
+		cert, err := tls.LoadX509KeyPair(certFilePath, keyFilePath)
+		if err != nil {
+			log.Fatalf("Error loading server certs: %v", err)
+		}
+
+		// 2. Load Root CA (For verifying clients)
+		// We must manually build the CertPool since we want 'verify: true'
+		caCert, err := os.ReadFile(caFilePath)
+		if err != nil {
+			log.Fatalf("Error loading CA cert: %v", err)
+		}
+		caPool := x509.NewCertPool()
+		caPool.AppendCertsFromPEM(caCert)
+
+		// 3. Create the TLS Config Object
+		tlsConfig := &tls.Config{
+			Certificates: []tls.Certificate{cert},
+			ClientCAs:    caPool,
+			// This is the equivalent of 'opts.TLSVerify = true'
+			ClientAuth: tls.RequireAndVerifyClientCert,
+			MinVersion: tls.VersionTLS12,
+		}
+
+		opts.TLSConfig = tlsConfig
+
+		// For the NATS client connection, we need to use the same certs to authenticate to the server
+
+		connectionOptions = append(connectionOptions, nats.ClientCert(certFilePath, keyFilePath))
+		connectionOptions = append(connectionOptions, nats.RootCAs(caFilePath))
 
 		log.Println("NATS server TLS authentication enabled.")
 	}
@@ -75,8 +103,9 @@ func NewNatsConn() *NatsContext {
 
 	log.Printf("NATS server started on %s\n", natsServer.ClientURL())
 
-	// --- Connect a NATS client to the embedded server ---
-	nc, err := nats.Connect(natsServer.ClientURL())
+	// NATS CLIENT CONNNECTION SETUP
+
+	nc, err := nats.Connect(natsServer.ClientURL(), connectionOptions...)
 	if err != nil {
 		log.Fatalf("Error connecting to NATS: %v", err)
 	}

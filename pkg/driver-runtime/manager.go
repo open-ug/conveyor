@@ -7,6 +7,8 @@ package driverruntime
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 
@@ -21,15 +23,17 @@ import (
 type DriverManager struct {
 	// The driver manager is responsible for managing the drivers
 	// and the driver lifecycle.
-
 	Driver *Driver
 
 	// an array of events that the driver manager will listen to
 	// and reconcile
 	Events []string
+
+	// The API client to interact with the Conveyor API
+	Client *Client
 }
 
-func NewDriverManager(
+func (c *Client) NewDriverManager(
 	driver *Driver,
 	events []string,
 ) (*DriverManager, error) {
@@ -43,12 +47,53 @@ func NewDriverManager(
 	return &DriverManager{
 		Driver: driver,
 		Events: events,
+		Client: c,
 	}, nil
 }
 
 func (d *DriverManager) Run() error {
 	// Setup NATS JetStream
-	nc, err := nats.Connect(nats.DefaultURL)
+
+	connectOptions := []nats.Option{
+		nats.Name("Conveyor Driver Manager - " + d.Driver.Name),
+		nats.MaxReconnects(-1), // infinite reconnects
+	}
+
+	if d.Client.Options.AuthEnabled {
+		// the d.Client.Options.Cert and Key and RootCA are []byte of the files. we shall use nats.Secure()
+		cert, err := tls.X509KeyPair(d.Client.Options.Cert, d.Client.Options.Key)
+		if err != nil {
+			color.Red("Error Occured while loading client certs: %v", err)
+			return err
+		}
+
+		caCertPool := x509.NewCertPool()
+		if ok := caCertPool.AppendCertsFromPEM(d.Client.Options.RootCA); !ok {
+			color.Red("Error Occured while loading root CA cert: %v", err)
+			return fmt.Errorf("failed to load root CA cert")
+		}
+
+		tlsConfig := &tls.Config{
+			Certificates:       []tls.Certificate{cert},
+			RootCAs:            caCertPool,
+			MinVersion:         tls.VersionTLS12,
+			MaxVersion:         tls.VersionTLS13,
+			InsecureSkipVerify: false,                          // Always verify the server's certificate
+			ClientAuth:         tls.RequireAndVerifyClientCert, // Require client certs and verify them
+		}
+
+		connectOptions = append(connectOptions, nats.Secure(tlsConfig))
+
+	}
+
+	var natsConnectUrl string
+	if d.Client.NatsURL != "" {
+		natsConnectUrl = d.Client.NatsURL
+	} else {
+		natsConnectUrl = nats.DefaultURL
+	}
+
+	nc, err := nats.Connect(natsConnectUrl, connectOptions...)
 	if err != nil {
 		color.Red("Error Occured while connecting to NATS: %v", err)
 		return err

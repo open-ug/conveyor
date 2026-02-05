@@ -8,7 +8,7 @@ Conveyor CI is designed to be secure by default. It uses system Security framewo
 
 ## Authentication
 
-Conveyor CI API server uses a Stateless Cryptographic Proof-of-Possession (PoP) Authentication System based on JWTs and X.509 certificates and the NATS event broker users the [TLS Authentication](https://docs.nats.io/running-a-nats-service/configuration/securing_nats/auth_intro/tls_mutual_auth) supported by NATS. The same certificates and private key are used in Authenticating both systems. By default authentication is disabled but can be enabled by setting the `api.auth_enabled` config value to `true`.
+Conveyor CI API server uses a Stateless Cryptographic Proof-of-Possession (PoP) Authentication System based on JWTs and X.509 certificates and the NATS event broker uses the [TLS Authentication](https://docs.nats.io/running-a-nats-service/configuration/securing_nats/auth_intro/tls_mutual_auth) supported by NATS. The same certificates and private key are used in Authenticating both systems. By default authentication is disabled but can be enabled by setting the `api.auth_enabled` config value to `true`.
 
 ### Client Certificates
 
