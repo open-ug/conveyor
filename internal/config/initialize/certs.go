@@ -123,6 +123,7 @@ func generateCertificates(certDir string, force bool) error {
 		},
 		IPAddresses: []net.IP{
 			net.ParseIP("127.0.0.1"),
+			net.ParseIP("0.0.0.0"),
 			net.ParseIP("::1"),
 		},
 	}

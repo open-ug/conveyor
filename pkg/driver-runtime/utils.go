@@ -1,4 +1,4 @@
-package client
+package driverruntime
 
 import (
 	"context"
@@ -38,7 +38,7 @@ func (c *Client) doRequest(ctx context.Context, method, path string, body, dest 
 		req.SetBody(jsonMessage)
 	}
 
-	if c.authEnabled {
+	if c.Options.AuthEnabled {
 		tokenString, err := c.createSignedJWT()
 		if err != nil {
 			return fmt.Errorf("doRequest: failed to create signed jwt: %w", err)
@@ -149,7 +149,7 @@ func parseCertAndKey(certPEM, keyPEM []byte) ([]*x509.Certificate, crypto.Privat
 
 // builds and signs a short-lived JWT
 func (c *Client) createSignedJWT() (string, error) {
-	if !c.authEnabled {
+	if !c.Options.AuthEnabled {
 		return "", errors.New("auth not enabled")
 	}
 	// FIX: Check the certs slice
@@ -160,7 +160,7 @@ func (c *Client) createSignedJWT() (string, error) {
 	leaf := c.certs[0]
 
 	now := time.Now().UTC()
-	ttl := c.tokenTTL
+	ttl := c.Options.TokenTTL
 	if ttl <= 0 {
 		ttl = 2 * time.Minute // Should match default in NewClient
 	}
