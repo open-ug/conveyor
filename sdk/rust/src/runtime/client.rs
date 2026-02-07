@@ -1,8 +1,9 @@
 use crate::runtime::manager::DriverManager;
+use crate::runtime::types::Driver;
 use reqwest::Client as HttpClient;
 use reqwest::header;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Client {
     /// The Conveyor CI API Server endpoint
     pub api_endpoint: String,
@@ -61,9 +62,10 @@ impl Client {
         }
     }
 
-    pub fn new_driver_manager(&self) -> DriverManager {
+    pub fn new_driver_manager<'a>(&'a self, driver: Box<dyn Driver>) -> DriverManager<'a> {
         DriverManager {
-            // Initialize the driver manager with necessary state and configuration
+            client: self,
+            driver,
         }
     }
 }

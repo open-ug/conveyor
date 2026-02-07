@@ -1,4 +1,4 @@
 pub mod client;
-pub mod log;
+pub mod logger;
 pub mod manager;
 pub mod types;

@@ -1,5 +1,5 @@
+use crate::runtime::logger::DriverLogger;
 use serde::{Deserialize, Serialize};
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DriverResult {
     pub success: bool,
@@ -8,7 +8,7 @@ pub struct DriverResult {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct DriverMessage {
+pub struct DriverMessage {
     pub event: String,
     pub payload: serde_json::Value, // The actual content of the message, which can be any JSON value
     pub id: Option<String>,         // Optional ID for correlating requests and responses
@@ -17,7 +17,7 @@ struct DriverMessage {
     pub run_id: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct DriverResultEvent {
     pub success: bool,
     pub message: Option<String>,
@@ -25,20 +25,34 @@ pub struct DriverResultEvent {
     pub driver: String,                  // Identifier for the driver that produced this result
 }
 
-pub struct DriverManager {
-    // Fields for managing drivers, such as a registry of available drivers,
-    // configuration settings, and any necessary state for driver lifecycle management.
+pub trait Driver {
+    fn name(&self) -> String;
+
+    fn resources(&self) -> Vec<String>;
+
+    fn reconcile(
+        &self,
+        payload: serde_json::Value,
+        event: String,
+        run_id: String,
+        logger: &DriverLogger,
+    ) -> DriverResult;
 }
 
-pub struct DriverLogger {
-    // Fields for managing driver logs, such as log storage, formatting options,
-    // and any necessary state for log lifecycle management.
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PipelineEvent {
+    pub event: String, // e.g "create", "update", "delete"
+    pub run_id: String,
+    pub resource: serde_json::Value, // Placeholder for the actual resource structure
+    pub driver_result: DriverResultEvent,
 }
 
-pub struct Log {
-    pub runid: String,
-    pub driver: String,
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Resource {
+    pub id: String,
+    pub name: String,
     pub pipeline: Option<String>,
-    pub timestamp: String, // RFC 3339 format
-    pub message: String,
+    pub resource: String,
+    pub metadata: std::collections::HashMap<String, String>,
+    pub spec: serde_json::Value, // Placeholder for the actual spec structure
 }
