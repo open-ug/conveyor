@@ -10,12 +10,15 @@ class DriverLoggerHandler(logging.Handler):
         self.driver_logger = driver_logger
 
     def emit(self, record):
-        message = record.getMessage()
-        labels = {
-            "level": record.levelname,
-            "module": getattr(record, "module", "unknown"),
-        }
         try:
-            asyncio.create_task(self.driver_logger.log(message, **labels))
-        except RuntimeError:
-            pass  # no running event loop – best-effort
+            message = record.getMessage()
+            labels = {
+                "level": record.levelname,
+                "module": getattr(record, "module", "unknown"),
+            }
+            try:
+                asyncio.create_task(self.driver_logger.log(message, **labels))
+            except RuntimeError:
+                pass  # no running event loop – best-effort
+        except Exception:
+            self.handleError(record)
