@@ -13,12 +13,12 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/spf13/viper"
+	"github.com/open-ug/conveyor/pkg/types"
 )
 
 // Helper: load root CA pool from PEM
-func LoadRootCAs() (*x509.CertPool, error) {
-	caFilePath := viper.GetString("tls.ca")
+func LoadRootCAs(config *types.ServerConfig) (*x509.CertPool, error) {
+	caFilePath := config.TLS.CA
 	pemBytes, err := os.ReadFile(caFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("read root CA: %w", err)

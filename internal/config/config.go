@@ -1,30 +1,16 @@
 package config
 
-import "fmt"
+import (
+	"fmt"
 
-type Config struct {
-	API  APIConfig  `json:"api" yaml:"api" mapstructure:"api"`
-	NATS NATSConfig `json:"nats" yaml:"nats" mapstructure:"nats"`
-	TLS  TLSConfig  `json:"tls" yaml:"tls" mapstructure:"tls"`
+	"github.com/open-ug/conveyor/pkg/types"
+)
+
+type ServerConfigWrapper struct {
+	*types.ServerConfig
 }
 
-type APIConfig struct {
-	Port        int    `json:"port" yaml:"port" mapstructure:"port"`
-	AuthEnabled bool   `json:"auth_enabled" yaml:"auth_enabled" mapstructure:"auth_enabled"`
-	Data        string `json:"data" yaml:"data" mapstructure:"data"`
-}
-
-type NATSConfig struct {
-	Port int `json:"port" yaml:"port" mapstructure:"port"`
-}
-
-type TLSConfig struct {
-	CA   string `json:"ca" yaml:"ca" mapstructure:"ca"`
-	Key  string `json:"key" yaml:"key" mapstructure:"key"`
-	Cert string `json:"cert" yaml:"cert" mapstructure:"cert"`
-}
-
-func (c *Config) GenerateTestYamlConfig() string {
+func (c *ServerConfigWrapper) GenerateTestYamlConfig() string {
 	return fmt.Sprintf(`# Conveyor CI Configuration
 # Generated for testing
 
@@ -47,4 +33,8 @@ tls:
 		c.TLS.Key,
 		c.TLS.Cert,
 	)
+}
+
+func (c *ServerConfigWrapper) GetTestConfig() *types.ServerConfig {
+	return c.ServerConfig
 }

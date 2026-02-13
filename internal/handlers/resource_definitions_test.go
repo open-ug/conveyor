@@ -11,10 +11,9 @@ import (
 
 	"github.com/open-ug/conveyor/internal/config"
 	"github.com/open-ug/conveyor/internal/config/initialize"
-	"github.com/stretchr/testify/assert"
-
-	"github.com/open-ug/conveyor/cmd/api"
+	"github.com/open-ug/conveyor/pkg/server"
 	"github.com/open-ug/conveyor/pkg/types"
+	"github.com/stretchr/testify/assert"
 )
 
 // Build example resource definition (based on your example)
@@ -57,7 +56,12 @@ func Test_ResourceDefinition_CRUD(t *testing.T) {
 	}
 	config.LoadTestEnvConfig(configFile)
 
-	appctx, err := api.Setup()
+	cfg, err := config.GetTestConfig()
+	if err != nil {
+		t.Fatalf("failed to get test config: %v", err)
+	}
+
+	appctx, err := server.Setup(&cfg)
 	if err != nil {
 		t.Fatalf("failed to setup api: %v", err)
 	}

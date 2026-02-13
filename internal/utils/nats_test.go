@@ -22,8 +22,13 @@ func TestNatsContext_Integration(t *testing.T) {
 	}
 	config.LoadTestEnvConfig(configFile)
 
+	cfg, err := config.GetTestConfig()
+	if err != nil {
+		t.Fatalf("failed to get test config: %v", err)
+	}
+
 	// 1. Connect to NATS
-	nc := utils.NewNatsConn()
+	nc := utils.NewNatsConn(&cfg)
 	assert.NotNil(t, nc.NatsCon)
 	assert.NotNil(t, nc.JetStream)
 

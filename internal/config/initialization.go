@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/open-ug/conveyor/pkg/types"
 	"github.com/spf13/viper"
 )
 
@@ -49,4 +50,13 @@ func LoadTestEnvConfig(testConfigPath string) error {
 
 	log.Printf("Using test config file: %s", viper.ConfigFileUsed())
 	return nil
+}
+
+func GetTestConfig() (types.ServerConfig, error) {
+	var config types.ServerConfig
+	err := viper.Unmarshal(&config)
+	if err != nil {
+		return types.ServerConfig{}, fmt.Errorf("unable to decode into struct: %w", err)
+	}
+	return config, nil
 }

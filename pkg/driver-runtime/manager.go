@@ -33,6 +33,7 @@ type DriverManager struct {
 	Client *Client
 }
 
+// NewDriverManager creates a new driver manager instance. It validates the driver and returns an error if the driver is invalid. The driver manager will listen to the specified events and reconcile the driver when those events are received.
 func (c *Client) NewDriverManager(
 	driver *Driver,
 	events []string,

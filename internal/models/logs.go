@@ -6,7 +6,6 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 	"github.com/google/uuid"
-
 	"github.com/open-ug/conveyor/pkg/types"
 )
 

@@ -10,14 +10,13 @@ import (
 	sampledriver "github.com/open-ug/conveyor/cmd/sample-driver"
 	config "github.com/open-ug/conveyor/internal/config"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var APIServerCmd = &cobra.Command{
 	Use:   "up",
-	Short: "Start the Conveyor Service",
-	Long: `Start the Conveyor Service
-
-`,
+	Short: "Start the Conveyor API Server",
+	Long:  `Start the Conveyor API Server. This will start the server on the specified port (default: 8080) and connect to the embedded etcd instance.`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// Attempt to load the config
 		if err := config.LoadConfig(); err != nil {
@@ -28,7 +27,11 @@ var APIServerCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		port := cmd.Flag("port").Value.String()
 		if port == "" {
-			port = "8080"
+			if viper.IsSet("api.port") {
+				port = viper.GetString("api.port")
+			} else {
+				port = "8080"
+			}
 		}
 		apiServer.StartServer(port)
 	},

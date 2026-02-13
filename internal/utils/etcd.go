@@ -11,7 +11,7 @@ import (
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 
-	"github.com/spf13/viper"
+	"github.com/open-ug/conveyor/pkg/types"
 	"go.etcd.io/etcd/server/v3/embed"
 	"go.etcd.io/etcd/server/v3/etcdserver/api/v3client"
 )
@@ -26,10 +26,10 @@ type EtcdClient struct {
 }
 
 // NewEtcdClient starts an embedded etcd and returns a connected client
-func NewEtcdClient() (*EtcdClient, error) {
+func NewEtcdClient(serverConfig *types.ServerConfig) (*EtcdClient, error) {
 	// --- configure embedded etcd ---
 	cfg := embed.NewConfig()
-	conveyorDataDir := viper.GetString("api.data")
+	conveyorDataDir := serverConfig.API.Data
 	cfg.Dir = conveyorDataDir + "/etcd"
 	cfg.Logger = "zap"
 	cfg.LogOutputs = []string{conveyorDataDir + "/etcd.log"}

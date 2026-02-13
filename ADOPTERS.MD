@@ -5,4 +5,5 @@
 | --------------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | [Crane Cloud](https://cranecloud.io/)                                       | Conveyor CI was used in Crane Clouds Auto Containerization platform |
 | [Cranom Technologies Limited](https://www.cranom.tech/software-development) | Used in the Internal Software Distribution Pipelines                |
+| [Infralane Cloud](https://www.infralane.cloud/)                             | Used for CI/CD orchastrations                                       |
 

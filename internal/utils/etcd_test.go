@@ -5,13 +5,29 @@ import (
 	"testing"
 	"time"
 
+	"github.com/open-ug/conveyor/internal/config"
+	"github.com/open-ug/conveyor/internal/config/initialize"
 	"github.com/open-ug/conveyor/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewEtcdClient_Integration(t *testing.T) {
 
-	client, err := utils.NewEtcdClient()
+	configFile, err := initialize.Run(&initialize.Options{
+		Force:   true,
+		TempDir: t.TempDir(),
+	})
+	if err != nil {
+		t.Fatalf("failed to initialize config: %v", err)
+	}
+	config.LoadTestEnvConfig(configFile)
+
+	cfg, err := config.GetTestConfig()
+	if err != nil {
+		t.Fatalf("failed to get test config: %v", err)
+	}
+
+	client, err := utils.NewEtcdClient(&cfg)
 	assert.NoError(t, err, "Expected to connect to etcd without error")
 	assert.NotNil(t, client)
 	assert.NotNil(t, client.Client)
