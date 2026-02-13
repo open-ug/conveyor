@@ -45,11 +45,7 @@ type ConfigOptions struct {
 }
 
 // NewClient initializes the API client.
-// - apiURL: base API URL
-// - authEnabled: true if client should use certificate-bound JWT auth
-// - certPath: path to the client's certificate chain PEM file (leaf first)
-// - keyPath: path to the client's private key PEM file
-// - tokenTTL: duration of short-lived JWTs (optional, pass 0 for default 2m)
+// It takes the API endpoint, NATS endpoint, and configuration options.
 func NewClient(
 	ApiEndpoint string,
 	NatsEndpoint string,

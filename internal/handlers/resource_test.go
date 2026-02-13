@@ -10,9 +10,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/open-ug/conveyor/cmd/api"
 	"github.com/open-ug/conveyor/internal/config"
 	"github.com/open-ug/conveyor/internal/config/initialize"
+	"github.com/open-ug/conveyor/pkg/server"
 	"github.com/open-ug/conveyor/pkg/types"
 )
 
@@ -86,8 +86,13 @@ func Test_Resource_CRUD(t *testing.T) {
 	}
 	config.LoadTestEnvConfig(configFile)
 
+	cfg, err := config.GetTestConfig()
+	if err != nil {
+		t.Fatalf("failed to get test config: %v", err)
+	}
+
 	// setup app (assumes api.Setup configures routes and dependencies for tests)
-	appctx, err := api.Setup()
+	appctx, err := server.Setup(&cfg)
 	if err != nil {
 		t.Fatalf("failed to setup api: %v", err)
 	}

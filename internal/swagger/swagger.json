@@ -1101,18 +1101,23 @@
             "type": "object",
             "properties": {
                 "driver": {
+                    "description": "Driver is the name of the driver that generated the log. This helps in identifying which component of the system produced the log.",
                     "type": "string"
                 },
                 "message": {
+                    "description": "Message is the actual log message. This contains the information or error details that you want to record.",
                     "type": "string"
                 },
                 "pipeline": {
+                    "description": "Pipeline is the name of the pipeline associated with the log. This allows you to trace logs back to specific pipelines.",
                     "type": "string"
                 },
                 "runid": {
+                    "description": "RunID is a unique identifier for the workflow run. This allows you to group logs by specific runs of your pipelines.",
                     "type": "string"
                 },
                 "timestamp": {
+                    "description": "Timestamp is the time when the log was created. This is useful for ordering logs and understanding the sequence of events.",
                     "type": "string"
                 }
             }

@@ -46,7 +46,7 @@ func main() {
  }
 
  // Create a new driver manager with the driver
- driverManager, err := runtime.NewDriverManager(driver, []string{"*"})
+ driverManager, err := client.NewDriverManager(driver, []string{"*"})
  if err != nil {
   fmt.Println("Error creating driver manager: ", err)
   return

@@ -137,11 +137,11 @@ const config: Config = {
   themeConfig: {
     // Replace with your project's social card
     image: "img/logo.png",
-    announcementBar: {
+    /*announcementBar: {
       id: "development",
       content:
         "Conveyor CI Documentation site is currently under early development. Some features and pages may be missing, wrong or incomplete.",
-    },
+    },*/
     navbar: {
       title: "Conveyor CI",
       logo: {

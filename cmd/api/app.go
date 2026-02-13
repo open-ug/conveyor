@@ -20,31 +20,16 @@ Copyright © 2024 - Present Conveyor CI Contributors
 package api
 
 import (
-	"context"
-	"fmt"
-	"os"
-	"os/signal"
-	"syscall"
+	"strconv"
 	"time"
 
-	"github.com/dgraph-io/badger/v4"
 	"github.com/fatih/color"
-	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/adaptor"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/open-ug/conveyor/internal/config/auth"
-	"github.com/open-ug/conveyor/internal/engine"
-	"github.com/open-ug/conveyor/internal/handlers"
 	"github.com/spf13/viper"
 
-	metrics "github.com/open-ug/conveyor/internal/metrics"
-	"github.com/open-ug/conveyor/internal/models"
-	routes "github.com/open-ug/conveyor/internal/routes"
 	_ "github.com/open-ug/conveyor/internal/swagger"
-	utils "github.com/open-ug/conveyor/internal/utils"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	fiberSwagger "github.com/swaggo/fiber-swagger"
+	"github.com/open-ug/conveyor/pkg/server"
+	"github.com/open-ug/conveyor/pkg/types"
 )
 
 // @Summary Health check
@@ -62,140 +47,31 @@ func healthHandler(c *fiber.Ctx) error {
 }
 
 func StartServer(port string) {
+	config := types.ServerConfig{}
 
-	appCtx, err := Setup()
+	// transform port from string to int and set in config. Dont fetch from viper.
+
+	intport, err := strconv.Atoi(port)
 	if err != nil {
-		color.Red("Error setting up the server: %v", err)
+		color.Red("Invalid port number: %v", err)
 		return
 	}
+	config.API.Port = intport
+	config.API.AuthEnabled = viper.GetBool("api.auth_enabled")
+	config.API.Data = viper.GetString("api.data")
 
-	// Run server in a goroutine
-	go func() {
-		if err := appCtx.App.Listen(":" + port); err != nil {
-			fmt.Printf("Server stopped: %v\n", err)
-		}
-	}()
+	config.NATS.Port = viper.GetInt("nats.port")
+	config.TLS.CA = viper.GetString("tls.ca")
+	config.TLS.Key = viper.GetString("tls.key")
+	config.TLS.Cert = viper.GetString("tls.cert")
 
-	engineCtx := engine.NewEngineContext(appCtx.ETCD.Client, appCtx.LogModel, *appCtx.NatsContext)
-
-	go func() {
-		err := engineCtx.Start()
-		if err != nil {
-			color.Red("Error starting the engine: %v", err)
-			return
-		}
-	}()
-
-	// Setup channel to listen for interrupt/terminate signals
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit // Wait until a signal is received
-
-	fmt.Println("Shutting down server...")
-
-	// Create a context with timeout for cleanup
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	if err := appCtx.App.ShutdownWithContext(ctx); err != nil {
-		fmt.Printf("Server forced to shutdown: %v\n", err)
-	}
-
-	appCtx.NatsContext.Shutdown()
-	fmt.Println("Gracefully shutting down Datastore")
-	appCtx.ETCD.ServerStop()
-
-	fmt.Println("Server gracefully stopped")
-
-}
-
-type APIServerContext struct {
-	App         *fiber.App
-	NatsContext *utils.NatsContext
-	ETCD        *utils.EtcdClient
-	LogModel    *models.LogModel
-	BadgerDB    *badger.DB
-}
-
-func (c *APIServerContext) ShutDown() {
-	c.App.Shutdown()
-	c.NatsContext.Shutdown()
-	c.ETCD.ServerStop()
-	if c.BadgerDB != nil {
-		c.BadgerDB.Close()
-	}
-}
-
-// Setup Server
-func Setup() (APIServerContext, error) {
-
-	app := fiber.New(fiber.Config{
-		AppName:     "Conveyor API Server",
-		JSONEncoder: json.Marshal,
-		JSONDecoder: json.Unmarshal,
-	})
-
-	app.Use(cors.New())
-
-	// Start metrics updater
-	metrics.StartAPIMetricsUpdater()
-
-	// Add Prometheus middleware
-	app.Use(metrics.PrometheusMiddleware())
-
-	if viper.GetBool("api.auth_enabled") {
-		// Auth middleware
-		rootPool, err := auth.LoadRootCAs()
-		if err != nil {
-			color.Red("Error loading root CAs: %v", err)
-			return APIServerContext{}, err
-		}
-		app.Use(auth.JWTCertMiddleware(rootPool))
-	}
-
-	// Swagger documentation
-	app.Get("/swagger/*", fiberSwagger.WrapHandler)
-
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("CONVEYOR API SERVER. Visit https://conveyor.open.ug for Documentation")
-	})
-
-	app.Get("/health", healthHandler)
-
-	// Metrics endpoint
-	app.Get("/metrics", adaptor.HTTPHandler(promhttp.Handler()))
-
-	natsContext := utils.NewNatsConn()
-	natsContext.InitiateStreams()
-
-	etcd, err := utils.NewEtcdClient()
+	apiContext, err := server.Setup(&config)
 	if err != nil {
-		color.Red("Error Occured while creating etcd client: %v", err)
-		return APIServerContext{}, err
+		panic(err)
 	}
 
-	// Initialize BadgerDB
-	conveyorDataDir := viper.GetString("api.data")
-	badgerOpts := badger.DefaultOptions(conveyorDataDir + "/badger")
-	badgerDB, err := badger.Open(badgerOpts)
-	if err != nil {
-		color.Red("Error opening BadgerDB: %v", err)
-		return APIServerContext{}, err
-	}
+	apiContext.App.Get("/health", healthHandler)
 
-	// Register routes
-	logModel := &models.LogModel{DB: badgerDB}
-	routes.LogRoutes(app, &handlers.LogHandler{Model: logModel}, natsContext)
+	apiContext.Start()
 
-	routes.DriverRoutes(app, etcd.Client, natsContext.NatsCon)
-	routes.ResourceRoutes(app, etcd.Client, natsContext)
-	routes.PipelineRoutes(app, etcd.Client, natsContext)
-
-	return APIServerContext{
-		NatsContext: natsContext,
-		App:         app,
-		ETCD:        etcd,
-		LogModel:    logModel,
-		BadgerDB:    badgerDB,
-	}, nil
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/nats-io/nats-server/v2/server"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
-	"github.com/spf13/viper"
+	"github.com/open-ug/conveyor/pkg/types"
 )
 
 type NatsContext struct {
@@ -21,9 +21,9 @@ type NatsContext struct {
 	natsServer *server.Server
 }
 
-func NewNatsConn() *NatsContext {
+func NewNatsConn(config *types.ServerConfig) *NatsContext {
 
-	conveyorDataDir := viper.GetString("api.data")
+	conveyorDataDir := config.API.Data
 	dataDir := conveyorDataDir + "/nats"
 	fmt.Println("Using NATS data directory:", dataDir)
 
@@ -32,7 +32,7 @@ func NewNatsConn() *NatsContext {
 		port = -1
 		dataDir = "" // Use in-memory store for tests
 	} else {
-		port = viper.GetInt("nats.port")
+		port = config.NATS.Port
 	}
 	opts := &server.Options{
 		Port:      port,
@@ -42,13 +42,13 @@ func NewNatsConn() *NatsContext {
 		//NoSigs:    true,
 	}
 
-	authEnabled := viper.GetBool("api.auth_enabled")
+	authEnabled := config.API.AuthEnabled
 	connectionOptions := []nats.Option{} // NATS CLIENT CONNNECTION OPTIONS
 	if authEnabled {
 		// enable TLS Authentication
-		caFilePath := viper.GetString("tls.ca")
-		certFilePath := viper.GetString("tls.cert")
-		keyFilePath := viper.GetString("tls.key")
+		caFilePath := config.TLS.CA
+		certFilePath := config.TLS.Cert
+		keyFilePath := config.TLS.Key
 
 		cert, err := tls.LoadX509KeyPair(certFilePath, keyFilePath)
 		if err != nil {
