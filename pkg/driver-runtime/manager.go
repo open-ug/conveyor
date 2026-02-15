@@ -137,44 +137,29 @@ func (d *DriverManager) Run() error {
 			return
 		}
 
-		// check if the event is in the list of events
-		// that the driver manager is listening to
-		var eventFound bool = false
-		for _, event := range d.Events {
-			if event == message.Event {
-				eventFound = true
-				break
-			} else if event == "*" {
-				eventFound = true
-				break
-			}
+		logger := log.NewDriverLogger(d.Driver.Name, map[string]string{
+			"event":  message.Event,
+			"id":     message.ID,
+			"run_id": message.RunID,
+		}, nc)
+
+		result := d.Driver.Reconcile(message.Payload, message.Event, message.RunID, logger)
+
+		driverevent := engine.DriverResultEvent{
+			Success: result.Success,
+			Message: result.Message,
+			Driver:  d.Driver.Name,
+			Data:    result.Data,
 		}
 
-		if eventFound {
-			logger := log.NewDriverLogger(d.Driver.Name, map[string]string{
-				"event":  message.Event,
-				"id":     message.ID,
-				"run_id": message.RunID,
-			}, nc)
-
-			result := d.Driver.Reconcile(message.Payload, message.Event, message.RunID, logger)
-
-			driverevent := engine.DriverResultEvent{
-				Success: result.Success,
-				Message: result.Message,
-				Driver:  d.Driver.Name,
-			}
-
-			var resource types.Resource
-			err := json.Unmarshal([]byte(message.Payload), &resource)
-			if err != nil {
-				color.Red("Error Occured while unmarshalling resource: %v", err)
-				return
-			}
-
-			driverevent.PublishEvent(message.RunID, resource, js)
-
+		var resource types.Resource
+		err = json.Unmarshal([]byte(message.Payload), &resource)
+		if err != nil {
+			color.Red("Error Occured while unmarshalling resource: %v", err)
+			return
 		}
+
+		driverevent.PublishEvent(message.RunID, resource, js)
 	})
 
 	if err != nil {

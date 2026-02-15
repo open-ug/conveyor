@@ -23,6 +23,7 @@ type EtcdClient struct {
 	Cancel     context.CancelFunc
 	Endpoint   string
 	ServerStop func() // clean shutdown of embedded etcd
+	Server     *embed.Etcd
 }
 
 // NewEtcdClient starts an embedded etcd and returns a connected client
@@ -67,5 +68,7 @@ func NewEtcdClient(serverConfig *types.ServerConfig) (*EtcdClient, error) {
 		Ctx:        ctx,
 		Cancel:     cancel,
 		ServerStop: e.Close,
+		Server:     e,
+		Endpoint:   e.Clients[0].Addr().String(),
 	}, nil
 }
