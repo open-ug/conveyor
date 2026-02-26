@@ -13,3 +13,9 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio-stream = "0.1.18"
 chrono = "0.4.43"
+rustls-pemfile = "2"
+x509-parser = "0.16"
+rsa = { version = "0.9", features = ["pkcs1", "pkcs8"] }
+p256 = { version = "0.13", features = ["pkcs8"] }
+pkcs8 = "0.10"
+anyhow = "1"
