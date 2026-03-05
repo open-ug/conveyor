@@ -59,7 +59,7 @@ pub fn parse_cert_and_key(
 
     // Parse ALL Certificates
     let mut cert_reader = Cursor::new(cert_pem);
-    let cert_items = read_all(&mut cert_reader)?;
+    let cert_items = read_all(&mut cert_reader);
 
     let mut certs = Vec::new();
 
