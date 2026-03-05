@@ -62,6 +62,10 @@ impl Client {
         }
     }
 
+    pub fn auth_enabled(&self) -> bool {
+        self.config.auth_enabled()
+    }
+
     pub fn new_driver_manager<'a>(&'a self, driver: Box<dyn Driver>) -> DriverManager<'a> {
         DriverManager {
             client: self,

@@ -2,8 +2,11 @@ use crate::runtime::client::Client;
 use crate::runtime::logger::DriverLogger;
 use crate::runtime::types::{Driver, DriverMessage, DriverResultEvent, PipelineEvent, Resource};
 use async_nats;
+use async_nats::ConnectOptions;
 use async_nats::jetstream::consumer;
 use async_nats::jetstream::consumer::{AckPolicy, DeliverPolicy};
+use std::io::Write;
+use tempfile::NamedTempFile;
 use tokio_stream::StreamExt;
 
 pub struct DriverManager<'a> {
@@ -13,10 +16,59 @@ pub struct DriverManager<'a> {
 
 impl<'a> DriverManager<'a> {
     pub async fn run(&self) {
+        // Base NATS connection options
+        let mut options = ConnectOptions::new()
+            .name(format!("Conveyor Driver Manager - {}", self.driver.name()))
+            .max_reconnects(None); // Infinite reconnects
+
+        if self.client.auth_enabled() {
+            let cfg = &self.client.config;
+
+            // If ANY TLS material is present, enable TLS
+            if cfg.root_ca_pem.is_some() || cfg.cert_pem.is_some() {
+                options = options.require_tls(true);
+            }
+
+            // Store temp files so they live long enough
+            let mut _temp_files = Vec::new();
+
+            // Add Root CA if provided
+            if let Some(root_ca) = &cfg.root_ca_pem {
+                let mut file = NamedTempFile::new().unwrap();
+                file.write_all(root_ca).unwrap();
+                let path = file.path().to_path_buf();
+                _temp_files.push(file);
+                options = options.add_root_certificates(path);
+            }
+
+            // Handle mTLS (cert + key must BOTH exist)
+            match (&cfg.cert_pem, &cfg.key_pem) {
+                (Some(cert), Some(key)) => {
+                    let mut cert_file = NamedTempFile::new().unwrap();
+                    cert_file.write_all(cert).unwrap();
+
+                    let mut key_file = NamedTempFile::new().unwrap();
+                    key_file.write_all(key).unwrap();
+
+                    let cert_path = cert_file.path().to_path_buf();
+                    let key_path = key_file.path().to_path_buf();
+
+                    _temp_files.push(cert_file);
+                    _temp_files.push(key_file);
+                    options = options.add_client_certificate(cert_path, key_path);
+                }
+                (Some(_), None) | (None, Some(_)) => {
+                    panic!("Both cert_pem and key_pem must be provided for mTLS authentication");
+                }
+                _ => {}
+            }
+        }
+
         // connect to NATS
-        let nats_client = async_nats::connect(&self.client.nats_endpoint)
+        let nats_client = options
+            .connect(&self.client.nats_endpoint)
             .await
-            .expect("Failed to connect to NATS");
+            .expect("Failed to connect to NATS server");
 
         let copy_client = nats_client.clone();
 
