@@ -126,6 +126,6 @@ Improving test coverage and documentation is highly valuable. You can:
 
 No contribution is too small!
 
-### Golang code styde
+### Golang code style
 
-We follow gofmt's rules on formatting GO code. Therefore, we ask all contributors to do the same. Go provides the gofmt tool, which can be used for formatting your code.
+We follow  `gofmt`'s rules on formatting GO code. Therefore, we ask all contributors to do the same. Go provides the gofmt tool, which can be used for formatting your code.
