@@ -6,8 +6,7 @@ require (
 	github.com/dgraph-io/badger/v4 v4.8.0
 	github.com/fatih/color v1.15.0
 	github.com/go-resty/resty/v2 v2.15.3
-	github.com/goccy/go-json v0.10.3
-	github.com/gofiber/fiber/v2 v2.52.11
+	github.com/gofiber/fiber/v2 v2.52.12
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
 	github.com/nats-io/nats-server/v2 v2.11.8
