@@ -3,7 +3,7 @@ Copyright © 2024 - Present Conveyor CI Contributors
 */
 
 // @title Conveyor CI API
-// @version 0.5.0
+// @version 0.6.5
 // @description Conveyor is a lightweight, distributed CI/CD engine built for platform developers who demand simplicity without compromise.
 
 // @contact.name Conveyor Support

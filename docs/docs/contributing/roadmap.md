@@ -12,11 +12,12 @@ The Conveyor CI project is also managed via using [Github Projects](https://gith
 
 For the next upcoming period, Conveyor CI development is to follow a set of objectives. These objectives set the roadmap of 2026. And Development is to follow phases.
 
-| Phase   | Objective                                                                                                               |
-| ------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Phase 1 | <ul><li>Develop a Standard SDK implementation in Go</li><li>Enable Streaming Pipeline Logs</li></ul>                    |
-| Phase 2 | <ul><li>Parallel and Concurrent Workflow Execution</li><li>Development of SDKs for other programming language</li></ul> |
-| Phase 3 | <ul><li>CI/CD Directed acyclic graph(DAG)</li></ul>                                                                     |
-| Phase 4 | <ul><li>Secrets and Pipeline Variables</li></ul>                                                                        |
-| Phase 5 | <ul><li>Authorization and RBAC</li></ul>                                                                                |
-| Phase 6 | <ul><li>System Observability and Monitoring</li></ul>                                                                   |
+| Phase   | Objective                                                                                            | Status      |
+| ------- | ---------------------------------------------------------------------------------------------------- | ----------- |
+| Phase 1 | <ul><li>Develop a Standard SDK implementation in Go</li><li>Enable Streaming Pipeline Logs</li></ul> | DONE        |
+| Phase 2 | <ul><li>Variables</li></ul>                                                                          | IN PROGRESS |
+| Phase 3 | <ul><li>CI/CD Directed acyclic graph(DAG)</li></ul>                                                  | TODO        |
+| Phase 4 | <ul><li>Secrets</li></ul>                                                                            | TODO        |
+| Phase 5 | <ul><li>Parallel and Concurrent Workflow Execution</li></ul>                                         | TODO        |
+| Phase 5 | <ul><li>Authorization and RBAC</li></ul>                                                             | TODO        |
+| Phase 6 | <ul><li>System Observability and Monitoring</li></ul>                                                | TODO        |
