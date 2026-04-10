@@ -3,9 +3,9 @@ entries:
   conveyor:
   - apiVersion: v2
     appVersion: 0.5.0
-    created: "2026-04-07T15:35:10.609107122Z"
+    created: "2026-04-10T10:01:03.770198809Z"
     description: Conveyor CI is an Engine/Framwork for building custom CI/CD Platforms.
-    digest: 9a5dc659766c8d908345d731b91914d7ebe92d4abc009e37ecc85c9a055277ff
+    digest: 247f288d417524c63809fd63931ec603beda7715ef31cc63246df373da9d91f8
     home: https://conveyor.open.ug/
     icon: https://conveyor.open.ug/img/logo.png
     keywords:
@@ -24,4 +24,4 @@ entries:
     urls:
     - https://open-ug.github.io/conveyor/conveyor-0.5.0.tgz
     version: 0.5.0
-generated: "2026-04-07T15:35:10.608366782Z"
+generated: "2026-04-10T10:01:03.769697714Z"
