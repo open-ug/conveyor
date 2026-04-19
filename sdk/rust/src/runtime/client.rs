@@ -73,3 +73,35 @@ impl Client {
         }
     }
 }
+
+
+impl Client {
+    
+    pub async fn create_resource(&self, resource: &str) -> Result<String, reqwest::Error> {
+        
+    }
+
+    pub async fn get_resource(&self, resource_id: &str) -> Result<String, reqwest::Error> {
+        
+    }
+
+    pub async fn update_resource(&self, resource_id: &str, data: &str) -> Result<String, reqwest::Error> {
+        
+    }
+
+    pub async fn delete_resource(&self, resource_id: &str) -> Result<(), reqwest::Error> {
+        
+    }
+
+    pub async fn create_resource_definition(&self, definition: &str) -> Result<String, reqwest::Error> {
+        
+    }
+
+    pub async fn get_resource_definition(&self, definition_id: &str) -> Result<String, reqwest::Error> {
+        
+    }
+
+    pub async fn update_resource_definition(&self, definition_id: &str, data: &str) -> Result<String, reqwest::Error> {
+        
+    }
+}
