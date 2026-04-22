@@ -68,7 +68,7 @@ Once you have created the resource definition, you have to send a `POST` request
 
 As mentioned before, we need to define the pipeline which specifies the order of execution our drivers will follow.
 
-Pipelines are defined using JSON object which includes properties like `resource` and `steps` that define the resource type that this pipeline applies to and the order in which the drives should execute respectively.
+Pipelines are defined using JSON object which includes properties like `resource` and `steps` that define the resource type that this pipeline applies to and the order in which the drivers should execute respectively.
 
 In our use case, our pipeline would look like this:
 

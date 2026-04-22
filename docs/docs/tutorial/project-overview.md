@@ -6,7 +6,7 @@ sidebar_position: 1
 
 Let’s learn by example.
 
-In this tutorial we shall learn how to use Conveyor CI to build a CI/CD platform, we’ll walk you through the creation of a basic Mobile DevOps CI/CD platform.
+In this tutorial we shall learn how to use Conveyor CI to build a CI/CD platform. We’ll walk you through the creation of a basic Mobile DevOps CI/CD platform.
 
 ## The product
 

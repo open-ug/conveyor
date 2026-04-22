@@ -27,7 +27,7 @@ So our resource should include the following
 
 ## The Drivers and Pipeline
 
-The drivers we shall use include and will be ordered the following pipeline:
+The drivers we shall use, in pipeline order, are::
 
 - A driver to create and start the build container
 - A driver to clone the repository in the container
