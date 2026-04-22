@@ -6,7 +6,7 @@ sidebar_position: 4
 
 Moving on, lets build the drivers.
 
-As mentioned before the drivers contain the the logic for executing the CI/CD processes. We had outlines that wee need 4 drivers both in the architecture and the pipeline definition and these include:
+As mentioned before the drivers contain the the logic for executing the CI/CD processes. We had outlines that we need 4 drivers both in the architecture and the pipeline definition and these include:
 
 - `container-start`: A driver to create and start the build container.
 - `git-cloner`: A driver to clone the repository in the container.
@@ -17,17 +17,17 @@ As mentioned before the drivers contain the the logic for executing the CI/CD pr
 
 Drivers in Conveyor CI have a similar high level structure. They are composed of mainly three key properties.
 
-- A unique name that defines and identifes the driver.
+- A unique name that defines and identifies the driver.
 - A list of resources that the driver listens to.
 - A `Reconcile` function that is run each time there is a new resources or mutation of a resource created.
 
-Within the `Reconcile` function, custom logic can be added where the driver decodes the resource and carries out the appropriate computations to execute the CI/CD process. This function is always listening in realtime for events triggered when a resaource changes. It returns a return type called a `DriverResult` that contains information about the results of the runction, whether it was successfull of not.
+Within the `Reconcile` function, custom logic can be added where the driver decodes the resource and carries out the appropriate computations to execute the CI/CD process. This function is always listening in realtime for events triggered when a resource changes. It returns a return type called a `DriverResult` that contains information about the results of the function, whether it was successful of not.
 
 ## Driver Code Example
 
 To build a driver, you can use one of the growing list of SDKs provided by Conveyor CI, however in this tutorial, we shall use the Go SDK mainly because its the most stable and mature.
 
-We shall demosnstrate code for only the `container-start` drover but you can find all code in the [https://github.com/open-ug/simple-runner](https://github.com/open-ug/simple-runner) repository.
+We shall demonstrate code for only the `container-start` driver but you can find all code in the [https://github.com/open-ug/simple-runner](https://github.com/open-ug/simple-runner) repository.
 
 Lets look at the code.
 
@@ -106,11 +106,11 @@ func Listen() {
 }
 ```
 
-If we look at the above code sample from the `container-start` driver. we can identify the key aspects of building a driver. At line 49 - 53, we are defining the driver and its key properties which are the name, resources and the Reconcile function(whose implementation starts at line 18). We then pass it into the driver manager at line 55 and trigger the run function which listens for events and calles the reconcile function.
+If we look at the above code sample from the `container-start` driver. we can identify the key aspects of building a driver. At line 49 - 53, we are defining the driver and its key properties which are the name, resources and the Reconcile function(whose implementation starts at line 18). We then pass it into the driver manager at line 55 and trigger the run function which listens for events and calls the reconcile function.
 
 The above code is only for the `container-start` driver but in the [https://github.com/open-ug/simple-runner](https://github.com/open-ug/simple-runner) repository. All the code for other drivers can be found there.
 
-The code at the above mentioned repository is built as a command line program with each driver written as a subcommand. YOu can clone the repository and run `go run main.go --help` to see the available subcommands.
+The code at the above mentioned repository is built as a command line program with each driver written as a subcommand. You can clone the repository and run `go run main.go --help` to see the available subcommands.
 
 ```sh
 $ go run main.go --help
