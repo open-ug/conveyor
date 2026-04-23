@@ -6,12 +6,12 @@ sidebar_position: 5
 
 Lets trigger a sample workflow from the system we have built.
 
-Before we trigger a workflow, you need to ensure you have done the folowing tasks that where explained and demosntrated in the previous sections:
+Before we trigger a workflow, you need to ensure you have done the following tasks that were explained and demonstrated in the previous sections:
 
 - Installed and started the Conveyor CI API server
-- Defined the resource definitiaon and posted it to the API Server
+- Defined the resource definition and posted it to the API Server
 - Defined the Pipeline object and Posted it to the API server
-- Cloned the driver repository and started all 4 driver intances
+- Cloned the driver repository and started all 4 driver instances
 
 Once you have the above tasks done. You can find a simple flutter application code base that is on a remote Git repository and use it to create a resource object. similar to this:
 
@@ -31,7 +31,7 @@ You can then send this JSON to the Conveyor CI API Server using a POST request t
 
 The logs that are collected from the Driver by the Driver logger from this process can be streamed or collected from the API server in realtime.
 
-To do this, you simply have to open a EventStream connection to the `/logs/pipeline/{RUN_ID}` route i.e `ws://localhost:8080/logs/pipeline/fbab31f6-a278-4a8f-96be-ac49b007ca65` and recieve Server Sent Events.
+To do this, you simply have to open an EventStream connection to the `/logs/pipeline/{RUN_ID}` route i.e `ws://localhost:8080/logs/pipeline/fbab31f6-a278-4a8f-96be-ac49b007ca65` and receive Server Sent Events.
 
 ---
 

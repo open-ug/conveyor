@@ -6,7 +6,7 @@ sidebar_position: 1
 
 Let’s learn by example.
 
-In this tutorial we shall learn how to use Conveyor CI to build a CI/CD platform, we’ll walk you through the creation of a basic Mobile DevOps CI/CD platorm.
+In this tutorial we shall learn how to use Conveyor CI to build a CI/CD platform. We’ll walk you through the creation of a basic Mobile DevOps CI/CD platform.
 
 ## The product
 
@@ -15,4 +15,4 @@ Assuming you are working at a startup that wants to build a CI/CD platform that 
 - A user develops a mobile application in flutter.
 - They provide the app code in a Git repository
 - Our platform fetches the app code and builds an [Android](https://www.android.com/) `apk` in the cloud
-- The user can then download the outpput `apk` file for distribution.
+- The user can then download the output `apk` file for distribution.
