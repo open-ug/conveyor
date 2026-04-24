@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 
+	"github.com/dgraph-io/badger/v4"
 	"github.com/gofiber/fiber/v2"
 	"github.com/nats-io/nats.go"
 	"github.com/open-ug/conveyor/internal/models"
@@ -16,11 +17,11 @@ type PipelineHandler struct {
 	ResourceDefinitionModel *models.ResourceDefinitionModel
 }
 
-func NewPipelineHandler(db *clientv3.Client, natsCon *nats.Conn) *PipelineHandler {
+func NewPipelineHandler(cli *clientv3.Client, natsCon *nats.Conn, db *badger.DB) *PipelineHandler {
 	return &PipelineHandler{
-		Model:                   models.NewPipelineModel(db),
+		Model:                   models.NewPipelineModel(cli, db),
 		NatsCon:                 natsCon,
-		ResourceDefinitionModel: models.NewResourceDefinitionModel(db),
+		ResourceDefinitionModel: models.NewResourceDefinitionModel(cli, db),
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/dgraph-io/badger/v4"
 	"github.com/nats-io/nats.go/jetstream"
 	"github.com/open-ug/conveyor/internal/models"
 	"github.com/open-ug/conveyor/internal/utils"
@@ -26,12 +27,12 @@ type PipelineEvent struct {
 	DriverResultEvent DriverResultEvent `json:"driverresult"`
 }
 
-func NewEngineContext(db *clientv3.Client, logmodel *models.LogModel, natsContext utils.NatsContext) *EngineContext {
+func NewEngineContext(cli *clientv3.Client, logmodel *models.LogModel, natsContext utils.NatsContext, db *badger.DB) *EngineContext {
 
 	return &EngineContext{
 		NatsContext:   natsContext,
-		PipelineModel: models.NewPipelineModel(db),
-		ResourceModel: models.NewResourceModel(db),
+		PipelineModel: models.NewPipelineModel(cli, db),
+		ResourceModel: models.NewResourceModel(cli, db),
 		LogModel:      logmodel,
 	}
 }

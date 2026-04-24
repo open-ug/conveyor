@@ -7,17 +7,20 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/dgraph-io/badger/v4"
 	"github.com/open-ug/conveyor/pkg/types"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type ResourceModel struct {
 	Client *clientv3.Client
+	DB     *badger.DB
 }
 
-func NewResourceModel(cli *clientv3.Client) *ResourceModel {
+func NewResourceModel(cli *clientv3.Client, db *badger.DB) *ResourceModel {
 	return &ResourceModel{
 		Client: cli,
+		DB:     db,
 	}
 }
 

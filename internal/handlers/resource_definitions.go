@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/dgraph-io/badger/v4"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
@@ -17,11 +18,12 @@ type ResourceDefinitionHandler struct {
 	ResourceDefinitionModel *models.ResourceDefinitionModel
 }
 
-func NewResourceDefinitionHandler(db *clientv3.Client, natsCon *nats.Conn) *ResourceDefinitionHandler {
+func NewResourceDefinitionHandler(cli *clientv3.Client, natsCon *nats.Conn, db *badger.DB) *ResourceDefinitionHandler {
 	return &ResourceDefinitionHandler{
 		NatsCon: natsCon,
 		ResourceDefinitionModel: &models.ResourceDefinitionModel{
-			Client: db,
+			Client: cli,
+			DB:     db,
 		},
 	}
 }
