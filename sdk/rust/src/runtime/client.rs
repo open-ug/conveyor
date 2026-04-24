@@ -1,6 +1,6 @@
 use crate::runtime::manager::DriverManager;
 use crate::runtime::types::Driver;
-use crate::runtime::types::{Resource, ResourceCreateAPIResponse};
+use crate::runtime::types::{Resource, ResourceCreateAPIResponse, ResourceDefinition};
 use crate::runtime::utils::do_request;
 use reqwest::Client as HttpClient;
 use reqwest::header;
@@ -79,10 +79,11 @@ impl Client {
 impl Client {
     pub async fn create_resource(
         &self,
-        resource: &str,
+        resource: &Resource,
     ) -> anyhow::Result<ResourceCreateAPIResponse> {
         let url = format!("{}/resources", self.api_endpoint);
-        let response_text = do_request(&url, reqwest::Method::POST, Some(resource)).await?;
+        let payload = serde_json::to_string(resource)?;
+        let response_text = do_request(&url, reqwest::Method::POST, Some(&payload)).await?;
         let response: ResourceCreateAPIResponse = serde_json::from_str(&response_text)?;
         Ok(response)
     }
@@ -94,9 +95,14 @@ impl Client {
         Ok(resource)
     }
 
-    pub async fn update_resource(&self, resource_id: &str, data: &str) -> anyhow::Result<Resource> {
+    pub async fn update_resource(
+        &self,
+        resource_id: &str,
+        data: &Resource,
+    ) -> anyhow::Result<Resource> {
         let url = format!("{}/resources/{}", self.api_endpoint, resource_id);
-        let response_text = do_request(&url, reqwest::Method::PUT, Some(data)).await?;
+        let payload = serde_json::to_string(data)?;
+        let response_text = do_request(&url, reqwest::Method::PUT, Some(&payload)).await?;
         let resource: Resource = serde_json::from_str(&response_text)?;
         Ok(resource)
     }
@@ -109,23 +115,40 @@ impl Client {
 
     pub async fn create_resource_definition(
         &self,
-        definition: &str,
-    ) -> Result<Resource, reqwest::Error> {
-        todo!()
+        definition: &ResourceDefinition,
+    ) -> anyhow::Result<ResourceDefinition> {
+        let url = format!("{}/resource-definitions", self.api_endpoint);
+        let payload = serde_json::to_string(definition)?;
+        let response_text = do_request(&url, reqwest::Method::POST, Some(&payload)).await?;
+        let resource_definition: ResourceDefinition = serde_json::from_str(&response_text)?;
+        Ok(resource_definition)
     }
 
     pub async fn get_resource_definition(
         &self,
         definition_id: &str,
-    ) -> Result<String, reqwest::Error> {
-        todo!()
+    ) -> anyhow::Result<ResourceDefinition> {
+        let url = format!(
+            "{}/resource-definitions/{}",
+            self.api_endpoint, definition_id
+        );
+        let response_text = do_request(&url, reqwest::Method::GET, None).await?;
+        let resource_definition: ResourceDefinition = serde_json::from_str(&response_text)?;
+        Ok(resource_definition)
     }
 
     pub async fn update_resource_definition(
         &self,
         definition_id: &str,
-        data: &str,
-    ) -> Result<Resource, reqwest::Error> {
-        todo!()
+        data: &ResourceDefinition,
+    ) -> anyhow::Result<ResourceDefinition> {
+        let url = format!(
+            "{}/resource-definitions/{}",
+            self.api_endpoint, definition_id
+        );
+        let payload = serde_json::to_string(data)?;
+        let response_text = do_request(&url, reqwest::Method::PUT, Some(&payload)).await?;
+        let resource_definition: ResourceDefinition = serde_json::from_str(&response_text)?;
+        Ok(resource_definition)
     }
 }

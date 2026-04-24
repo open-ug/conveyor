@@ -62,3 +62,12 @@ pub struct ResourceCreateAPIResponse {
     pub name: String,
     pub runid: String,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ResourceDefinition {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub version: String,
+    pub schema: serde_json::Value, // Placeholder for the actual schema structure
+}
