@@ -4,19 +4,20 @@ Copyright © 2024 - Present Conveyor CI Contributors
 package routes
 
 import (
+	"github.com/dgraph-io/badger/v4"
 	"github.com/gofiber/fiber/v2"
 	"github.com/open-ug/conveyor/internal/handlers"
 	utils "github.com/open-ug/conveyor/internal/utils"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-func ResourceRoutes(app *fiber.App, db *clientv3.Client, natsContext *utils.NatsContext) {
+func ResourceRoutes(app *fiber.App, cli *clientv3.Client, natsContext *utils.NatsContext, db *badger.DB) {
 
 	// Initialize resource and resource definition handlers
 	resourcePrefix := app.Group("/resources")
 	resourceDefinitionPrefix := app.Group("/resource-definitions")
-	resourceHandler := handlers.NewResourceHandler(db, natsContext)
-	resourceDefinitionHandler := handlers.NewResourceDefinitionHandler(db, natsContext.NatsCon)
+	resourceHandler := handlers.NewResourceHandler(cli, natsContext, db)
+	resourceDefinitionHandler := handlers.NewResourceDefinitionHandler(cli, natsContext.NatsCon, db)
 
 	// Resource Routes
 	resourcePrefix.Post("/", resourceHandler.CreateResource)

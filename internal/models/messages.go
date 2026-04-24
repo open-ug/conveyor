@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/dgraph-io/badger/v4"
 	craneTypes "github.com/open-ug/conveyor/pkg/types"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
@@ -12,12 +13,14 @@ import (
 type DriverMessageModel struct {
 	Client *clientv3.Client
 	Prefix string // e.g., "driver-messages/"
+	DB     *badger.DB
 }
 
-func NewDriverMessageModel(cli *clientv3.Client) *DriverMessageModel {
+func NewDriverMessageModel(cli *clientv3.Client, db *badger.DB) *DriverMessageModel {
 	return &DriverMessageModel{
 		Client: cli,
 		Prefix: "driver-messages/",
+		DB:     db,
 	}
 }
 

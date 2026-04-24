@@ -116,9 +116,9 @@ func Setup(config *types.ServerConfig) (APIServerContext, error) {
 	logModel := &models.LogModel{DB: badgerDB}
 	routes.LogRoutes(app, &handlers.LogHandler{Model: logModel}, natsContext)
 
-	routes.DriverRoutes(app, etcd.Client, natsContext.NatsCon)
-	routes.ResourceRoutes(app, etcd.Client, natsContext)
-	routes.PipelineRoutes(app, etcd.Client, natsContext)
+	routes.DriverRoutes(app, etcd.Client, natsContext.NatsCon, badgerDB)
+	routes.ResourceRoutes(app, etcd.Client, natsContext, badgerDB)
+	routes.PipelineRoutes(app, etcd.Client, natsContext, badgerDB)
 
 	return APIServerContext{
 		NatsContext: natsContext,
@@ -142,7 +142,7 @@ func (appCtx *APIServerContext) Start() {
 		}
 	}()
 
-	engineCtx := engine.NewEngineContext(appCtx.ETCD.Client, appCtx.LogModel, *appCtx.NatsContext)
+	engineCtx := engine.NewEngineContext(appCtx.ETCD.Client, appCtx.LogModel, *appCtx.NatsContext, appCtx.BadgerDB)
 
 	go func() {
 		err := engineCtx.Start()

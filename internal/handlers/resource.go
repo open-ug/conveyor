@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/dgraph-io/badger/v4"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/open-ug/conveyor/internal/engine"
@@ -20,17 +21,20 @@ type ResourceHandler struct {
 	NatsContext             *utils.NatsContext
 }
 
-func NewResourceHandler(db *clientv3.Client, natsContext *utils.NatsContext) *ResourceHandler {
+func NewResourceHandler(cli *clientv3.Client, natsContext *utils.NatsContext, db *badger.DB) *ResourceHandler {
 	return &ResourceHandler{
 		NatsContext: natsContext,
 		ResourceModel: &models.ResourceModel{
-			Client: db,
+			Client: cli,
+			DB:     db,
 		},
 		ResourceDefinitionModel: &models.ResourceDefinitionModel{
-			Client: db,
+			Client: cli,
+			DB:     db,
 		},
 		PipelineModel: &models.PipelineModel{
-			Client: db,
+			Client: cli,
+			DB:     db,
 		},
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/dgraph-io/badger/v4"
 	"github.com/gofiber/fiber/v2"
 	"github.com/nats-io/nats.go"
 	models "github.com/open-ug/conveyor/internal/models"
@@ -21,10 +22,11 @@ type MessageHandler struct {
 }
 
 // NewMessageHandler creates a new message handler
-func NewMessageHandler(db *clientv3.Client, natsCon *nats.Conn) *MessageHandler {
+func NewMessageHandler(cli *clientv3.Client, natsCon *nats.Conn, db *badger.DB) *MessageHandler {
 	return &MessageHandler{
 		MessageModel: models.DriverMessageModel{
-			Client: db,
+			Client: cli,
+			DB:     db,
 			Prefix: "driver-messages/",
 		},
 		NatsCon: natsCon,

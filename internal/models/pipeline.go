@@ -6,17 +6,20 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/dgraph-io/badger/v4"
 	"github.com/open-ug/conveyor/pkg/types"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type PipelineModel struct {
 	Client *clientv3.Client
+	DB     *badger.DB
 }
 
-func NewPipelineModel(cli *clientv3.Client) *PipelineModel {
+func NewPipelineModel(cli *clientv3.Client, db *badger.DB) *PipelineModel {
 	return &PipelineModel{
 		Client: cli,
+		DB:     db,
 	}
 }
 

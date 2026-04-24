@@ -5,16 +5,19 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/dgraph-io/badger/v4"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type ResourceDefinitionModel struct {
 	Client *clientv3.Client
+	DB     *badger.DB
 }
 
-func NewResourceDefinitionModel(cli *clientv3.Client) *ResourceDefinitionModel {
+func NewResourceDefinitionModel(cli *clientv3.Client, db *badger.DB) *ResourceDefinitionModel {
 	return &ResourceDefinitionModel{
 		Client: cli,
+		DB:     db,
 	}
 }
 
