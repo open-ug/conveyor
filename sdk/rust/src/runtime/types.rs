@@ -56,3 +56,9 @@ pub struct Resource {
     pub metadata: std::collections::HashMap<String, String>,
     pub spec: serde_json::Value, // Placeholder for the actual spec structure
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ResourceCreateAPIResponse {
+    pub name: String,
+    pub runid: String,
+}

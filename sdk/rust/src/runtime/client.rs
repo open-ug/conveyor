@@ -1,5 +1,7 @@
 use crate::runtime::manager::DriverManager;
 use crate::runtime::types::Driver;
+use crate::runtime::types::{Resource, ResourceCreateAPIResponse};
+use crate::runtime::utils::do_request;
 use reqwest::Client as HttpClient;
 use reqwest::header;
 
@@ -74,34 +76,56 @@ impl Client {
     }
 }
 
-
 impl Client {
-    
-    pub async fn create_resource(&self, resource: &str) -> Result<String, reqwest::Error> {
-        
+    pub async fn create_resource(
+        &self,
+        resource: &str,
+    ) -> anyhow::Result<ResourceCreateAPIResponse> {
+        let url = format!("{}/resources", self.api_endpoint);
+        let response_text = do_request(&url, reqwest::Method::POST, Some(resource)).await?;
+        let response: ResourceCreateAPIResponse = serde_json::from_str(&response_text)?;
+        Ok(response)
     }
 
-    pub async fn get_resource(&self, resource_id: &str) -> Result<String, reqwest::Error> {
-        
+    pub async fn get_resource(&self, resource_id: &str) -> anyhow::Result<Resource> {
+        let url = format!("{}/resources/{}", self.api_endpoint, resource_id);
+        let response_text = do_request(&url, reqwest::Method::GET, None).await?;
+        let resource: Resource = serde_json::from_str(&response_text)?;
+        Ok(resource)
     }
 
-    pub async fn update_resource(&self, resource_id: &str, data: &str) -> Result<String, reqwest::Error> {
-        
+    pub async fn update_resource(&self, resource_id: &str, data: &str) -> anyhow::Result<Resource> {
+        let url = format!("{}/resources/{}", self.api_endpoint, resource_id);
+        let response_text = do_request(&url, reqwest::Method::PUT, Some(data)).await?;
+        let resource: Resource = serde_json::from_str(&response_text)?;
+        Ok(resource)
     }
 
-    pub async fn delete_resource(&self, resource_id: &str) -> Result<(), reqwest::Error> {
-        
+    pub async fn delete_resource(&self, resource_id: &str) -> anyhow::Result<()> {
+        let url = format!("{}/resources/{}", self.api_endpoint, resource_id);
+        do_request(&url, reqwest::Method::DELETE, None).await?;
+        Ok(())
     }
 
-    pub async fn create_resource_definition(&self, definition: &str) -> Result<String, reqwest::Error> {
-        
+    pub async fn create_resource_definition(
+        &self,
+        definition: &str,
+    ) -> Result<Resource, reqwest::Error> {
+        todo!()
     }
 
-    pub async fn get_resource_definition(&self, definition_id: &str) -> Result<String, reqwest::Error> {
-        
+    pub async fn get_resource_definition(
+        &self,
+        definition_id: &str,
+    ) -> Result<String, reqwest::Error> {
+        todo!()
     }
 
-    pub async fn update_resource_definition(&self, definition_id: &str, data: &str) -> Result<String, reqwest::Error> {
-        
+    pub async fn update_resource_definition(
+        &self,
+        definition_id: &str,
+        data: &str,
+    ) -> Result<Resource, reqwest::Error> {
+        todo!()
     }
 }
