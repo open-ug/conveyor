@@ -131,6 +131,17 @@ impl Client {
         Ok(resource_definition)
     }
 
+    pub async fn create_or_update_resource_definition(
+        &self,
+        definition: &ResourceDefinition,
+    ) -> anyhow::Result<ResourceDefinition> {
+        let url = format!("{}/resource-definitions/apply", self.api_endpoint);
+        let payload = serde_json::to_string(definition)?;
+        let response_text = do_request(&url, reqwest::Method::PUT, Some(&payload)).await?;
+        let resource_definition: ResourceDefinition = serde_json::from_str(&response_text)?;
+        Ok(resource_definition)
+    }
+
     pub async fn get_resource_definition(
         &self,
         definition_id: &str,
