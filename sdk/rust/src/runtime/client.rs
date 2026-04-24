@@ -88,8 +88,15 @@ impl Client {
         Ok(response)
     }
 
-    pub async fn get_resource(&self, resource_id: &str) -> anyhow::Result<Resource> {
-        let url = format!("{}/resources/{}", self.api_endpoint, resource_id);
+    pub async fn get_resource(
+        &self,
+        resource_id: &str,
+        resource_definition: &str,
+    ) -> anyhow::Result<Resource> {
+        let url = format!(
+            "{}/resources/{}/{}",
+            self.api_endpoint, resource_definition, resource_id
+        );
         let response_text = do_request(&url, reqwest::Method::GET, None).await?;
         let resource: Resource = serde_json::from_str(&response_text)?;
         Ok(resource)
