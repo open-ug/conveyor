@@ -32,27 +32,36 @@ func (m *ResourceModel) key(name string, resourceType string) string {
 // Insert adds a new resource to the etcd store.
 // It returns an error if a resource with the same name and type already exists.
 func (m *ResourceModel) Insert(name string, resourceType string, resource []byte) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
+	key := []byte(m.key(name, resourceType))
 
-	key := m.key(name, resourceType)
-
-	// Check existence
-	getResp, err := m.Client.Get(ctx, key)
+	// check existence
+	err := m.DB.View(func(txn *badger.Txn) error {
+		_, err := txn.Get(key)
+		if err == nil {
+			return fmt.Errorf("resource with name %s and type %s already exists", name, resourceType)
+		}
+		if err != badger.ErrKeyNotFound {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		return err
 	}
-	if len(getResp.Kvs) > 0 {
-		return fmt.Errorf("resource with name %s and type %s already exists", name, resourceType)
-	}
 
-	_, err = m.Client.Put(ctx, key, string(resource))
+	// insert resource
+	err = m.DB.Update(func(txn *badger.Txn) error {
+		return txn.Set(key, resource)
+	})
 	if err != nil {
 		return fmt.Errorf("failed to insert resource: %v", err)
 	}
 
-	_, err = m.Client.Put(ctx, key+"/1", string(resource))
-	return err
+	// insert versioned resource
+	versionedKey := []byte(m.key(name, resourceType) + "/1")
+	return m.DB.Update(func(txn *badger.Txn) error {
+		return txn.Set(versionedKey, resource)
+	})
 }
 
 // FindOne retrieves a single resource by its name and type.
