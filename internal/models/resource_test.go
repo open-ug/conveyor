@@ -23,7 +23,7 @@ func Test_Resource_Insert(t *testing.T) {
 	resourcemodel := models.NewResourceModel(nil, db)
 
 	t.Run("Insert Resource", func(t *testing.T) {
-		err := resourcemodel.Insert("test-resource", "test-type", []byte("test-data"))
+		err := resourcemodel.BadgerDBInsert("test-resource", "test-type", []byte("test-data"))
 		if err != nil {
 			t.Fatalf("failed to insert resource: %v", err)
 		}

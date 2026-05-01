@@ -32,6 +32,30 @@ func (m *ResourceModel) key(name string, resourceType string) string {
 // Insert adds a new resource to the etcd store.
 // It returns an error if a resource with the same name and type already exists.
 func (m *ResourceModel) Insert(name string, resourceType string, resource []byte) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	key := m.key(name, resourceType)
+
+	// Check existence
+	getResp, err := m.Client.Get(ctx, key)
+	if err != nil {
+		return err
+	}
+	if len(getResp.Kvs) > 0 {
+		return fmt.Errorf("resource with name %s and type %s already exists", name, resourceType)
+	}
+
+	_, err = m.Client.Put(ctx, key, string(resource))
+	if err != nil {
+		return fmt.Errorf("failed to insert resource: %v", err)
+	}
+
+	_, err = m.Client.Put(ctx, key+"/1", string(resource))
+	return err
+}
+
+func (m *ResourceModel) BadgerDBInsert(name string, resourceType string, resource []byte) error {
 	key := []byte(m.key(name, resourceType))
 
 	// check existence
