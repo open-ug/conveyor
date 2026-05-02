@@ -55,6 +55,39 @@ func (m *ResourceModel) Insert(name string, resourceType string, resource []byte
 	return err
 }
 
+func (m *ResourceModel) BadgerDBInsert(name string, resourceType string, resource []byte) error {
+	key := []byte(m.key(name, resourceType))
+
+	// check existence
+	err := m.DB.View(func(txn *badger.Txn) error {
+		_, err := txn.Get(key)
+		if err == nil {
+			return fmt.Errorf("resource with name %s and type %s already exists", name, resourceType)
+		}
+		if err != badger.ErrKeyNotFound {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// insert resource
+	err = m.DB.Update(func(txn *badger.Txn) error {
+		return txn.Set(key, resource)
+	})
+	if err != nil {
+		return fmt.Errorf("failed to insert resource: %v", err)
+	}
+
+	// insert versioned resource
+	versionedKey := []byte(m.key(name, resourceType) + "/1")
+	return m.DB.Update(func(txn *badger.Txn) error {
+		return txn.Set(versionedKey, resource)
+	})
+}
+
 // FindOne retrieves a single resource by its name and type.
 // It returns the resource data as a byte slice or an error if not found.
 func (m *ResourceModel) FindOne(name string, resourceType string) (types.Resource, error) {
