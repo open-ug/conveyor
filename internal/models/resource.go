@@ -59,8 +59,24 @@ func (m *ResourceModel) Insert(name string, resourceType string, resource []byte
 func (m *ResourceModel) BadgerDBInsert(name string, resourceType string, resource []byte) error {
 	key := []byte(m.key(name, resourceType))
 
+	// first unmarshal to resource inorder to set the version 1
+	var real_resource types.Resource
+
+	err := json.Unmarshal(resource, &real_resource)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal resource: %v", err)
+	}
+
+	setResourceVersion(&real_resource, 1)
+
+	// marshal back to json
+	resourceData, err := json.Marshal(real_resource)
+	if err != nil {
+		return fmt.Errorf("failed to marshal resource: %v", err)
+	}
+
 	// check existence
-	err := m.DB.View(func(txn *badger.Txn) error {
+	err = m.DB.View(func(txn *badger.Txn) error {
 		_, err := txn.Get(key)
 		if err == nil {
 			return fmt.Errorf("resource with name %s and type %s already exists", name, resourceType)
@@ -76,7 +92,7 @@ func (m *ResourceModel) BadgerDBInsert(name string, resourceType string, resourc
 
 	// insert resource
 	err = m.DB.Update(func(txn *badger.Txn) error {
-		return txn.Set(key, resource)
+		return txn.Set(key, resourceData)
 	})
 	if err != nil {
 		return fmt.Errorf("failed to insert resource: %v", err)
@@ -85,7 +101,7 @@ func (m *ResourceModel) BadgerDBInsert(name string, resourceType string, resourc
 	// insert versioned resource
 	versionedKey := []byte(m.key(name, resourceType) + "/1")
 	return m.DB.Update(func(txn *badger.Txn) error {
-		return txn.Set(versionedKey, resource)
+		return txn.Set(versionedKey, resourceData)
 	})
 }
 
@@ -243,15 +259,14 @@ func (m *ResourceModel) Update(name string, resourceType string, resource types.
 	}
 
 	resource.ID = currentResource.ID // Ensure the ID remains unchanged
-	vesion, err := strconv.Atoi(currentResource.Metadata["version"])
+	version, err := getResourceVersion(currentResource)
 	if err != nil {
-		return types.Resource{}, fmt.Errorf("failed to parse version: %v", err)
+		return types.Resource{}, fmt.Errorf("failed to get current resource version: %v", err)
 	}
 
-	if resource.Metadata == nil {
-		resource.Metadata = make(map[string]string)
-	}
-	resource.Metadata["version"] = strconv.Itoa(vesion + 1) // Increment version
+	setResourceVersion(&currentResource, version+1)
+
+	resource.Metadata = currentResource.Metadata // Preserve existing metadata and versioning
 
 	// Marshal the updated resource to JSON
 	resourceData, err := json.Marshal(resource)
@@ -271,6 +286,75 @@ func (m *ResourceModel) Update(name string, resourceType string, resource types.
 		return types.Resource{}, fmt.Errorf("failed to save versioned resource: %v", err)
 	}
 	return resource, err
+}
+
+func getResourceVersion(resource types.Resource) (int, error) {
+	if resource.Metadata == nil {
+		return 0, fmt.Errorf("resource metadata is nil")
+	}
+
+	versionStr, ok := resource.Metadata["version"].(string)
+	if !ok {
+		return 0, fmt.Errorf("version not found in resource metadata or is not a string")
+	}
+
+	version, err := strconv.Atoi(versionStr)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse version: %v", err)
+	}
+
+	return version, nil
+}
+
+func setResourceVersion(resource *types.Resource, version int) {
+	if resource.Metadata == nil {
+		resource.Metadata = make(map[string]interface{})
+	}
+	resource.Metadata["version"] = strconv.Itoa(version)
+}
+
+func (m *ResourceModel) BadgerDBUpdate(name string, resourceType string, resource types.Resource) (types.Resource, error) {
+	key := []byte(m.key(name, resourceType))
+
+	// Check existence
+	currentResource, err := m.BadgerDBFindOne(name, resourceType)
+	if err != nil {
+		return types.Resource{}, fmt.Errorf("resource with name %s and type %s not found: %v ", name, resourceType, err)
+	}
+
+	resource.ID = currentResource.ID // Ensure the ID remains unchanged
+	version, err := getResourceVersion(currentResource)
+	if err != nil {
+		return types.Resource{}, fmt.Errorf("failed to get current resource version: %v", err)
+	}
+
+	setResourceVersion(&currentResource, version+1)
+
+	resource.Metadata = currentResource.Metadata // Preserve existing metadata and versioning
+
+	// Marshal the updated resource to JSON
+	resourceData, err := json.Marshal(resource)
+	if err != nil {
+		return types.Resource{}, fmt.Errorf("failed to marshal resource: %v", err)
+	}
+
+	err = m.DB.Update(func(txn *badger.Txn) error {
+		return txn.Set(key, resourceData)
+	})
+	if err != nil {
+		return types.Resource{}, fmt.Errorf("failed to update resource: %v", err)
+	}
+
+	// save versioned resource
+	versionedKey := []byte(fmt.Sprintf("%s/%s", key, resource.Metadata["version"]))
+	err = m.DB.Update(func(txn *badger.Txn) error {
+		return txn.Set(versionedKey, resourceData)
+	})
+	if err != nil {
+		return types.Resource{}, fmt.Errorf("failed to save versioned resource: %v", err)
+	}
+
+	return resource, nil
 }
 
 // FindAll retrieves all resources of a specific type.
@@ -384,17 +468,11 @@ func (m *ResourceModel) SaveDriverResult(name string, resourceType string, drive
 		return fmt.Errorf("failed to find resource: %v", err)
 	}
 
-	// Marshal the driver result to JSON
-	resultData, err := json.Marshal(result)
-	if err != nil {
-		return fmt.Errorf("failed to marshal driver result: %v", err)
-	}
-
 	// Update the resource's metadata with the driver result
-	if resource.Metadata == nil {
-		resource.Metadata = make(map[string]string)
+	err = updateDriverResult(&resource, driver, result)
+	if err != nil {
+		return fmt.Errorf("failed to update driver result: %v", err)
 	}
-	resource.Metadata["driverresults."+driver] = string(resultData)
 
 	// Marshal the updated resource to JSON
 	resourceData, err := json.Marshal(resource)
@@ -408,6 +486,56 @@ func (m *ResourceModel) SaveDriverResult(name string, resourceType string, drive
 	if err != nil {
 		return fmt.Errorf("failed to save updated resource: %v", err)
 	}
+
+	return nil
+}
+
+func (m *ResourceModel) SaveDriverResultBadgerDB(name string, resourceType string, driver string, result interface{}) error {
+	// Retrieve the current resource
+	resource, err := m.BadgerDBFindOne(name, resourceType)
+	if err != nil {
+		return fmt.Errorf("failed to find resource: %v", err)
+	}
+
+	// Update the resource's metadata with the driver result
+	err = updateDriverResult(&resource, driver, result)
+	if err != nil {
+		return fmt.Errorf("failed to update driver result: %v", err)
+	}
+
+	// Marshal the updated resource to JSON
+	resourceData, err := json.Marshal(resource)
+	if err != nil {
+		return fmt.Errorf("failed to marshal updated resource: %v", err)
+	}
+
+	// Save the updated resource back to BadgerDB
+	key := []byte(m.key(name, resourceType))
+	return m.DB.Update(func(txn *badger.Txn) error {
+		return txn.Set(key, resourceData)
+	})
+}
+
+func updateDriverResult(resource *types.Resource, driver string, result interface{}) error {
+	// generate metadata object for driver results
+	driverResults := make(map[string]interface{})
+	if resource.Metadata != nil {
+		if existingResults, ok := resource.Metadata["driverresults"]; ok {
+			if existingResultsMap, ok := existingResults.(map[string]interface{}); ok {
+				driverResults = existingResultsMap
+			}
+		}
+	}
+
+	// Update the driver result
+	driverResults[driver] = result
+
+	// set the updated driver results back to resource metadata
+	if resource.Metadata == nil {
+		resource.Metadata = make(map[string]interface{})
+	}
+
+	resource.Metadata["driverresults"] = driverResults
 
 	return nil
 }

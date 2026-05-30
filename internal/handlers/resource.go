@@ -60,7 +60,7 @@ func (h *ResourceHandler) CreateResource(c *fiber.Ctx) error {
 	}
 
 	resource.ID = uuid.New().String()
-	resource.Metadata = make(map[string]string)
+	resource.Metadata = make(map[string]interface{})
 	// set version to 1
 	resource.Metadata["version"] = "1"
 
