@@ -213,10 +213,26 @@ func (h *ResourceHandler) DeleteResource(c *fiber.Ctx) error {
 		})
 	}
 
-	err := h.ResourceModel.Delete(resourceName, resourceType)
+	// first find the resource to check if it exists
+	resource, err := h.ResourceModel.FindOne(resourceName, resourceType)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": fmt.Sprintf("Failed to find resource: %v", err),
+		})
+	}
+
+	err = h.ResourceModel.Delete(resourceName, resourceType)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": fmt.Sprintf("Failed to delete resource: %v", err),
+		})
+	}
+
+	// Publish resource deletion event to NATS JetStream
+	_, err = engine.PublishResourceEvent("delete", resource, h.NatsContext.JetStream)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": fmt.Sprintf("Failed to publish resource event: %v", err),
 		})
 	}
 
@@ -281,6 +297,28 @@ func (h *ResourceHandler) UpdateResource(c *fiber.Ctx) error {
 		})
 	}
 
+	// check if pipeline exists
+	if resource.Pipeline != "" {
+		pipeline, err := h.PipelineModel.GetPipeline(resource.Pipeline)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": fmt.Sprintf("Failed to get pipeline: %v", err),
+			})
+		}
+
+		if pipeline == nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": fmt.Sprintf("Pipeline %s not found", resource.Pipeline),
+			})
+		}
+
+		if pipeline.Resource != resource.Resource {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": fmt.Sprintf("Resource type %s does not match pipeline resource type %s", resource.Resource, pipeline.Resource),
+			})
+		}
+	}
+
 	resourceDefinition, err := h.ResourceDefinitionModel.FindOne(resourceType)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -326,6 +364,14 @@ func (h *ResourceHandler) UpdateResource(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": fmt.Sprintf("Failed to update resource: %v", err),
+		})
+	}
+
+	// Publish `update` event to NATS JetStream
+	_, err = engine.PublishResourceEvent("update", r, h.NatsContext.JetStream)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": fmt.Sprintf("Failed to publish resource event: %v", err),
 		})
 	}
 

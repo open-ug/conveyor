@@ -47,7 +47,10 @@ func PublishResourceEvent(
 	resource types.Resource,
 	js jetstream.JetStream) (string, error) {
 
+	// Generate a unique run ID for this event
 	run_id := uuid.New().String()
+
+	// If the resource is not part of a pipeline, publish it directly to the resource subject
 	if resource.Pipeline == "" {
 
 		mID, err := utils.GenerateRandomID()
@@ -61,7 +64,7 @@ func PublishResourceEvent(
 		driverMsg := types.DriverMessage{
 			ID:      mID,
 			Payload: string(resourceData),
-			Event:   "create",
+			Event:   event,
 			RunID:   run_id,
 		}
 
