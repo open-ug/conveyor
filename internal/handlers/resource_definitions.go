@@ -188,7 +188,6 @@ func (h *ResourceDefinitionHandler) UpdateResourceDefinition(c *fiber.Ctx) error
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /resource-definitions/apply [post]
 func (h *ResourceDefinitionHandler) CreateOrUpdateResourceDefinition(c *fiber.Ctx) error {
-	fmt.Println("CreateOrUpdateResourceDefinition called")
 	var resourceDefinition types.ResourceDefinition
 	if err := c.BodyParser(&resourceDefinition); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -211,7 +210,6 @@ func (h *ResourceDefinitionHandler) CreateOrUpdateResourceDefinition(c *fiber.Ct
 
 	// Check if the resource definition already exists
 	existingDef, _ := h.ResourceDefinitionModel.FindOne(resourceName)
-	fmt.Println("resource exists")
 
 	if existingDef != nil {
 		// If it exists, update it

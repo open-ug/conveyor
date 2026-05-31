@@ -59,8 +59,6 @@ func (s *DriverLogsStreamer) StreamDriverLogsByRunID(c *fiber.Ctx) error {
 			// send dummy data
 			w.Flush()
 
-			// Send existing logs first (replay)
-			fmt.Println(logs)
 			for _, logEntry := range logs {
 				jsonData, err := json.Marshal(logEntry)
 				if err != nil {

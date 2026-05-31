@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/dgraph-io/badger/v4"
 	"github.com/gofiber/fiber/v2"
@@ -64,7 +63,6 @@ func (h *MessageHandler) PublishMessage(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-	fmt.Println("Saved to database")
 	jsonMsg, merr := json.Marshal(message)
 	if merr != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

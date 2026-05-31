@@ -3,7 +3,6 @@ package handlers_test
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -80,8 +79,6 @@ func Test_ResourceDefinition_CRUD(t *testing.T) {
 		}
 		defer resp.Body.Close()
 
-		respBody, _ := io.ReadAll(resp.Body)
-		fmt.Println(string(respBody))
 		assert.Equal(t, http.StatusCreated, resp.StatusCode, "expected 201 Created on create")
 
 	})
