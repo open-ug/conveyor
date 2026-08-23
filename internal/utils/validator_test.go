@@ -31,7 +31,7 @@ func TestValidateResource_ValidInput(t *testing.T) {
 		},
 	}
 
-	valid, err := utils.ValidateResource(resource, definition)
+	valid, err := utils.ValidateResource(resource, &definition)
 	assert.True(t, valid)
 	assert.NoError(t, err)
 }
@@ -59,7 +59,7 @@ func TestValidateResource_InvalidInput(t *testing.T) {
 		},
 	}
 
-	valid, err := utils.ValidateResource(resource, definition)
+	valid, err := utils.ValidateResource(resource, &definition)
 	assert.False(t, valid)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "validation failed")

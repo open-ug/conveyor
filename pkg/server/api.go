@@ -33,8 +33,6 @@ type APIServerContext struct {
 	App *fiber.App
 	// NATS context holds the NATS connection and JetStream context. You can use this to publish messages to NATS or manage streams.
 	NatsContext *utils.NatsContext
-	// ETCD client for interacting with the ETCD datastore. You can use this to read/write data to ETCD directly if needed.
-	ETCD *utils.EtcdClient
 	// LogModel is a wrapper around BadgerDB for storing logs. You can use this to write logs to the database.
 	LogModel *models.LogModel
 	// BadgerDB instance for direct access to the database if needed. You can use this for advanced queries or operations that are not covered by the LogModel.
@@ -49,7 +47,6 @@ Graceful shutdown of server and dependencies
 func (c *APIServerContext) ShutDown() {
 	c.App.Shutdown()
 	c.NatsContext.Shutdown()
-	c.ETCD.ServerStop()
 	if c.BadgerDB != nil {
 		c.BadgerDB.Close()
 	}
@@ -97,12 +94,6 @@ func Setup(config *types.ServerConfig) (APIServerContext, error) {
 	natsContext := utils.NewNatsConn(config)
 	natsContext.InitiateStreams()
 
-	etcd, err := utils.NewEtcdClient(config)
-	if err != nil {
-		color.Red("Error Occured while creating etcd client: %v", err)
-		return APIServerContext{}, err
-	}
-
 	// Initialize BadgerDB
 	conveyorDataDir := config.API.Data
 	badgerOpts := badger.DefaultOptions(conveyorDataDir + "/badger")
@@ -116,14 +107,13 @@ func Setup(config *types.ServerConfig) (APIServerContext, error) {
 	logModel := &models.LogModel{DB: badgerDB}
 	routes.LogRoutes(app, &handlers.LogHandler{Model: logModel}, natsContext)
 
-	routes.DriverRoutes(app, etcd.Client, natsContext.NatsCon, badgerDB)
-	routes.ResourceRoutes(app, etcd.Client, natsContext, badgerDB)
-	routes.PipelineRoutes(app, etcd.Client, natsContext, badgerDB)
+	routes.DriverRoutes(app, natsContext.NatsCon, badgerDB)
+	routes.ResourceRoutes(app, natsContext, badgerDB)
+	routes.PipelineRoutes(app, natsContext, badgerDB)
 
 	return APIServerContext{
 		NatsContext: natsContext,
 		App:         app,
-		ETCD:        etcd,
 		LogModel:    logModel,
 		BadgerDB:    badgerDB,
 		Config:      config,
@@ -142,7 +132,7 @@ func (appCtx *APIServerContext) Start() {
 		}
 	}()
 
-	engineCtx := engine.NewEngineContext(appCtx.ETCD.Client, appCtx.LogModel, *appCtx.NatsContext, appCtx.BadgerDB)
+	engineCtx := engine.NewEngineContext(appCtx.LogModel, *appCtx.NatsContext, appCtx.BadgerDB)
 
 	go func() {
 		err := engineCtx.Start()
@@ -168,9 +158,6 @@ func (appCtx *APIServerContext) Start() {
 	}
 
 	appCtx.NatsContext.Shutdown()
-	fmt.Println("Gracefully shutting down Datastore")
-	appCtx.ETCD.ServerStop()
-
 	fmt.Println("Server gracefully stopped")
 
 }

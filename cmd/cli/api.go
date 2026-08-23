@@ -16,7 +16,7 @@ import (
 var APIServerCmd = &cobra.Command{
 	Use:   "up",
 	Short: "Start the Conveyor API Server",
-	Long:  `Start the Conveyor API Server. This will start the server on the specified port (default: 8080) and connect to the embedded etcd instance.`,
+	Long:  `Start the Conveyor API Server. This will start the server on the specified port (default: 8080)`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// Attempt to load the config
 		if err := config.LoadConfig(); err != nil {

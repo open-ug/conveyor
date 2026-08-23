@@ -10,7 +10,6 @@ import (
 	"github.com/open-ug/conveyor/internal/models"
 	"github.com/open-ug/conveyor/internal/utils"
 	"github.com/open-ug/conveyor/pkg/types"
-	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type EngineContext struct {
@@ -27,12 +26,12 @@ type PipelineEvent struct {
 	DriverResultEvent DriverResultEvent `json:"driverresult"`
 }
 
-func NewEngineContext(cli *clientv3.Client, logmodel *models.LogModel, natsContext utils.NatsContext, db *badger.DB) *EngineContext {
+func NewEngineContext(logmodel *models.LogModel, natsContext utils.NatsContext, db *badger.DB) *EngineContext {
 
 	return &EngineContext{
 		NatsContext:   natsContext,
-		PipelineModel: models.NewPipelineModel(cli, db),
-		ResourceModel: models.NewResourceModel(cli, db),
+		PipelineModel: models.NewPipelineModel(db),
+		ResourceModel: models.NewResourceModel(db),
 		LogModel:      logmodel,
 	}
 }

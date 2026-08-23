@@ -11,7 +11,6 @@ import (
 	models "github.com/open-ug/conveyor/internal/models"
 	utils "github.com/open-ug/conveyor/internal/utils"
 	"github.com/open-ug/conveyor/pkg/types"
-	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type ResourceHandler struct {
@@ -21,20 +20,17 @@ type ResourceHandler struct {
 	NatsContext             *utils.NatsContext
 }
 
-func NewResourceHandler(cli *clientv3.Client, natsContext *utils.NatsContext, db *badger.DB) *ResourceHandler {
+func NewResourceHandler(natsContext *utils.NatsContext, db *badger.DB) *ResourceHandler {
 	return &ResourceHandler{
 		NatsContext: natsContext,
 		ResourceModel: &models.ResourceModel{
-			Client: cli,
-			DB:     db,
+			DB: db,
 		},
 		ResourceDefinitionModel: &models.ResourceDefinitionModel{
-			Client: cli,
-			DB:     db,
+			DB: db,
 		},
 		PipelineModel: &models.PipelineModel{
-			Client: cli,
-			DB:     db,
+			DB: db,
 		},
 	}
 }
@@ -71,25 +67,13 @@ func (h *ResourceHandler) CreateResource(c *fiber.Ctx) error {
 		})
 	}
 
-	resourceDefinition, err := h.ResourceDefinitionModel.FindOne(resourceType)
+	resourceDef, err := h.ResourceDefinitionModel.FindOne(resourceType)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": fmt.Sprintf("Failed to find resource definition: %v", err),
 		})
 	}
-	if resourceDefinition == nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": fmt.Sprintf("Resource definition for type %s not found", resourceType),
-		})
-	}
 
-	var resourceDef types.ResourceDefinition
-	err = json.Unmarshal(resourceDefinition, &resourceDef)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to unmarshal resource definition",
-		})
-	}
 	if resourceDef.Schema == nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Resource definition schema is required",
@@ -319,24 +303,10 @@ func (h *ResourceHandler) UpdateResource(c *fiber.Ctx) error {
 		}
 	}
 
-	resourceDefinition, err := h.ResourceDefinitionModel.FindOne(resourceType)
+	resourceDef, err := h.ResourceDefinitionModel.FindOne(resourceType)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": fmt.Sprintf("Failed to find resource definition: %v", err),
-		})
-	}
-
-	if resourceDefinition == nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": fmt.Sprintf("Resource definition for type %s not found", resourceType),
-		})
-	}
-
-	var resourceDef types.ResourceDefinition
-	err = json.Unmarshal(resourceDefinition, &resourceDef)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to unmarshal resource definition",
 		})
 	}
 

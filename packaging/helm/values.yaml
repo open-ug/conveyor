@@ -2,7 +2,7 @@
 namespace: ""
 nameOverride: ""
 
-# etcd configuration
+# Storage configuration
 storageClass: "standard"
 pvc: 
   size: "16Gi"

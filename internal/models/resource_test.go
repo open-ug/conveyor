@@ -43,10 +43,10 @@ func Test_Resource_Insert(t *testing.T) {
 		t.Fatalf("failed to marshal resource: %v", err)
 	}
 
-	resourcemodel := models.NewResourceModel(nil, db)
+	resourcemodel := models.NewResourceModel(db)
 
 	t.Run("Insert Resource", func(t *testing.T) {
-		err := resourcemodel.BadgerDBInsert(resource.Name, resource.Resource, marshalResource)
+		err := resourcemodel.Insert(resource.Name, resource.Resource, marshalResource)
 		if err != nil {
 			t.Fatalf("failed to insert resource: %v", err)
 		}
@@ -168,7 +168,7 @@ var resource = PipelineResource{
 func Test_Resource_FindOne(t *testing.T) {
 	db := setupTestDB(t)
 
-	resourcemodel := models.NewResourceModel(nil, db)
+	resourcemodel := models.NewResourceModel(db)
 
 	rawResource, err := json.Marshal(resource)
 	if err != nil {
@@ -176,13 +176,13 @@ func Test_Resource_FindOne(t *testing.T) {
 	}
 
 	// Insert a resource to find
-	err = resourcemodel.BadgerDBInsert(resource.Name, resource.Resource, rawResource)
+	err = resourcemodel.Insert(resource.Name, resource.Resource, rawResource)
 	if err != nil {
 		t.Fatalf("failed to insert resource: %v", err)
 	}
 
 	t.Run("Find Existing Resource", func(t *testing.T) {
-		foundResource, err := resourcemodel.BadgerDBFindOne(resource.Name, resource.Resource)
+		foundResource, err := resourcemodel.FindOne(resource.Name, resource.Resource)
 		if err != nil {
 			t.Fatalf("failed to find resource: %v", err)
 		}
@@ -210,7 +210,7 @@ func Test_Resource_FindOne(t *testing.T) {
 	})
 
 	t.Run("Find Non-Existing Resource", func(t *testing.T) {
-		_, err := resourcemodel.BadgerDBFindOne("non-existent", "test-type")
+		_, err := resourcemodel.FindOne("non-existent", "test-type")
 		if err == nil {
 			t.Fatalf("expected error when finding non-existent resource, got nil")
 		}
@@ -220,7 +220,7 @@ func Test_Resource_FindOne(t *testing.T) {
 func Test_Resource_Delete(t *testing.T) {
 	db := setupTestDB(t)
 
-	resourcemodel := models.NewResourceModel(nil, db)
+	resourcemodel := models.NewResourceModel(db)
 
 	resource := types.Resource{
 		Name:     "test-resource",
@@ -234,13 +234,13 @@ func Test_Resource_Delete(t *testing.T) {
 	}
 
 	// Insert a resource to delete
-	err = resourcemodel.BadgerDBInsert(resource.Name, resource.Resource, marshalResource)
+	err = resourcemodel.Insert(resource.Name, resource.Resource, marshalResource)
 	if err != nil {
 		t.Fatalf("failed to insert resource: %v", err)
 	}
 
 	t.Run("Delete Existing Resource", func(t *testing.T) {
-		err := resourcemodel.BadgerDBDelete("test-resource", "test-type")
+		err := resourcemodel.Delete("test-resource", "test-type")
 		if err != nil {
 			t.Fatalf("failed to delete resource: %v", err)
 		}
@@ -267,7 +267,7 @@ func Test_Resource_Delete(t *testing.T) {
 func Test_Resource_List(t *testing.T) {
 	db := setupTestDB(t)
 
-	resourcemodel := models.NewResourceModel(nil, db)
+	resourcemodel := models.NewResourceModel(db)
 
 	// Insert multiple resources of PipelineResource type
 	for i := 1; i <= 3; i++ {
@@ -290,14 +290,14 @@ func Test_Resource_List(t *testing.T) {
 			t.Fatalf("failed to marshal resource: %v", err)
 		}
 
-		err = resourcemodel.BadgerDBInsert(resource.Name, resource.Resource, rawResource)
+		err = resourcemodel.Insert(resource.Name, resource.Resource, rawResource)
 		if err != nil {
 			t.Fatalf("failed to insert resource: %v", err)
 		}
 	}
 
 	t.Run("List Resources", func(t *testing.T) {
-		resources, err := resourcemodel.BadgerDBList("pipe4")
+		resources, err := resourcemodel.List("pipe4")
 		fmt.Printf("Listed Resources: %+v\n", resources)
 		if err != nil {
 			t.Fatalf("failed to list resources: %v", err)
@@ -323,7 +323,7 @@ func Test_Resource_List(t *testing.T) {
 func Test_Resource_FindAll(t *testing.T) {
 	db := setupTestDB(t)
 
-	resourcemodel := models.NewResourceModel(nil, db)
+	resourcemodel := models.NewResourceModel(db)
 
 	// Insert multiple resources of PipelineResource type
 	for i := 1; i <= 3; i++ {
@@ -346,14 +346,14 @@ func Test_Resource_FindAll(t *testing.T) {
 			t.Fatalf("failed to marshal resource: %v", err)
 		}
 
-		err = resourcemodel.BadgerDBInsert(resource.Name, resource.Resource, rawResource)
+		err = resourcemodel.Insert(resource.Name, resource.Resource, rawResource)
 		if err != nil {
 			t.Fatalf("failed to insert resource: %v", err)
 		}
 	}
 
 	t.Run("Find All Resources", func(t *testing.T) {
-		resources, err := resourcemodel.BadgerDBFindAll("pipe4")
+		resources, err := resourcemodel.FindAll("pipe4")
 		fmt.Printf("Found Resources: %+v\n", resources)
 		if err != nil {
 			t.Fatalf("failed to find all resources: %v", err)
@@ -379,7 +379,7 @@ func Test_Resource_FindAll(t *testing.T) {
 func Test_FindByVersion(t *testing.T) {
 	db := setupTestDB(t)
 
-	resourcemodel := models.NewResourceModel(nil, db)
+	resourcemodel := models.NewResourceModel(db)
 
 	resource := types.Resource{
 		Name:     "pipeline-1",
@@ -393,7 +393,7 @@ func Test_FindByVersion(t *testing.T) {
 	}
 
 	// Insert a resource to find by version
-	err = resourcemodel.BadgerDBInsert(resource.Name, resource.Resource, marshalResource)
+	err = resourcemodel.Insert(resource.Name, resource.Resource, marshalResource)
 	if err != nil {
 		t.Fatalf("failed to insert resource: %v", err)
 	}
@@ -401,13 +401,13 @@ func Test_FindByVersion(t *testing.T) {
 	// update the resource to create a new version
 	resource.Spec = map[string]interface{}{"key": "new value"}
 
-	_, err = resourcemodel.BadgerDBUpdate(resource.Name, resource.Resource, resource)
+	_, err = resourcemodel.Update(resource.Name, resource.Resource, resource)
 	if err != nil {
 		t.Fatalf("failed to update resource: %v", err)
 	}
 
 	t.Run("Find Resource By Version", func(t *testing.T) {
-		foundResource, err := resourcemodel.BadgerDBFindByVersion(resource.Name, resource.Resource, "1")
+		foundResource, err := resourcemodel.FindByVersion(resource.Name, resource.Resource, "1")
 		if err != nil {
 			t.Fatalf("failed to find resource by version: %v", err)
 		}
@@ -428,7 +428,7 @@ func Test_FindByVersion(t *testing.T) {
 func Test_Resource_Update(t *testing.T) {
 	db := setupTestDB(t)
 
-	resourcemodel := models.NewResourceModel(nil, db)
+	resourcemodel := models.NewResourceModel(db)
 
 	// Sample resource to insert and update
 	resource := types.Resource{
@@ -451,7 +451,7 @@ func Test_Resource_Update(t *testing.T) {
 	}
 
 	// Insert the resource to update
-	err = resourcemodel.BadgerDBInsert(resource.Name, resource.Resource, rawResource)
+	err = resourcemodel.Insert(resource.Name, resource.Resource, rawResource)
 	if err != nil {
 		t.Fatalf("failed to insert resource: %v", err)
 	}
@@ -468,7 +468,7 @@ func Test_Resource_Update(t *testing.T) {
 			},
 		}
 
-		updatedResource, err := resourcemodel.BadgerDBUpdate(resource.Name, resource.Resource, resource)
+		updatedResource, err := resourcemodel.Update(resource.Name, resource.Resource, resource)
 		if err != nil {
 			t.Fatalf("failed to update resource: %v", err)
 		}
@@ -483,7 +483,7 @@ func Test_Resource_Update(t *testing.T) {
 func Test_SaveDriverResult(t *testing.T) {
 	db := setupTestDB(t)
 
-	resourcemodel := models.NewResourceModel(nil, db)
+	resourcemodel := models.NewResourceModel(db)
 
 	// Sample resource result to save
 	resource := types.Resource{
@@ -508,19 +508,19 @@ func Test_SaveDriverResult(t *testing.T) {
 	}
 
 	// insert resource
-	err = resourcemodel.BadgerDBInsert(resource.Name, resource.Resource, jsonResource)
+	err = resourcemodel.Insert(resource.Name, resource.Resource, jsonResource)
 	if err != nil {
 		t.Fatalf("failed to insert resource: %v", err)
 	}
 
 	t.Run("Save Driver Result", func(t *testing.T) {
-		err := resourcemodel.SaveDriverResultBadgerDB("pipeline-1", "pipe4", "docker", result)
+		err := resourcemodel.SaveDriverResult("pipeline-1", "pipe4", "docker", result)
 		if err != nil {
 			t.Fatalf("failed to save driver result: %v", err)
 		}
 
 		// find the new updated resource
-		updatedResource, err := resourcemodel.BadgerDBFindOne("pipeline-1", "pipe4")
+		updatedResource, err := resourcemodel.FindOne("pipeline-1", "pipe4")
 		if err != nil {
 			t.Fatalf("failed to find updated resource: %v", err)
 		}

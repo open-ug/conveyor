@@ -8,12 +8,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/nats-io/nats.go"
 	"github.com/open-ug/conveyor/internal/handlers"
-	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-func DriverRoutes(app *fiber.App, cli *clientv3.Client, natsCon *nats.Conn, db *badger.DB) {
+func DriverRoutes(app *fiber.App, natsCon *nats.Conn, db *badger.DB) {
 	applicationPrefix := app.Group("/drivers")
-	applicationHandler := handlers.NewMessageHandler(cli, natsCon, db)
+	applicationHandler := handlers.NewMessageHandler(natsCon, db)
 
 	applicationPrefix.Post("/broadcast-message", applicationHandler.PublishMessage)
 

@@ -3,10 +3,6 @@ services:
   app:
     image: ghcr.io/open-ug/conveyor:latest
     container_name: app
-    depends_on:
-      - etcd
-      - loki
-      - nats
     ports:
       - "8080:8080"
       - "4222:4222"

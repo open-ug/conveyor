@@ -8,7 +8,7 @@ import (
 	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
-func ValidateResource(resource types.Resource, definition types.ResourceDefinition) (bool, error) {
+func ValidateResource(resource types.Resource, definition *types.ResourceDefinition) (bool, error) {
 	// Marshal the resource struct to JSON
 	resourceJSON, err := json.Marshal(resource.Spec)
 	if err != nil {

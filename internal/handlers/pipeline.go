@@ -8,7 +8,6 @@ import (
 	"github.com/nats-io/nats.go"
 	"github.com/open-ug/conveyor/internal/models"
 	"github.com/open-ug/conveyor/pkg/types"
-	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type PipelineHandler struct {
@@ -17,11 +16,11 @@ type PipelineHandler struct {
 	ResourceDefinitionModel *models.ResourceDefinitionModel
 }
 
-func NewPipelineHandler(cli *clientv3.Client, natsCon *nats.Conn, db *badger.DB) *PipelineHandler {
+func NewPipelineHandler(natsCon *nats.Conn, db *badger.DB) *PipelineHandler {
 	return &PipelineHandler{
-		Model:                   models.NewPipelineModel(cli, db),
+		Model:                   models.NewPipelineModel(db),
 		NatsCon:                 natsCon,
-		ResourceDefinitionModel: models.NewResourceDefinitionModel(cli, db),
+		ResourceDefinitionModel: models.NewResourceDefinitionModel(db),
 	}
 }
 
