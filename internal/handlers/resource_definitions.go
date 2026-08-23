@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/dgraph-io/badger/v4"
@@ -10,7 +9,6 @@ import (
 	"github.com/nats-io/nats.go"
 	models "github.com/open-ug/conveyor/internal/models"
 	"github.com/open-ug/conveyor/pkg/types"
-	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type ResourceDefinitionHandler struct {
@@ -18,12 +16,11 @@ type ResourceDefinitionHandler struct {
 	ResourceDefinitionModel *models.ResourceDefinitionModel
 }
 
-func NewResourceDefinitionHandler(cli *clientv3.Client, natsCon *nats.Conn, db *badger.DB) *ResourceDefinitionHandler {
+func NewResourceDefinitionHandler(natsCon *nats.Conn, db *badger.DB) *ResourceDefinitionHandler {
 	return &ResourceDefinitionHandler{
 		NatsCon: natsCon,
 		ResourceDefinitionModel: &models.ResourceDefinitionModel{
-			Client: cli,
-			DB:     db,
+			DB: db,
 		},
 	}
 }
@@ -49,14 +46,7 @@ func (h *ResourceDefinitionHandler) CreateResourceDefinition(c *fiber.Ctx) error
 
 	resourceDefinition.ID = uuid.New().String()
 
-	resourceDef, err := json.Marshal(resourceDefinition)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to marshal resource definition",
-		})
-	}
-
-	err = h.ResourceDefinitionModel.Insert(resourceDefinition.Name, resourceDef)
+	err := h.ResourceDefinitionModel.Insert(resourceDefinition.Name, &resourceDefinition)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": fmt.Sprintf("Failed to insert resource definition: %v", err),
@@ -92,15 +82,7 @@ func (h *ResourceDefinitionHandler) GetResourceDefinition(c *fiber.Ctx) error {
 		})
 	}
 
-	var resourceDefinition types.ResourceDefinition
-	err = json.Unmarshal(resourceDef, &resourceDefinition)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to unmarshal resource definition",
-		})
-	}
-
-	return c.JSON(resourceDefinition)
+	return c.JSON(resourceDef)
 }
 
 // DeleteResourceDefinition deletes a specific resource definition by name
@@ -152,28 +134,21 @@ func (h *ResourceDefinitionHandler) UpdateResourceDefinition(c *fiber.Ctx) error
 		})
 	}
 
-	var resourceDefinition types.ResourceDefinition
-	if err := c.BodyParser(&resourceDefinition); err != nil {
+	var resourceDef types.ResourceDefinition
+	if err := c.BodyParser(&resourceDef); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid request payload",
 		})
 	}
 
-	resourceDef, err := json.Marshal(resourceDefinition)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to marshal resource definition",
-		})
-	}
-
-	err = h.ResourceDefinitionModel.Update(resourceName, resourceDef)
+	err := h.ResourceDefinitionModel.Update(resourceName, &resourceDef)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": fmt.Sprintf("Failed to update resource definition: %v", err),
 		})
 	}
 
-	return c.JSON(resourceDefinition)
+	return c.JSON(resourceDef)
 }
 
 // CreateOrUpdateResourceDefinition creates or updates a resource definition
@@ -188,23 +163,17 @@ func (h *ResourceDefinitionHandler) UpdateResourceDefinition(c *fiber.Ctx) error
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /resource-definitions/apply [post]
 func (h *ResourceDefinitionHandler) CreateOrUpdateResourceDefinition(c *fiber.Ctx) error {
-	var resourceDefinition types.ResourceDefinition
-	if err := c.BodyParser(&resourceDefinition); err != nil {
+	var resourceDef types.ResourceDefinition
+	if err := c.BodyParser(&resourceDef); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid request payload",
 		})
 	}
 
-	resourceName := resourceDefinition.Name
+	resourceName := resourceDef.Name
 	if resourceName == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Resource name is required",
-		})
-	}
-	resourceDef, err := json.Marshal(resourceDefinition)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to marshal resource definition",
 		})
 	}
 
@@ -213,7 +182,7 @@ func (h *ResourceDefinitionHandler) CreateOrUpdateResourceDefinition(c *fiber.Ct
 
 	if existingDef != nil {
 		// If it exists, update it
-		err = h.ResourceDefinitionModel.Update(resourceName, resourceDef)
+		err := h.ResourceDefinitionModel.Update(resourceName, &resourceDef)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": fmt.Sprintf("Failed to update resource definition: %v", err),
@@ -221,13 +190,13 @@ func (h *ResourceDefinitionHandler) CreateOrUpdateResourceDefinition(c *fiber.Ct
 		}
 	} else {
 		// If it doesn't exist, create it
-		resourceDefinition.ID = uuid.New().String()
-		err = h.ResourceDefinitionModel.Insert(resourceName, resourceDef)
+		resourceDef.ID = uuid.New().String()
+		err := h.ResourceDefinitionModel.Insert(resourceName, &resourceDef)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": fmt.Sprintf("Failed to insert resource definition: %v", err),
 			})
 		}
 	}
-	return c.Status(fiber.StatusCreated).JSON(resourceDefinition)
+	return c.Status(fiber.StatusCreated).JSON(resourceDef)
 }

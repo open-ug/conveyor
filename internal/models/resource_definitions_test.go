@@ -12,12 +12,12 @@ import (
 )
 
 func TestInsertResourceDefinition(t *testing.T) {
-	// Create a mock etcd client and badger DB for testing
+	// Create a mock and badger DB for testing
 	db := setupTestDB(t)
 	defer db.Close()
 
 	// Create a new ResourceDefinitionModel instance
-	rm := models.NewResourceDefinitionModel(nil, db)
+	rm := models.NewResourceDefinitionModel(db)
 
 	// Define a test resource definition
 	testResourceDef := &types.ResourceDefinition{
@@ -37,7 +37,7 @@ func TestInsertResourceDefinition(t *testing.T) {
 	}
 
 	t.Run("insert resource definition", func(t *testing.T) {
-		err := rm.BadgerInsert(testResourceDef.Name, testResourceDef)
+		err := rm.Insert(testResourceDef.Name, testResourceDef)
 		if err != nil {
 			t.Fatalf("Failed to insert resource definition: %v", err)
 		}
@@ -102,7 +102,7 @@ func TestBadgerFindOneResourceDefinition(t *testing.T) {
 	defer db.Close()
 
 	// Create a new ResourceDefinitionModel instance
-	rm := models.NewResourceDefinitionModel(nil, db)
+	rm := models.NewResourceDefinitionModel(db)
 
 	// Define a test resource definition
 	testResourceDef := &types.ResourceDefinition{
@@ -123,13 +123,13 @@ func TestBadgerFindOneResourceDefinition(t *testing.T) {
 
 	t.Run("find one resource definition", func(t *testing.T) {
 		// Insert the test resource definition into BadgerDB
-		err := rm.BadgerInsert(testResourceDef.Name, testResourceDef)
+		err := rm.Insert(testResourceDef.Name, testResourceDef)
 		if err != nil {
 			t.Fatalf("Failed to insert resource definition: %v", err)
 		}
 
 		// Retrieve the resource definition from BadgerDB
-		retrievedResourceDef, err := rm.BadgerFindOne(testResourceDef.Name)
+		retrievedResourceDef, err := rm.FindOne(testResourceDef.Name)
 		if err != nil {
 			t.Fatalf("Failed to find resource definition: %v", err)
 		}
@@ -172,7 +172,7 @@ func TestBadgerUpdateResourceDefinition(t *testing.T) {
 	defer db.Close()
 
 	// Create a new ResourceDefinitionModel instance
-	rm := models.NewResourceDefinitionModel(nil, db)
+	rm := models.NewResourceDefinitionModel(db)
 
 	// Define a test resource definition
 	testResourceDef := &types.ResourceDefinition{
@@ -193,7 +193,7 @@ func TestBadgerUpdateResourceDefinition(t *testing.T) {
 
 	t.Run("update resource definition", func(t *testing.T) {
 		// Insert the test resource definition into BadgerDB
-		err := rm.BadgerInsert(testResourceDef.Name, testResourceDef)
+		err := rm.Insert(testResourceDef.Name, testResourceDef)
 		if err != nil {
 			t.Fatalf("Failed to insert resource definition: %v", err)
 		}
@@ -217,7 +217,7 @@ func TestBadgerUpdateResourceDefinition(t *testing.T) {
 
 		testResourceDef.Schema = updatedSchema
 
-		err = rm.BadgerUpdate(testResourceDef.Name, testResourceDef)
+		err = rm.Update(testResourceDef.Name, testResourceDef)
 		if err != nil {
 			t.Fatalf("Failed to update resource definition: %v", err)
 		}

@@ -17,7 +17,7 @@ func TestInsertDriverMessage(t *testing.T) {
 	defer db.Close()
 
 	// Create a new DriverMessageModel instance
-	dm := models.NewDriverMessageModel(nil, db)
+	dm := models.NewDriverMessageModel(db)
 
 	// Define a test driver message
 	testMessage := types.DriverMessage{
@@ -27,7 +27,7 @@ func TestInsertDriverMessage(t *testing.T) {
 	}
 
 	t.Run("insert driver message", func(t *testing.T) {
-		err := dm.BadgerInsert(testMessage)
+		err := dm.Insert(testMessage)
 		if err != nil {
 			t.Fatalf("Failed to insert driver message: %v", err)
 		}
@@ -66,7 +66,7 @@ func TestFindOneDriverMessage(t *testing.T) {
 	defer db.Close()
 
 	// Create a new DriverMessageModel instance
-	dm := models.NewDriverMessageModel(nil, db)
+	dm := models.NewDriverMessageModel(db)
 
 	// Define a test driver message
 	testMessage := types.DriverMessage{
@@ -76,13 +76,13 @@ func TestFindOneDriverMessage(t *testing.T) {
 	}
 
 	// Insert the test message into BadgerDB
-	err := dm.BadgerInsert(testMessage)
+	err := dm.Insert(testMessage)
 	if err != nil {
 		t.Fatalf("Failed to insert driver message: %v", err)
 	}
 
 	t.Run("find one driver message", func(t *testing.T) {
-		foundMessage, err := dm.BadgerFindOne(testMessage.ID)
+		foundMessage, err := dm.FindOne(testMessage.ID)
 		if err != nil {
 			t.Fatalf("Failed to find driver message: %v", err)
 		}
@@ -99,7 +99,7 @@ func TestBadgerFindAllDriverMessages(t *testing.T) {
 	defer db.Close()
 
 	// Create a new DriverMessageModel instance
-	dm := models.NewDriverMessageModel(nil, db)
+	dm := models.NewDriverMessageModel(db)
 
 	// Define test driver messages
 	testMessages := []types.DriverMessage{
@@ -109,14 +109,14 @@ func TestBadgerFindAllDriverMessages(t *testing.T) {
 
 	// Insert the test messages into BadgerDB
 	for _, msg := range testMessages {
-		err := dm.BadgerInsert(msg)
+		err := dm.Insert(msg)
 		if err != nil {
 			t.Fatalf("Failed to insert driver message %s: %v", msg.ID, err)
 		}
 	}
 
 	t.Run("find all driver messages", func(t *testing.T) {
-		foundMessages, err := dm.BadgerFindAll()
+		foundMessages, err := dm.FindAll()
 		if err != nil {
 			t.Fatalf("Failed to find all driver messages: %v", err)
 		}
@@ -146,7 +146,7 @@ func TestBadgerDeleteDriverMessage(t *testing.T) {
 	defer db.Close()
 
 	// Create a new DriverMessageModel instance
-	dm := models.NewDriverMessageModel(nil, db)
+	dm := models.NewDriverMessageModel(db)
 
 	// Define a test driver message
 	testMessage := types.DriverMessage{
@@ -156,13 +156,13 @@ func TestBadgerDeleteDriverMessage(t *testing.T) {
 	}
 
 	// Insert the test message into BadgerDB
-	err := dm.BadgerInsert(testMessage)
+	err := dm.Insert(testMessage)
 	if err != nil {
 		t.Fatalf("Failed to insert driver message: %v", err)
 	}
 
 	t.Run("delete driver message", func(t *testing.T) {
-		err := dm.BadgerDeleteOne(testMessage.ID)
+		err := dm.DeleteOne(testMessage.ID)
 		if err != nil {
 			t.Fatalf("Failed to delete driver message: %v", err)
 		}

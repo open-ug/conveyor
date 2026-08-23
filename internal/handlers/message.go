@@ -9,7 +9,6 @@ import (
 	models "github.com/open-ug/conveyor/internal/models"
 	"github.com/open-ug/conveyor/internal/utils"
 	craneTypes "github.com/open-ug/conveyor/pkg/types"
-	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 /*
@@ -21,10 +20,9 @@ type MessageHandler struct {
 }
 
 // NewMessageHandler creates a new message handler
-func NewMessageHandler(cli *clientv3.Client, natsCon *nats.Conn, db *badger.DB) *MessageHandler {
+func NewMessageHandler(natsCon *nats.Conn, db *badger.DB) *MessageHandler {
 	return &MessageHandler{
 		MessageModel: models.DriverMessageModel{
-			Client: cli,
 			DB:     db,
 			Prefix: "driver-messages/",
 		},

@@ -18,7 +18,7 @@ func TestCreatePipeline(t *testing.T) {
 	defer db.Close()
 
 	// Create a new PipelineModel instance
-	pm := models.NewPipelineModel(nil, db)
+	pm := models.NewPipelineModel(db)
 
 	// Define a test pipeline
 	testPipeline := &types.Pipeline{
@@ -27,7 +27,7 @@ func TestCreatePipeline(t *testing.T) {
 	}
 
 	t.Run("create pipeline", func(t *testing.T) {
-		err := pm.BadgerCreatePipeline(testPipeline)
+		err := pm.CreatePipeline(testPipeline)
 		if err != nil {
 			t.Fatalf("Failed to create pipeline: %v", err)
 		}
@@ -66,7 +66,7 @@ func TestBadgerDBGetPipeline(t *testing.T) {
 	defer db.Close()
 
 	// Create a new PipelineModel instance
-	pm := models.NewPipelineModel(nil, db)
+	pm := models.NewPipelineModel(db)
 
 	// Define a test pipeline
 	testPipeline := &types.Pipeline{
@@ -75,7 +75,7 @@ func TestBadgerDBGetPipeline(t *testing.T) {
 	}
 
 	// Create the pipeline in BadgerDB
-	err := pm.BadgerCreatePipeline(testPipeline)
+	err := pm.CreatePipeline(testPipeline)
 	if err != nil {
 		t.Fatalf("Failed to create pipeline: %v", err)
 	}
@@ -104,7 +104,7 @@ func TestBadgerDBGetPipeline(t *testing.T) {
 	})
 
 	t.Run("check non-existing pipeline", func(t *testing.T) {
-		_, err := pm.BadgerGetPipeline("non-existing-pipeline")
+		_, err := pm.GetPipeline("non-existing-pipeline")
 		if err == nil {
 			t.Fatalf("Expected error when retrieving non-existing pipeline, but got none")
 		}
@@ -117,7 +117,7 @@ func TestBadgerUpdatePipeline(t *testing.T) {
 	defer db.Close()
 
 	// Create a new PipelineModel instance
-	pm := models.NewPipelineModel(nil, db)
+	pm := models.NewPipelineModel(db)
 
 	// Define a test pipeline
 	testPipeline := &types.Pipeline{
@@ -126,7 +126,7 @@ func TestBadgerUpdatePipeline(t *testing.T) {
 	}
 
 	// Create the pipeline in BadgerDB
-	err := pm.BadgerCreatePipeline(testPipeline)
+	err := pm.CreatePipeline(testPipeline)
 	if err != nil {
 		t.Fatalf("Failed to create pipeline: %v", err)
 	}
@@ -134,7 +134,7 @@ func TestBadgerUpdatePipeline(t *testing.T) {
 	t.Run("update pipeline", func(t *testing.T) {
 		// Update the pipeline's resource
 		testPipeline.Resource = "updated-res"
-		err := pm.BadgerUpdatePipeline(testPipeline)
+		err := pm.UpdatePipeline(testPipeline)
 		if err != nil {
 			t.Fatalf("Failed to update pipeline: %v", err)
 		}
@@ -168,7 +168,7 @@ func TestBadgerDeletePipeline(t *testing.T) {
 	defer db.Close()
 
 	// Create a new PipelineModel instance
-	pm := models.NewPipelineModel(nil, db)
+	pm := models.NewPipelineModel(db)
 
 	// Define a test pipeline
 	testPipeline := &types.Pipeline{
@@ -177,13 +177,13 @@ func TestBadgerDeletePipeline(t *testing.T) {
 	}
 
 	// Create the pipeline in BadgerDB
-	err := pm.BadgerCreatePipeline(testPipeline)
+	err := pm.CreatePipeline(testPipeline)
 	if err != nil {
 		t.Fatalf("Failed to create pipeline: %v", err)
 	}
 
 	t.Run("delete pipeline", func(t *testing.T) {
-		err := pm.BadgerDeletePipeline(testPipeline.Name)
+		err := pm.DeletePipeline(testPipeline.Name)
 		if err != nil {
 			t.Fatalf("Failed to delete pipeline: %v", err)
 		}
@@ -209,7 +209,7 @@ func TestBadgerListPipelines(t *testing.T) {
 	defer db.Close()
 
 	// Create a new PipelineModel instance
-	pm := models.NewPipelineModel(nil, db)
+	pm := models.NewPipelineModel(db)
 
 	// Define test pipelines
 	testPipelines := []*types.Pipeline{
@@ -219,7 +219,7 @@ func TestBadgerListPipelines(t *testing.T) {
 
 	// Create the pipelines in BadgerDB
 	for _, pipeline := range testPipelines {
-		err := pm.BadgerCreatePipeline(pipeline)
+		err := pm.CreatePipeline(pipeline)
 		if err != nil {
 			t.Fatalf("Failed to create pipeline: %v", err)
 		}
