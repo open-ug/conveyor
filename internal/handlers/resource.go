@@ -368,14 +368,21 @@ func (h *ResourceHandler) UpdateResource(c *fiber.Ctx) error {
 	}
 
 	// Publish `update` event to NATS JetStream
-	_, err = engine.PublishResourceEvent("update", r, h.NatsContext.JetStream)
+	runid, err := engine.PublishResourceEvent("update", r, h.NatsContext.JetStream)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": fmt.Sprintf("Failed to publish resource event: %v", err),
 		})
 	}
 
-	return c.JSON(r)
+	// return the updated resource and the runid
+	return c.JSON(struct {
+		RunID          string `json:"runid"`
+		types.Resource        // Embed the struct directly
+	}{
+		RunID:    runid,
+		Resource: r,
+	})
 }
 
 // GetResourceByVersion retrieves a specific resource by name, type, and version
