@@ -392,3 +392,23 @@ func (m *ResourceModel) SetCurrentPipelineStep(name string, resourceType string,
 		return txn.Set(key, resourceData)
 	})
 }
+
+func (m *ResourceModel) GetCurrentPipelineStep(name string, resourceType string) (string, error) {
+	// Retrieve the current resource
+	resource, err := m.FindOne(name, resourceType)
+	if err != nil {
+		return "", fmt.Errorf("failed to find resource: %v", err)
+	}
+
+	// get the current pipeline step
+	if resource.Metadata == nil {
+		return "", fmt.Errorf("resource metadata is nil")
+	}
+
+	stepID, ok := resource.Metadata["current_pipeline_step"].(string)
+	if !ok {
+		return "", fmt.Errorf("current pipeline step not found in resource metadata or is not a string")
+	}
+
+	return stepID, nil
+}

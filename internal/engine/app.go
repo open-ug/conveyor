@@ -106,12 +106,13 @@ func (ec *EngineContext) consumePipelineEvents(msg jetstream.Msg) {
 
 	mID, _ := utils.GenerateRandomID()
 
-	if subject == "pipelines.driver.result" {
+	switch subject {
+	case "pipelines.driver.result":
 
 		// Process driver result and move to next step
 		ec.handleProcessDriverResult(event, pipeline)
 
-	} else if subject == "pipelines.pipeline.init" {
+	case "pipelines.pipeline.init":
 
 		resourceJson, err := json.Marshal(event.Resource)
 		if err != nil {
@@ -129,6 +130,12 @@ func (ec *EngineContext) consumePipelineEvents(msg jetstream.Msg) {
 		// Publish to the first step's driver
 		if len(pipeline.Steps) > 0 {
 			firstStep := pipeline.Steps[0]
+			// set current step in resource metadata
+			err = ec.ResourceModel.SetCurrentPipelineStep(event.Resource.Name, event.Resource.Resource, firstStep.ID)
+			if err != nil {
+				log.Println("Error setting current pipeline step: ", err)
+				return
+			}
 			subject := "drivers." + firstStep.Driver + ".resources." + event.Resource.Resource
 			err = ec.publishEvent(subject, driverMessage)
 			if err != nil {
@@ -136,6 +143,8 @@ func (ec *EngineContext) consumePipelineEvents(msg jetstream.Msg) {
 				return
 			}
 		}
+	default:
+		log.Println("Unhandled pipeline event subject: ", subject)
 	}
 
 }
@@ -174,47 +183,59 @@ func (ec *EngineContext) handleProcessDriverResult(event PipelineEvent, pipeline
 	}
 	event.Resource = updatedResource
 
-	// Find the current step based on the driver name
-	var currentStepIndex int = -1
+	currentStepID, err := ec.ResourceModel.GetCurrentPipelineStep(event.Resource.Name, event.Resource.Resource)
+	if err != nil {
+		log.Println("Error getting current pipeline step: ", err)
+		return
+	}
+
+	var nextStep *types.Step
+
 	for i, step := range pipeline.Steps {
-		if step.Driver == event.DriverResultEvent.Driver {
-			currentStepIndex = i
+		if step.ID == currentStepID {
+			if i+1 < len(pipeline.Steps) {
+				nextStep = &pipeline.Steps[i+1]
+			}
 			break
 		}
 	}
 
-	if currentStepIndex == -1 {
-		// Current step not found
+	if nextStep == nil {
+		log.Println("Pipeline completed or no next step found for resource: ", event.Resource.Name)
 		return
 	}
 
+	log.Printf("Moving to next step '%s' for resource '%s'\n", nextStep.Name, event.Resource.Name)
+
 	// If the driver result indicates success, move to the next step
 	if event.DriverResultEvent.Success {
-		nextStepIndex := currentStepIndex + 1
-		if nextStepIndex < len(pipeline.Steps) {
-			nextStep := pipeline.Steps[nextStepIndex]
 
-			mID, _ := utils.GenerateRandomID()
+		mID, _ := utils.GenerateRandomID()
 
-			resourceJson, err := json.Marshal(event.Resource)
-			if err != nil {
-				// Handle error
-				return
-			}
-
-			// Driver message for the next step
-			driverMessage := types.DriverMessage{
-				Event:   "process",
-				RunID:   event.RunID,
-				Payload: string(resourceJson),
-				ID:      mID,
-			}
-
-			subject := "drivers." + nextStep.Driver + ".resources." + event.Resource.Resource
-			ec.publishEvent(subject, driverMessage)
-		} else {
-			// Pipeline completed successfully
+		resourceJson, err := json.Marshal(event.Resource)
+		if err != nil {
+			// Handle error
+			return
 		}
+
+		// Driver message for the next step
+		driverMessage := types.DriverMessage{
+			Event:   "process",
+			RunID:   event.RunID,
+			Payload: string(resourceJson),
+			ID:      mID,
+		}
+
+		subject := "drivers." + nextStep.Driver + ".resources." + event.Resource.Resource
+		ec.publishEvent(subject, driverMessage)
+
+		// Update the current step in resource metadata
+		err = ec.ResourceModel.SetCurrentPipelineStep(event.Resource.Name, event.Resource.Resource, nextStep.ID)
+		if err != nil {
+			log.Println("Error setting current pipeline step: ", err)
+			return
+		}
+
 	} else {
 		// TODO: Handle failure case
 	}
