@@ -267,6 +267,8 @@ func (m *ResourceModel) Update(name string, resourceType string, resource types.
 	setResourceVersion(&currentResource, version+1)
 
 	resource.Metadata = currentResource.Metadata // Preserve existing metadata and versioning
+	// empty driver reults, since the updated version has no
+	resource.Metadata["driverresults"] = map[string]interface{}{}
 
 	// Marshal the updated resource to JSON
 	resourceData, err := json.Marshal(resource)
