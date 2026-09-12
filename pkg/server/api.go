@@ -92,7 +92,15 @@ func Setup(config *types.ServerConfig) (APIServerContext, error) {
 	app.Get("/metrics", adaptor.HTTPHandler(promhttp.Handler()))
 
 	natsContext := utils.NewNatsConn(config)
-	natsContext.InitiateStreams()
+
+	if err := natsContext.InitiateStreams(); err != nil {
+		natsContext.Shutdown()
+
+		return APIServerContext{}, fmt.Errorf(
+			"initialize NATS streams: %w",
+			err,
+		)
+	}
 
 	// Initialize BadgerDB
 	conveyorDataDir := config.API.Data
