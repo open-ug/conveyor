@@ -141,19 +141,23 @@ func (appCtx *APIServerContext) Start() {
 	}()
 
 	engineCtx := engine.NewEngineContext(appCtx.LogModel, *appCtx.NatsContext, appCtx.BadgerDB)
+	defer engineCtx.Stop()
+	engineDone := make(chan error, 1)
 
 	go func() {
 		err := engineCtx.Start()
-		if err != nil {
-			color.Red("Error starting the engine: %v", err)
-			return
-		}
+		engineDone <- err
 	}()
 
 	// Setup channel to listen for interrupt/terminate signals
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit // Wait until a signal is received
+	defer signal.Stop(quit)
+	select {
+	case <-quit:
+	case err := <-engineDone:
+		color.Red("Pipeline engine stopped: %v", err)
+	}
 
 	fmt.Println("Shutting down server...")
 

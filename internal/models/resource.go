@@ -393,6 +393,35 @@ func (m *ResourceModel) SetCurrentPipelineStep(name string, resourceType string,
 	})
 }
 
+// StartPipelineRun resets execution metadata without discarding resource metadata.
+// Driver results belong to one run; retaining them makes a retry inherit failures.
+func (m *ResourceModel) StartPipelineRun(name, resourceType, runID, event, stepID string) (types.Resource, error) {
+	var resource types.Resource
+	key := []byte(m.key(name, resourceType))
+	err := m.DB.Update(func(txn *badger.Txn) error {
+		item, err := txn.Get(key)
+		if err != nil {
+			return err
+		}
+		if err := item.Value(func(data []byte) error { return json.Unmarshal(data, &resource) }); err != nil {
+			return err
+		}
+		if resource.Metadata == nil {
+			resource.Metadata = make(map[string]interface{})
+		}
+		resource.Metadata["driverresults"] = make(map[string]interface{})
+		resource.Metadata["current_pipeline_run"] = runID
+		resource.Metadata["current_pipeline_event"] = event
+		resource.Metadata["current_pipeline_step"] = stepID
+		data, err := json.Marshal(resource)
+		if err != nil {
+			return err
+		}
+		return txn.Set(key, data)
+	})
+	return resource, err
+}
+
 func (m *ResourceModel) GetCurrentPipelineStep(name string, resourceType string) (string, error) {
 	// Retrieve the current resource
 	resource, err := m.FindOne(name, resourceType)
