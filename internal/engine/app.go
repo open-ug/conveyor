@@ -3,11 +3,13 @@ package engine
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
+	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 	"github.com/open-ug/conveyor/internal/models"
 	"github.com/open-ug/conveyor/internal/utils"
@@ -45,7 +47,7 @@ func NewEngineContext(logmodel *models.LogModel, natsContext utils.NatsContext, 
 func (ec *EngineContext) Start() error {
 	log.Println("Starting the engine...")
 
-	consumer, err := ec.NatsContext.JetStream.CreateOrUpdateConsumer(context.Background(), "pipeline-engine", jetstream.ConsumerConfig{
+	consumer, err := utils.CreateDurableConsumer(context.Background(), ec.NatsContext.JetStream, "pipeline-engine", jetstream.ConsumerConfig{
 		Name:          "pipeline-engine",
 		FilterSubject: "pipelines.>",
 		AckPolicy:     jetstream.AckExplicitPolicy,
@@ -56,8 +58,18 @@ func (ec *EngineContext) Start() error {
 	}
 
 	log.Println("Engine started and listening for pipeline events...")
+	consumerErrors := make(chan error, 1)
+	reportUnavailable := func(err error) {
+		if errors.Is(err, nats.ErrNoResponders) {
+			select {
+			case consumerErrors <- err:
+			default:
+			}
+		}
+	}
 	cc, err := consumer.Consume(ec.consumePipelineEvents, jetstream.ConsumeErrHandler(func(_ jetstream.ConsumeContext, err error) {
 		log.Printf("Pipeline consumer error: %v", err)
+		reportUnavailable(err)
 	}))
 	if err != nil {
 		log.Println("Error consuming pipeline events: ", err)
@@ -66,7 +78,7 @@ func (ec *EngineContext) Start() error {
 	defer cc.Stop()
 
 	// Create log consumer
-	logconsumer, err := ec.NatsContext.JetStream.CreateOrUpdateConsumer(context.Background(), "logs-engine", jetstream.ConsumerConfig{
+	logconsumer, err := utils.CreateDurableConsumer(context.Background(), ec.NatsContext.JetStream, "logs-engine", jetstream.ConsumerConfig{
 		Name:          "logs-engine",
 		FilterSubject: "logs.>",
 		AckPolicy:     jetstream.AckExplicitPolicy,
@@ -79,6 +91,7 @@ func (ec *EngineContext) Start() error {
 	log.Println("Log consumer started...")
 	lc, err := logconsumer.Consume(ec.consumeLogEvents, jetstream.ConsumeErrHandler(func(_ jetstream.ConsumeContext, err error) {
 		log.Printf("Log consumer error: %v", err)
+		reportUnavailable(err)
 	}))
 	if err != nil {
 		log.Println("Error consuming log events: ", err)
@@ -93,6 +106,8 @@ func (ec *EngineContext) Start() error {
 		return fmt.Errorf("pipeline consumer stopped unexpectedly")
 	case <-lc.Closed():
 		return fmt.Errorf("log consumer stopped unexpectedly")
+	case err := <-consumerErrors:
+		return fmt.Errorf("engine consumer unavailable: %w", err)
 	}
 }
 
