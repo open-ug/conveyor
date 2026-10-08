@@ -1,8 +1,10 @@
 package engine
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go/jetstream"
@@ -20,7 +22,7 @@ type DriverResultEvent struct {
 func (dre *DriverResultEvent) PublishEvent(
 	run_id string,
 	resource types.Resource,
-	js jetstream.JetStream) {
+	js jetstream.JetStream) error {
 	pipelineEv := PipelineEvent{
 		Event:             "driver.result",
 		RunID:             run_id,
@@ -30,16 +32,17 @@ func (dre *DriverResultEvent) PublishEvent(
 
 	resultJson, err := json.Marshal(pipelineEv)
 	if err != nil {
-		fmt.Printf("Error marshalling driver result event: %v", err)
-		return
+		return fmt.Errorf("marshal driver result event: %w", err)
 	}
 
-	_, err = js.PublishAsync("pipelines.driver.result", resultJson)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err = js.Publish(ctx, "pipelines.driver.result", resultJson)
 
 	if err != nil {
-		fmt.Printf("Error publishing driver result event: %v", err)
+		return fmt.Errorf("publish driver result event: %w", err)
 	}
-
+	return nil
 }
 
 func PublishResourceEvent(
@@ -49,6 +52,8 @@ func PublishResourceEvent(
 
 	// Generate a unique run ID for this event
 	run_id := uuid.New().String()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
 	// If the resource is not part of a pipeline, publish it directly to the resource subject
 	if resource.Pipeline == "" {
@@ -75,7 +80,7 @@ func PublishResourceEvent(
 
 		// Publish message to jetstream
 		subjectName := "resources." + resource.Resource
-		_, err = js.PublishAsync(subjectName, jsonMsg)
+		_, err = js.Publish(ctx, subjectName, jsonMsg)
 
 		if err != nil {
 			return "", err
@@ -93,7 +98,7 @@ func PublishResourceEvent(
 			return "", err
 		}
 
-		_, err = js.PublishAsync("pipelines.pipeline.init", eventJson)
+		_, err = js.Publish(ctx, "pipelines.pipeline.init", eventJson)
 		if err != nil {
 			return "", err
 		}

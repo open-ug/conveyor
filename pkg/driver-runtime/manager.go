@@ -99,6 +99,7 @@ func (d *DriverManager) Run() error {
 		color.Red("Error Occured while connecting to NATS: %v", err)
 		return err
 	}
+	defer nc.Close()
 	js, err := jetstream.New(nc)
 	if err != nil {
 		color.Red("Error Occured while creating JetStream context: %v", err)
@@ -127,7 +128,7 @@ func (d *DriverManager) Run() error {
 	}
 
 	// CONSUMER
-	_, err = consumer.Consume(func(msg jetstream.Msg) {
+	cc, err := consumer.Consume(func(msg jetstream.Msg) {
 		msg.Ack()
 		data := msg.Data()
 		var message types.DriverMessage
@@ -159,15 +160,21 @@ func (d *DriverManager) Run() error {
 			return
 		}
 
-		driverevent.PublishEvent(message.RunID, resource, js)
-	})
+		if err := driverevent.PublishEvent(message.RunID, resource, js); err != nil {
+			color.Red("Error publishing result for driver '%s', run '%s': %v", d.Driver.Name, message.RunID, err)
+		}
+	}, jetstream.PullMaxMessages(1), jetstream.ConsumeErrHandler(func(_ jetstream.ConsumeContext, err error) {
+		color.Red("Consumer error for driver '%s': %v", d.Driver.Name, err)
+	}))
 
 	if err != nil {
 		color.Red("Error Occured while consuming messages: %v", err)
 		return err
 	}
+	defer cc.Stop()
 
 	fmt.Println("Driver Manager is running for driver: ", d.Driver.Name)
 
-	select {}
+	<-cc.Closed()
+	return fmt.Errorf("consumer stopped for driver '%s'", d.Driver.Name)
 }

@@ -3,7 +3,9 @@ package engine
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
+	"time"
 
 	"github.com/dgraph-io/badger/v4"
 	"github.com/nats-io/nats.go/jetstream"
@@ -17,6 +19,8 @@ type EngineContext struct {
 	PipelineModel *models.PipelineModel
 	ResourceModel *models.ResourceModel
 	LogModel      *models.LogModel
+	ctx           context.Context
+	cancel        context.CancelFunc
 }
 
 type PipelineEvent struct {
@@ -27,12 +31,14 @@ type PipelineEvent struct {
 }
 
 func NewEngineContext(logmodel *models.LogModel, natsContext utils.NatsContext, db *badger.DB) *EngineContext {
-
+	ctx, cancel := context.WithCancel(context.Background())
 	return &EngineContext{
 		NatsContext:   natsContext,
 		PipelineModel: models.NewPipelineModel(db),
 		ResourceModel: models.NewResourceModel(db),
 		LogModel:      logmodel,
+		ctx:           ctx,
+		cancel:        cancel,
 	}
 }
 
@@ -50,7 +56,9 @@ func (ec *EngineContext) Start() error {
 	}
 
 	log.Println("Engine started and listening for pipeline events...")
-	cc, err := consumer.Consume(ec.consumePipelineEvents)
+	cc, err := consumer.Consume(ec.consumePipelineEvents, jetstream.ConsumeErrHandler(func(_ jetstream.ConsumeContext, err error) {
+		log.Printf("Pipeline consumer error: %v", err)
+	}))
 	if err != nil {
 		log.Println("Error consuming pipeline events: ", err)
 		return err
@@ -69,14 +77,23 @@ func (ec *EngineContext) Start() error {
 	}
 
 	log.Println("Log consumer started...")
-	lc, err := logconsumer.Consume(ec.consumeLogEvents)
+	lc, err := logconsumer.Consume(ec.consumeLogEvents, jetstream.ConsumeErrHandler(func(_ jetstream.ConsumeContext, err error) {
+		log.Printf("Log consumer error: %v", err)
+	}))
 	if err != nil {
 		log.Println("Error consuming log events: ", err)
 		return err
 	}
 	defer lc.Stop()
 
-	select {}
+	select {
+	case <-ec.ctx.Done():
+		return nil
+	case <-cc.Closed():
+		return fmt.Errorf("pipeline consumer stopped unexpectedly")
+	case <-lc.Closed():
+		return fmt.Errorf("log consumer stopped unexpectedly")
+	}
 }
 
 func (ec *EngineContext) consumePipelineEvents(msg jetstream.Msg) {
@@ -113,6 +130,16 @@ func (ec *EngineContext) consumePipelineEvents(msg jetstream.Msg) {
 		ec.handleProcessDriverResult(event, pipeline)
 
 	case "pipelines.pipeline.init":
+		if len(pipeline.Steps) == 0 {
+			log.Printf("Pipeline '%s' has no steps for run '%s'", pipeline.Name, event.RunID)
+			return
+		}
+		firstStep := pipeline.Steps[0]
+		event.Resource, err = ec.ResourceModel.StartPipelineRun(event.Resource.Name, event.Resource.Resource, event.RunID, event.Event, firstStep.ID)
+		if err != nil {
+			log.Println("Error starting pipeline run: ", err)
+			return
+		}
 
 		resourceJson, err := json.Marshal(event.Resource)
 		if err != nil {
@@ -128,20 +155,10 @@ func (ec *EngineContext) consumePipelineEvents(msg jetstream.Msg) {
 		}
 
 		// Publish to the first step's driver
-		if len(pipeline.Steps) > 0 {
-			firstStep := pipeline.Steps[0]
-			// set current step in resource metadata
-			err = ec.ResourceModel.SetCurrentPipelineStep(event.Resource.Name, event.Resource.Resource, firstStep.ID)
-			if err != nil {
-				log.Println("Error setting current pipeline step: ", err)
-				return
-			}
-			subject := "drivers." + firstStep.Driver + ".resources." + event.Resource.Resource
-			err = ec.publishEvent(subject, driverMessage)
-			if err != nil {
-				log.Println("Error publishing event to driver: ", err)
-				return
-			}
+		driverSubject := "drivers." + firstStep.Driver + ".resources." + event.Resource.Resource
+		if err := ec.publishEvent(driverSubject, driverMessage); err != nil {
+			log.Printf("Failed to dispatch first step '%s' for run '%s': %v", firstStep.Name, event.RunID, err)
+			return
 		}
 	default:
 		log.Println("Unhandled pipeline event subject: ", subject)
@@ -157,7 +174,9 @@ func (ec *EngineContext) publishEvent(subject string, message types.DriverMessag
 		return merr
 	}
 
-	_, err := ec.NatsContext.JetStream.PublishAsync(subject, jsonMsg)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err := ec.NatsContext.JetStream.Publish(ctx, subject, jsonMsg)
 
 	if err != nil {
 		log.Println("Error publishing event to driver: ", err)
@@ -167,9 +186,38 @@ func (ec *EngineContext) publishEvent(subject string, message types.DriverMessag
 }
 
 func (ec *EngineContext) handleProcessDriverResult(event PipelineEvent, pipeline *types.Pipeline) {
+	resource, err := ec.ResourceModel.FindOne(event.Resource.Name, event.Resource.Resource)
+	if err != nil {
+		log.Println("Error retrieving resource: ", err)
+		return
+	}
+	if runID, ok := resource.Metadata["current_pipeline_run"].(string); ok && runID != event.RunID {
+		log.Printf("Ignoring result from superseded run '%s' for resource '%s'", event.RunID, resource.Name)
+		return
+	}
+	currentStepID, err := ec.ResourceModel.GetCurrentPipelineStep(resource.Name, resource.Resource)
+	if err != nil {
+		log.Println("Error getting current pipeline step: ", err)
+		return
+	}
+	if stepID, ok := event.Resource.Metadata["current_pipeline_step"].(string); ok && stepID != currentStepID {
+		log.Printf("Ignoring result from previous step '%s' for run '%s'", stepID, event.RunID)
+		return
+	}
+	currentStepIndex := -1
+	for i, step := range pipeline.Steps {
+		if step.ID == currentStepID && step.Driver == event.DriverResultEvent.Driver {
+			currentStepIndex = i
+			break
+		}
+	}
+	if currentStepIndex < 0 {
+		log.Printf("Ignoring result from driver '%s' outside current step '%s' for run '%s'", event.DriverResultEvent.Driver, currentStepID, event.RunID)
+		return
+	}
 
 	// save driver result to resource metadata
-	err := ec.ResourceModel.SaveDriverResult(event.Resource.Name, event.Resource.Resource, event.DriverResultEvent.Driver, event.DriverResultEvent)
+	err = ec.ResourceModel.SaveDriverResult(event.Resource.Name, event.Resource.Resource, event.DriverResultEvent.Driver, event.DriverResultEvent)
 	if err != nil {
 		log.Println("Error saving driver result: ", err)
 		return
@@ -183,65 +231,56 @@ func (ec *EngineContext) handleProcessDriverResult(event PipelineEvent, pipeline
 	}
 	event.Resource = updatedResource
 
-	currentStepID, err := ec.ResourceModel.GetCurrentPipelineStep(event.Resource.Name, event.Resource.Resource)
+	if !event.DriverResultEvent.Success {
+		log.Printf("Pipeline run '%s' stopped at step '%s' for resource '%s': %s", event.RunID, pipeline.Steps[currentStepIndex].Name, event.Resource.Name, event.DriverResultEvent.Message)
+		return
+	}
+
+	if currentStepIndex+1 == len(pipeline.Steps) {
+		log.Printf("Pipeline run '%s' completed for resource '%s'", event.RunID, event.Resource.Name)
+		return
+	}
+	nextStep := pipeline.Steps[currentStepIndex+1]
+
+	mID, err := utils.GenerateRandomID()
 	if err != nil {
-		log.Println("Error getting current pipeline step: ", err)
+		log.Println("Error generating driver message ID: ", err)
 		return
 	}
 
-	var nextStep *types.Step
-
-	for i, step := range pipeline.Steps {
-		if step.ID == currentStepID {
-			if i+1 < len(pipeline.Steps) {
-				nextStep = &pipeline.Steps[i+1]
-			}
-			break
-		}
+	// Preserve the original operation for every driver in the run.
+	operation, ok := event.Resource.Metadata["current_pipeline_event"].(string)
+	if !ok || operation == "" {
+		log.Printf("Missing pipeline operation for run '%s'; start a new run", event.RunID)
+		return
 	}
-
-	if nextStep == nil {
-		log.Println("Pipeline completed or no next step found for resource: ", event.Resource.Name)
+	event.Resource.Metadata["current_pipeline_step"] = nextStep.ID
+	resourceJson, err := json.Marshal(event.Resource)
+	if err != nil {
+		log.Println("Error marshaling resource: ", err)
 		return
 	}
 
-	log.Printf("Moving to next step '%s' for resource '%s'\n", nextStep.Name, event.Resource.Name)
-
-	// If the driver result indicates success, move to the next step
-	if event.DriverResultEvent.Success {
-
-		mID, _ := utils.GenerateRandomID()
-
-		resourceJson, err := json.Marshal(event.Resource)
-		if err != nil {
-			// Handle error
-			return
-		}
-
-		// Driver message for the next step
-		driverMessage := types.DriverMessage{
-			Event:   "process",
-			RunID:   event.RunID,
-			Payload: string(resourceJson),
-			ID:      mID,
-		}
-
-		subject := "drivers." + nextStep.Driver + ".resources." + event.Resource.Resource
-		ec.publishEvent(subject, driverMessage)
-
-		// Update the current step in resource metadata
-		err = ec.ResourceModel.SetCurrentPipelineStep(event.Resource.Name, event.Resource.Resource, nextStep.ID)
-		if err != nil {
-			log.Println("Error setting current pipeline step: ", err)
-			return
-		}
-
-	} else {
-		// TODO: Handle failure case
+	driverMessage := types.DriverMessage{
+		Event:   operation,
+		RunID:   event.RunID,
+		Payload: string(resourceJson),
+		ID:      mID,
 	}
+	subject := "drivers." + nextStep.Driver + ".resources." + event.Resource.Resource
+	if err := ec.publishEvent(subject, driverMessage); err != nil {
+		log.Printf("Failed to dispatch step '%s' for run '%s': %v", nextStep.Name, event.RunID, err)
+		return
+	}
+
+	if err := ec.ResourceModel.SetCurrentPipelineStep(event.Resource.Name, event.Resource.Resource, nextStep.ID); err != nil {
+		log.Println("Error setting current pipeline step: ", err)
+		return
+	}
+	log.Printf("Moving to next step '%s' for resource '%s' (run '%s')", nextStep.Name, event.Resource.Name, event.RunID)
 }
 
 func (ec *EngineContext) Stop() error {
-	// Logic to stop the engine
+	ec.cancel()
 	return nil
 }
