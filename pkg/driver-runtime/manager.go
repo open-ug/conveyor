@@ -10,12 +10,14 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/fatih/color"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 	"github.com/open-ug/conveyor/internal/engine"
+	"github.com/open-ug/conveyor/internal/utils"
 	"github.com/open-ug/conveyor/pkg/driver-runtime/log"
 	types "github.com/open-ug/conveyor/pkg/types"
 )
@@ -113,7 +115,7 @@ func (d *DriverManager) Run() error {
 		filterSubjects = append(filterSubjects, "drivers."+d.Driver.Name+".resources."+resource)
 	}
 
-	consumer, err := js.CreateOrUpdateConsumer(context.Background(), "messages", jetstream.ConsumerConfig{
+	consumer, err := utils.CreateDurableConsumer(context.Background(), js, "messages", jetstream.ConsumerConfig{
 		Name:           d.Driver.Name,
 		FilterSubjects: filterSubjects,
 		AckPolicy:      jetstream.AckExplicitPolicy,
@@ -128,6 +130,7 @@ func (d *DriverManager) Run() error {
 	}
 
 	// CONSUMER
+	consumerErrors := make(chan error, 1)
 	cc, err := consumer.Consume(func(msg jetstream.Msg) {
 		msg.Ack()
 		data := msg.Data()
@@ -165,6 +168,12 @@ func (d *DriverManager) Run() error {
 		}
 	}, jetstream.PullMaxMessages(1), jetstream.ConsumeErrHandler(func(_ jetstream.ConsumeContext, err error) {
 		color.Red("Consumer error for driver '%s': %v", d.Driver.Name, err)
+		if errors.Is(err, nats.ErrNoResponders) {
+			select {
+			case consumerErrors <- err:
+			default:
+			}
+		}
 	}))
 
 	if err != nil {
@@ -175,6 +184,10 @@ func (d *DriverManager) Run() error {
 
 	fmt.Println("Driver Manager is running for driver: ", d.Driver.Name)
 
-	<-cc.Closed()
-	return fmt.Errorf("consumer stopped for driver '%s'", d.Driver.Name)
+	select {
+	case <-cc.Closed():
+		return fmt.Errorf("consumer stopped for driver '%s'", d.Driver.Name)
+	case err := <-consumerErrors:
+		return fmt.Errorf("consumer unavailable for driver '%s': %w", d.Driver.Name, err)
+	}
 }
