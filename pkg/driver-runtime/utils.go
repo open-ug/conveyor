@@ -19,6 +19,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// HTTPStatusError lets callers distinguish absence from an unavailable API.
+type HTTPStatusError struct{ StatusCode int }
+
+func (e *HTTPStatusError) Error() string { return fmt.Sprintf("server returned HTTP %d", e.StatusCode) }
+
 // Performs an HTTP request. If auth is enabled, it signs a JWT and sets Authorization header.
 func (c *Client) doRequest(ctx context.Context, method, path string, body, dest any) error {
 	if (method == http.MethodPost || method == http.MethodPut) && body == nil {
@@ -53,7 +58,7 @@ func (c *Client) doRequest(ctx context.Context, method, path string, body, dest 
 	}
 
 	if resp.IsError() {
-		return fmt.Errorf("doRequest: server returned %d: %s", resp.StatusCode(), string(resp.Body()))
+		return &HTTPStatusError{StatusCode: resp.StatusCode()}
 	}
 
 	if err := json.Unmarshal(resp.Body(), dest); err != nil {

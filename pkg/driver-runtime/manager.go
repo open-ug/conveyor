@@ -12,6 +12,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/nats-io/nats.go"
@@ -132,7 +134,6 @@ func (d *DriverManager) Run() error {
 	// CONSUMER
 	consumerErrors := make(chan error, 1)
 	cc, err := consumer.Consume(func(msg jetstream.Msg) {
-		msg.Ack()
 		data := msg.Data()
 		var message types.DriverMessage
 		err := json.Unmarshal([]byte(data), &message)
@@ -147,6 +148,30 @@ func (d *DriverManager) Run() error {
 			"run_id": message.RunID,
 		}, nc)
 
+		var pending types.Resource
+		if json.Unmarshal([]byte(message.Payload), &pending) != nil {
+			return
+		}
+		if pending.Pipeline != "" {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			current, lookupErr := d.Client.GetResource(ctx, pending.Name, pending.Resource)
+			cancel()
+			if lookupErr != nil {
+				var httpErr *HTTPStatusError
+				if errors.As(lookupErr, &httpErr) && httpErr.StatusCode == http.StatusNotFound {
+					msg.Ack()
+				} else {
+					msg.NakWithDelay(time.Second)
+				}
+				return
+			}
+			// Queued stages must not recreate an application after deletion.
+			if current.ID != pending.ID || (current.Metadata["deleting"] == true && (message.Event != "delete" || current.Metadata["deletion_runid"] != message.RunID)) {
+				msg.Ack()
+				return
+			}
+		}
+		msg.Ack()
 		result := d.Driver.Reconcile(message.Payload, message.Event, message.RunID, logger)
 
 		driverevent := engine.DriverResultEvent{
@@ -163,7 +188,7 @@ func (d *DriverManager) Run() error {
 			return
 		}
 
-		if err := driverevent.PublishEvent(message.RunID, resource, js); err != nil {
+		if err := driverevent.PublishEvent(message.RunID, resource, js, message.Event); err != nil {
 			color.Red("Error publishing result for driver '%s', run '%s': %v", d.Driver.Name, message.RunID, err)
 		}
 	}, jetstream.PullMaxMessages(1), jetstream.ConsumeErrHandler(func(_ jetstream.ConsumeContext, err error) {

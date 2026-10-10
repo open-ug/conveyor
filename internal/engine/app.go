@@ -124,6 +124,20 @@ func (ec *EngineContext) consumePipelineEvents(msg jetstream.Msg) {
 		return
 	}
 
+	current, err := ec.ResourceModel.FindOne(event.Resource.Name, event.Resource.Resource)
+	if err != nil || current.ID != event.Resource.ID {
+		return
+	}
+	// Older runtimes report a generic result event. Recover its operation only
+	// when the stored run matches, so stale results cannot enter cleanup.
+	if subject == "pipelines.driver.result" && event.Event == "driver.result" && current.Metadata["current_pipeline_run"] == event.RunID {
+		if operation, ok := current.Metadata["current_pipeline_event"].(string); ok {
+			event.Event = operation
+		}
+	}
+	if current.Metadata["deleting"] == true && (event.Event != "delete" || current.Metadata["deletion_runid"] != event.RunID) {
+		return
+	}
 	if event.Resource.Pipeline == "" {
 		// No pipeline associated, ignore
 		return
@@ -173,6 +187,9 @@ func (ec *EngineContext) consumePipelineEvents(msg jetstream.Msg) {
 		driverSubject := "drivers." + firstStep.Driver + ".resources." + event.Resource.Resource
 		if err := ec.publishEvent(driverSubject, driverMessage); err != nil {
 			log.Printf("Failed to dispatch first step '%s' for run '%s': %v", firstStep.Name, event.RunID, err)
+			if event.Event == "delete" {
+				_ = ec.ResourceModel.MarkDeletionFailed(event.Resource.Name, event.Resource.Resource)
+			}
 			return
 		}
 	default:
@@ -246,12 +263,36 @@ func (ec *EngineContext) handleProcessDriverResult(event PipelineEvent, pipeline
 	}
 	event.Resource = updatedResource
 
+	// Use the stored operation so older drivers that emit "driver.result"
+	// still preserve cleanup throughout the run.
+	operation, ok := event.Resource.Metadata["current_pipeline_event"].(string)
+	if !ok || operation == "" {
+		if event.Event == "delete" {
+			operation = nextOperation(event.Event)
+		} else {
+			log.Printf("Missing pipeline operation for run '%s'; start a new run", event.RunID)
+			return
+		}
+	}
+
+	if operation == "delete" && !deletionStageSucceeded(event.DriverResultEvent) {
+		if err := ec.ResourceModel.MarkDeletionFailed(event.Resource.Name, event.Resource.Resource); err != nil {
+			log.Println("Error recording deletion failure: ", err)
+		}
+		return
+	}
 	if !event.DriverResultEvent.Success {
 		log.Printf("Pipeline run '%s' stopped at step '%s' for resource '%s': %s", event.RunID, pipeline.Steps[currentStepIndex].Name, event.Resource.Name, event.DriverResultEvent.Message)
 		return
 	}
 
 	if currentStepIndex+1 == len(pipeline.Steps) {
+		if operation == "delete" {
+			if err := ec.ResourceModel.FinishDeletion(event.Resource.Name, event.Resource.Resource, event.RunID); err != nil {
+				log.Println("Deletion cleanup failed: ", err)
+				return
+			}
+		}
 		log.Printf("Pipeline run '%s' completed for resource '%s'", event.RunID, event.Resource.Name)
 		return
 	}
@@ -263,12 +304,6 @@ func (ec *EngineContext) handleProcessDriverResult(event PipelineEvent, pipeline
 		return
 	}
 
-	// Preserve the original operation for every driver in the run.
-	operation, ok := event.Resource.Metadata["current_pipeline_event"].(string)
-	if !ok || operation == "" {
-		log.Printf("Missing pipeline operation for run '%s'; start a new run", event.RunID)
-		return
-	}
 	event.Resource.Metadata["current_pipeline_step"] = nextStep.ID
 	resourceJson, err := json.Marshal(event.Resource)
 	if err != nil {
@@ -285,6 +320,9 @@ func (ec *EngineContext) handleProcessDriverResult(event PipelineEvent, pipeline
 	subject := "drivers." + nextStep.Driver + ".resources." + event.Resource.Resource
 	if err := ec.publishEvent(subject, driverMessage); err != nil {
 		log.Printf("Failed to dispatch step '%s' for run '%s': %v", nextStep.Name, event.RunID, err)
+		if operation == "delete" {
+			_ = ec.ResourceModel.MarkDeletionFailed(event.Resource.Name, event.Resource.Resource)
+		}
 		return
 	}
 
@@ -298,4 +336,32 @@ func (ec *EngineContext) handleProcessDriverResult(event PipelineEvent, pipeline
 func (ec *EngineContext) Stop() error {
 	ec.cancel()
 	return nil
+}
+
+func nextOperation(event string) string {
+	if event == "delete" {
+		return "delete"
+	}
+	return "process"
+}
+
+// Crane stages carry operational success inside the driver payload.
+func deletionStageSucceeded(result DriverResultEvent) bool {
+	if !result.Success {
+		return false
+	}
+	if result.Data == nil {
+		return true
+	}
+	encoded, err := json.Marshal(result.Data)
+	if err != nil {
+		return false
+	}
+	var payload struct {
+		Success *bool `json:"success"`
+	}
+	if json.Unmarshal(encoded, &payload) != nil {
+		return false
+	}
+	return payload.Success == nil || *payload.Success
 }

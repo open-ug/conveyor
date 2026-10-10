@@ -88,6 +88,11 @@ func Setup(config *types.ServerConfig) (APIServerContext, error) {
 		return c.SendString("CONVEYOR API SERVER. Visit https://conveyor.open.ug for Documentation")
 	})
 
+	// Advertise the confirmed cleanup protocol before clients perform deletion.
+	app.Get("/capabilities", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"resource_deletion_pipeline": 1})
+	})
+
 	// Metrics endpoint
 	app.Get("/metrics", adaptor.HTTPHandler(promhttp.Handler()))
 
