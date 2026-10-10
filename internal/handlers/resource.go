@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/dgraph-io/badger/v4"
@@ -167,6 +168,9 @@ func (h *ResourceHandler) GetResource(c *fiber.Ctx) error {
 	}
 
 	resource, err := h.ResourceModel.FindOne(resourceName, resourceType)
+	if errors.Is(err, badger.ErrKeyNotFound) {
+		return c.SendStatus(fiber.StatusNotFound)
+	}
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": fmt.Sprintf("Failed to find resource: %v", err),
@@ -184,43 +188,41 @@ func (h *ResourceHandler) GetResource(c *fiber.Ctx) error {
 // @Produce json
 // @Param type path string true "Resource type"
 // @Param name path string true "Resource name"
-// @Success 204 {string} string "Resource deleted successfully"
+// @Success 202 {object} map[string]interface{} "Pipeline deletion accepted; poll GET until 404"
+// @Success 204 {string} string "Direct resource deleted"
+// @Failure 404 {string} string "Resource already absent"
 // @Failure 400 {object} map[string]interface{} "Bad request - Missing parameters"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /resources/{type}/{name} [delete]
 func (h *ResourceHandler) DeleteResource(c *fiber.Ctx) error {
-	resourceName := c.Params("name")
-	resourceType := c.Params("type")
-	if resourceName == "" || resourceType == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Resource name and type are required",
-		})
+	name, resourceType := c.Params("name"), c.Params("type")
+	if name == "" || resourceType == "" {
+		return c.SendStatus(fiber.StatusBadRequest)
 	}
-
-	// first find the resource to check if it exists
-	resource, err := h.ResourceModel.FindOne(resourceName, resourceType)
+	current, err := h.ResourceModel.FindOne(name, resourceType)
+	if err == nil && models.DeletionRunning(current) {
+		return c.Status(fiber.StatusAccepted).JSON(fiber.Map{"runid": current.Metadata["deletion_runid"], "message": "Resource deletion is running"})
+	}
+	resource, err := h.ResourceModel.BeginDeletion(name, resourceType)
+	if errors.Is(err, badger.ErrKeyNotFound) {
+		return c.SendStatus(fiber.StatusNotFound)
+	}
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": fmt.Sprintf("Failed to find resource: %v", err),
-		})
+		return c.Status(500).JSON(fiber.Map{"error": "Could not prepare resource deletion"})
 	}
-
-	err = h.ResourceModel.Delete(resourceName, resourceType)
+	runID, err := engine.PublishResourceEvent("delete", resource, h.NatsContext.JetStream)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": fmt.Sprintf("Failed to delete resource: %v", err),
-		})
+		_ = h.ResourceModel.MarkDeletionFailed(name, resourceType)
+		return c.Status(500).JSON(fiber.Map{"error": "Could not publish deletion; resource was retained for retry"})
 	}
-
-	// Publish resource deletion event to NATS JetStream
-	_, err = engine.PublishResourceEvent("delete", resource, h.NatsContext.JetStream)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": fmt.Sprintf("Failed to publish resource event: %v", err),
-		})
+	if resource.Pipeline == "" {
+		// Direct resources have no completion pipeline (legacy behavior).
+		if err := h.ResourceModel.Delete(name, resourceType); err != nil {
+			return c.SendStatus(500)
+		}
+		return c.SendStatus(fiber.StatusNoContent)
 	}
-
-	return c.SendStatus(fiber.StatusNoContent)
+	return c.Status(fiber.StatusAccepted).JSON(fiber.Map{"runid": runID, "message": "Resource deletion started"})
 }
 
 // ListResources lists all resources of a specific type

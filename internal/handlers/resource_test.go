@@ -222,7 +222,7 @@ func Test_Resource_CRUD(t *testing.T) {
 
 		// Current implementation returns 500 when FindOne fails / not found.
 		// If you change handler behavior to return 404, update this assertion accordingly.
-		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode, "expected 500 after deleted resource (handler's current behavior)")
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode, "expected 404 after deleted resource")
 	})
 
 	appctx.ShutDown()

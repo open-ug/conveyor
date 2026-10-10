@@ -50,3 +50,9 @@ An example of a resource is here
   }
 }
 ```
+
+## Deleting resources
+
+`DELETE /resources/{type}/{name}` returns `202` for a resource with a pipeline. The resource remains available while cleanup runs. Clients poll `GET /resources/{type}/{name}`: `404` confirms completion, while `metadata.deletion_failed: true` indicates a cleanup failure that can be retried. The delete operation reaches every pipeline stage; drivers must implement cleanup for this event. Versioned resource snapshots are removed only after the final successful stage. Updates are refused while a resource is being deleted, and stale queued pipeline stages are discarded.
+
+Direct resources without a pipeline retain their `204` deletion behavior. A missing resource returns `404`. `/capabilities` advertises `resource_deletion_pipeline: 1` for clients that require the completion protocol. Deletion retries restart failed cleanup; a stalled operation can restart after two minutes.

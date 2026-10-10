@@ -22,12 +22,16 @@ type DriverResultEvent struct {
 func (dre *DriverResultEvent) PublishEvent(
 	run_id string,
 	resource types.Resource,
-	js jetstream.JetStream) error {
+	js jetstream.JetStream, operation ...string) error {
 	pipelineEv := PipelineEvent{
 		Event:             "driver.result",
 		RunID:             run_id,
 		Resource:          resource,
 		DriverResultEvent: *dre,
+	}
+
+	if len(operation) > 0 {
+		pipelineEv.Event = operation[0]
 	}
 
 	resultJson, err := json.Marshal(pipelineEv)
@@ -54,6 +58,11 @@ func PublishResourceEvent(
 	run_id := uuid.New().String()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	if event == "delete" {
+		if id, ok := resource.Metadata["deletion_runid"].(string); ok {
+			run_id = id
+		}
+	}
 
 	// If the resource is not part of a pipeline, publish it directly to the resource subject
 	if resource.Pipeline == "" {

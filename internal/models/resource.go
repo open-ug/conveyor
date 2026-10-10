@@ -2,13 +2,31 @@ package models
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/dgraph-io/badger/v4"
+	"github.com/google/uuid"
 	"github.com/open-ug/conveyor/pkg/types"
 )
+
+var resourceMutationLocks sync.Map
+
+type resourceLockKey struct {
+	db  *badger.DB
+	key string
+}
+
+func (m *ResourceModel) lockMutation(name, resourceType string) func() {
+	value, _ := resourceMutationLocks.LoadOrStore(resourceLockKey{m.DB, m.key(name, resourceType)}, &sync.Mutex{})
+	mutex := value.(*sync.Mutex)
+	mutex.Lock()
+	return mutex.Unlock
+}
 
 type ResourceModel struct {
 	DB *badger.DB
@@ -29,6 +47,8 @@ func (m *ResourceModel) key(name string, resourceType string) string {
 // It returns an error if a resource with the same name and type already exists.
 
 func (m *ResourceModel) Insert(name string, resourceType string, resource []byte) error {
+	unlock := m.lockMutation(name, resourceType)
+	defer unlock()
 	key := []byte(m.key(name, resourceType))
 
 	// first unmarshal to resource inorder to set the version 1
@@ -87,7 +107,7 @@ func (m *ResourceModel) FindOne(name string, resourceType string) (types.Resourc
 		item, err := txn.Get(key)
 		if err != nil {
 			if err == badger.ErrKeyNotFound {
-				return fmt.Errorf("resource with name %s and type %s not found", name, resourceType)
+				return fmt.Errorf("resource with name %s and type %s not found: %w", name, resourceType, badger.ErrKeyNotFound)
 			}
 			return err
 		}
@@ -106,9 +126,38 @@ func (m *ResourceModel) FindOne(name string, resourceType string) (types.Resourc
 // Delete removes a resource by its name and type.
 // It returns an error if the resource does not exist.
 func (m *ResourceModel) Delete(name string, resourceType string) error {
+	unlock := m.lockMutation(name, resourceType)
+	defer unlock()
+	return m.deleteResource(name, resourceType)
+}
+
+// Finalize only the active deletion run, never an outdated retry result.
+func (m *ResourceModel) FinishDeletion(name, resourceType, runID string) error {
+	unlock := m.lockMutation(name, resourceType)
+	defer unlock()
+	resource, err := m.FindOne(name, resourceType)
+	if err != nil {
+		return err
+	}
+	if resource.Metadata["deletion_runid"] != runID {
+		return errors.New("outdated deletion result")
+	}
+	return m.deleteResource(name, resourceType)
+}
+
+func (m *ResourceModel) deleteResource(name, resourceType string) error {
 	key := []byte(m.key(name, resourceType))
 
 	return m.DB.Update(func(txn *badger.Txn) error {
+		// Remove snapshots too: these may contain environment secrets.
+		prefix := append(append([]byte{}, key...), '/')
+		it := txn.NewIterator(badger.DefaultIteratorOptions)
+		defer it.Close()
+		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
+			if err := txn.Delete(it.Item().KeyCopy(nil)); err != nil {
+				return err
+			}
+		}
 		return txn.Delete(key)
 	})
 }
@@ -193,6 +242,8 @@ func setResourceVersion(resource *types.Resource, version int) {
 // Update modifies an existing resource's data.
 // It returns an error if the resource does not exist.
 func (m *ResourceModel) Update(name string, resourceType string, resource types.Resource) (types.Resource, error) {
+	unlock := m.lockMutation(name, resourceType)
+	defer unlock()
 	key := []byte(m.key(name, resourceType))
 
 	// Check existence
@@ -201,6 +252,9 @@ func (m *ResourceModel) Update(name string, resourceType string, resource types.
 		return types.Resource{}, fmt.Errorf("resource with name %s and type %s not found: %v ", name, resourceType, err)
 	}
 
+	if currentResource.Metadata["deleting"] == true {
+		return types.Resource{}, errors.New("resource is being deleted; retry deletion instead of updating")
+	}
 	resource.ID = currentResource.ID // Ensure the ID remains unchanged
 	version, err := getResourceVersion(currentResource)
 	if err != nil {
@@ -317,6 +371,8 @@ func (m *ResourceModel) FindByVersion(name string, resourceType string, version 
 
 // / A function that saves the driver result. This data is then stored in the metadata.driverresults.[driver] field of the resource and is arbitrary data types
 func (m *ResourceModel) SaveDriverResult(name string, resourceType string, driver string, result interface{}) error {
+	unlock := m.lockMutation(name, resourceType)
+	defer unlock()
 	// Retrieve the current resource
 	resource, err := m.FindOne(name, resourceType)
 	if err != nil {
@@ -367,6 +423,8 @@ func updateDriverResult(resource *types.Resource, driver string, result interfac
 }
 
 func (m *ResourceModel) SetCurrentPipelineStep(name string, resourceType string, stepID string) error {
+	unlock := m.lockMutation(name, resourceType)
+	defer unlock()
 	// Retrieve the current resource
 	resource, err := m.FindOne(name, resourceType)
 	if err != nil {
@@ -440,4 +498,55 @@ func (m *ResourceModel) GetCurrentPipelineStep(name string, resourceType string)
 	}
 
 	return stepID, nil
+}
+
+// BeginDeletion keeps the resource available until every cleanup stage succeeds.
+func (m *ResourceModel) BeginDeletion(name, resourceType string) (types.Resource, error) {
+	unlock := m.lockMutation(name, resourceType)
+	defer unlock()
+	resource, err := m.FindOne(name, resourceType)
+	if err != nil {
+		return resource, err
+	}
+	if resource.Metadata == nil {
+		resource.Metadata = map[string]interface{}{}
+	}
+	if DeletionRunning(resource) {
+		return resource, nil
+	}
+	resource.Metadata["deleting"] = true
+	resource.Metadata["deletion_runid"] = uuid.New().String()
+	resource.Metadata["deletion_started_at"] = time.Now().UTC().Format(time.RFC3339Nano)
+	delete(resource.Metadata, "deletion_failed")
+	data, err := json.Marshal(resource)
+	if err != nil {
+		return resource, err
+	}
+	err = m.DB.Update(func(txn *badger.Txn) error { return txn.Set([]byte(m.key(name, resourceType)), data) })
+	return resource, err
+}
+
+func (m *ResourceModel) MarkDeletionFailed(name, resourceType string) error {
+	unlock := m.lockMutation(name, resourceType)
+	defer unlock()
+	resource, err := m.FindOne(name, resourceType)
+	if err != nil {
+		return err
+	}
+	resource.Metadata["deletion_failed"] = true
+	data, err := json.Marshal(resource)
+	if err != nil {
+		return err
+	}
+	return m.DB.Update(func(txn *badger.Txn) error { return txn.Set([]byte(m.key(name, resourceType)), data) })
+}
+
+// Stalled cleanup can be restarted after a node crash or lost result.
+func DeletionRunning(resource types.Resource) bool {
+	if resource.Metadata["deleting"] != true || resource.Metadata["deletion_failed"] == true {
+		return false
+	}
+	started, _ := resource.Metadata["deletion_started_at"].(string)
+	at, err := time.Parse(time.RFC3339Nano, started)
+	return err == nil && time.Since(at) < 2*time.Minute
 }
